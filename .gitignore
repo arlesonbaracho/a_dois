@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.turbo/
+out/
+dist/
+.env
+.env.*
+!.env.example
+public/sw.js
+public/workbox-*.js
+*.log
+.DS_Store
+supabase/.temp/
+.claude/settings.local.json
