@@ -341,6 +341,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          consent_analytics_at: string | null
+          consent_income_band_at: string | null
+          consent_marketing_at: string | null
           created_at: string
           discoverable_by_nickname: boolean
           display_name: string | null
@@ -350,6 +353,9 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          consent_analytics_at?: string | null
+          consent_income_band_at?: string | null
+          consent_marketing_at?: string | null
           created_at?: string
           discoverable_by_nickname?: boolean
           display_name?: string | null
@@ -359,6 +365,9 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          consent_analytics_at?: string | null
+          consent_income_band_at?: string | null
+          consent_marketing_at?: string | null
           created_at?: string
           discoverable_by_nickname?: boolean
           display_name?: string | null
@@ -454,11 +463,16 @@ export type Database = {
           token: string
         }[]
       }
+      delete_account: {
+        Args: { p_confirmacao: string; p_confirmo_apagar?: boolean }
+        Returns: string
+      }
       delete_goal: {
         Args: { p_confirmo_apagar?: boolean; p_goal_id: string }
         Returns: string
       }
       expire_and_purge: { Args: never; Returns: undefined }
+      export_my_data: { Args: never; Returns: Json }
       find_by_nickname: {
         Args: { p_nickname: string }
         Returns: {
@@ -492,6 +506,18 @@ export type Database = {
       }
       reject_invite: { Args: { p_invite_id: string }; Returns: undefined }
       revoke_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      sair_do_casal_interno: {
+        Args: {
+          p_confirmo_apagar: boolean
+          p_recriar_plano: boolean
+          p_user_id: string
+        }
+        Returns: string
+      }
+      set_consent: {
+        Args: { p_aceito: boolean; p_tipo: string }
+        Returns: undefined
+      }
       set_profile: {
         Args: {
           p_discoverable?: boolean
