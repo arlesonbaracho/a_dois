@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { APP_NAME, formatBRL, sumCents } from "@repo/core";
 import { usuarioAtual } from "@repo/api";
 
@@ -21,6 +23,10 @@ export default async function Home() {
       <p>Você entrou como {usuario?.email}.</p>
       <Casal />
       <p>Quanto vocês já juntaram: {formatBRL(sumCents(aportes))}</p>
+
+      <Link href="/perfil" className="text-sm underline">
+        Seu perfil
+      </Link>
 
       <form action={acaoSair}>
         <button type="submit" className="text-sm underline">

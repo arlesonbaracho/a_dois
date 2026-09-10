@@ -314,14 +314,90 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          discoverable_by_nickname: boolean
+          display_name: string | null
+          nickname: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          discoverable_by_nickname?: boolean
+          display_name?: string | null
+          nickname?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          discoverable_by_nickname?: boolean
+          display_name?: string | null
+          nickname?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rate_limit_hits: {
+        Row: {
+          acao: string
+          chave: string
+          created_at: string
+          id: number
+        }
+        Insert: {
+          acao: string
+          chave: string
+          created_at?: string
+          id?: never
+        }
+        Update: {
+          acao?: string
+          chave?: string
+          created_at?: string
+          id?: never
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      checar_limite: {
+        Args: {
+          p_acao: string
+          p_chave: string
+          p_janela: string
+          p_limite: number
+        }
+        Returns: undefined
+      }
       create_couple: { Args: never; Returns: string }
       create_couple_for: { Args: { p_user_id: string }; Returns: string }
+      find_by_nickname: {
+        Args: { p_nickname: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          nickname: string
+        }[]
+      }
       is_couple_member: { Args: { couple_id: string }; Returns: boolean }
+      set_profile: {
+        Args: {
+          p_discoverable?: boolean
+          p_display_name: string
+          p_nickname: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       couple_role: "dono" | "parceiro"

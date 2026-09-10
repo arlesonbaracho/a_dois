@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Campo, Cartao, Enviar, Recado } from "@/components/auth-ui";
+import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
 
-import { acaoEntrar, type EstadoForm } from "../actions";
+import { acaoEntrar } from "../actions";
 
 export function FormLogin({
   proxima,

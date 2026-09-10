@@ -3,7 +3,10 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
-// Peças burras das telas de auth: nenhuma delas sabe o que é Supabase.
+// Peças burras dos formulários: nenhuma delas sabe o que é Supabase.
+
+/** O que uma Server Action devolve para a tela. */
+export type EstadoForm = { erro?: string; aviso?: string };
 
 export function Cartao({
   titulo,
@@ -40,6 +43,22 @@ export function Campo({
   );
 }
 
+export function Interruptor({
+  rotulo,
+  descricao,
+  ...props
+}: { rotulo: string; descricao: string } & ComponentProps<"input">) {
+  return (
+    <label className="flex items-start gap-3">
+      <input {...props} type="checkbox" className="mt-1 size-4" />
+      <span>
+        <span className="block text-sm font-medium">{rotulo}</span>
+        <span className="block text-sm text-stone-600">{descricao}</span>
+      </span>
+    </label>
+  );
+}
+
 export function Enviar({ children }: { children: ReactNode }) {
   const { pending } = useFormStatus();
   return (
@@ -53,7 +72,7 @@ export function Enviar({ children }: { children: ReactNode }) {
   );
 }
 
-export function Recado({ erro, aviso }: { erro?: string; aviso?: string }) {
+export function Recado({ erro, aviso }: EstadoForm) {
   if (!erro && !aviso) return null;
   return (
     <p

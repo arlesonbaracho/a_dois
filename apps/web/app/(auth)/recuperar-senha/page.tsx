@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Campo, Cartao, Enviar, Recado } from "@/components/auth-ui";
+import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
 
-import { acaoPedirNovaSenha, type EstadoForm } from "../actions";
+import { acaoPedirNovaSenha } from "../actions";
 
 export default function RecuperarSenha() {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoPedirNovaSenha, {});

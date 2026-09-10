@@ -4,9 +4,9 @@ import { useActionState } from "react";
 
 import { SENHA_MINIMA } from "@repo/core";
 
-import { Campo, Cartao, Enviar, Recado } from "@/components/auth-ui";
+import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
 
-import { acaoTrocarSenha, type EstadoForm } from "../actions";
+import { acaoTrocarSenha } from "../actions";
 
 export default function NovaSenha() {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoTrocarSenha, {});

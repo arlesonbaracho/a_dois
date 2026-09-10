@@ -5,9 +5,9 @@ import { useActionState } from "react";
 
 import { SENHA_MINIMA } from "@repo/core";
 
-import { Campo, Cartao, Enviar, Recado } from "@/components/auth-ui";
+import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
 
-import { acaoCadastrar, type EstadoForm } from "../actions";
+import { acaoCadastrar } from "../actions";
 
 export default function Cadastro() {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoCadastrar, {});

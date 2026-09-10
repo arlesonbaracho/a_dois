@@ -6,9 +6,8 @@ import { redirect } from "next/navigation";
 import { cadastrar, entrar, pedirNovaSenha, sair, trocarSenha } from "@repo/api";
 import { credenciaisSchema, emailSchema, senhaSchema, SENHA_MINIMA } from "@repo/core";
 
+import type { EstadoForm } from "@/components/form-ui";
 import { criarClienteServidor } from "@/lib/supabase/server";
-
-export type EstadoForm = { erro?: string; aviso?: string };
 
 // A mesma frase para senha errada, e-mail que não existe e e-mail mal
 // formatado. Qualquer diferença entre esses três casos conta para quem está

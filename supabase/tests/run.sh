@@ -16,6 +16,7 @@ raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 testes=(
   "$raiz/supabase/tests/rls_isolamento.sql"
   "$raiz/supabase/tests/cadastro_cria_casal.sql"
+  "$raiz/supabase/tests/perfil.sql"
 )
 PG="${PGSQL_HOME:-$HOME/.local/pgsql}"
 
