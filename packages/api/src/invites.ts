@@ -8,6 +8,10 @@ export type CanalConvite = Database["public"]["Enums"]["invite_channel"];
 export type StatusConvite = Database["public"]["Enums"]["invite_status"];
 export type Convite = Database["public"]["Tables"]["couple_invites"]["Row"];
 
+/** Um convite em aberto, como a tela do parceiro o vê: sem e-mail em claro. */
+export type ConviteAberto =
+  Database["public"]["Functions"]["active_invites"]["Returns"][number];
+
 /** O que a tela de confirmação mostra. O e-mail já chega mascarado do banco. */
 export type PedidoPendente =
   Database["public"]["Functions"]["pending_claim"]["Returns"][number];
@@ -62,17 +66,16 @@ export async function reivindicarConvite(
   return (data ?? "indisponivel") as ResultadoReivindicacao;
 }
 
-// O couple_id vem por parâmetro porque a policy de select alcança também o
-// convite que a própria pessoa reivindicou no casal de outra gente — sem o
-// filtro, a tela do parceiro misturaria os dois lados.
-export async function convitesAtivos(client: Client, coupleId: string): Promise<Convite[]> {
-  const { data, error } = await client
-    .from("couple_invites")
-    .select("*")
-    .eq("couple_id", coupleId)
-    .in("status", ["pending", "claimed"])
-    .order("created_at");
-
+/**
+ * Os convites em aberto do casal, para a tela do parceiro.
+ *
+ * Via RPC, e não select: `invited_email` e `token_hash` saíram do grant de
+ * `authenticated` — o e-mail é de um terceiro, e a auditoria achou ele em claro
+ * aqui. A função devolve o endereço mascarado, e o casal sai do JWT lá dentro,
+ * então o couple_id deixou de ser parâmetro.
+ */
+export async function convitesAtivos(client: Client): Promise<ConviteAberto[]> {
+  const { data, error } = await client.rpc("active_invites");
   if (error) throw error;
   return data ?? [];
 }
@@ -83,11 +86,16 @@ export async function pedidosPendentes(client: Client): Promise<PedidoPendente[]
   return data ?? [];
 }
 
-/** O pedido que a própria pessoa fez, para a tela de "esperando confirmação". */
-export async function meuPedido(client: Client, userId: string): Promise<Convite | null> {
+/**
+ * O pedido que a própria pessoa fez, para a tela de "esperando confirmação".
+ *
+ * Só o id: quem chama usa isto como "já pediu?", e `select *` passaria por
+ * cima das colunas que saíram do grant.
+ */
+export async function meuPedido(client: Client, userId: string): Promise<{ id: string } | null> {
   const { data, error } = await client
     .from("couple_invites")
-    .select("*")
+    .select("id")
     .eq("claimed_by_user_id", userId)
     .eq("status", "claimed")
     .maybeSingle();

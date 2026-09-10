@@ -44,9 +44,14 @@ begin
     'public.goals', 'public.goal_items', 'public.contributions',
     'public.price_quotes'
   ] loop
-    if not has_table_privilege(papel, t, 'select') then
+    -- has_ANY_column: couple_invites perdeu o grant de tabela quando
+    -- invited_email e token_hash saíram do alcance do cliente, e o grant lá
+    -- passou a ser por coluna. A pergunta que este guarda faz continua a mesma
+    -- — "sobrou alguma coluna legível?" — porque se não sobrasse, zero linha
+    -- viria de permissão negada e o teste passaria sem testar RLS nenhum.
+    if not has_any_column_privilege(papel, t, 'select') then
       raise exception
-        'TESTE INVÁLIDO: % não tem grant de select em %. Zero linha viria de permissão, não de RLS.',
+        'TESTE INVÁLIDO: % não lê coluna nenhuma de %. Zero linha viria de permissão, não de RLS.',
         papel, t;
     end if;
   end loop;

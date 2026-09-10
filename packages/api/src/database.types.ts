@@ -403,6 +403,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      active_invites: {
+        Args: never
+        Returns: {
+          channel: Database["public"]["Enums"]["invite_channel"]
+          created_at: string
+          email_mascarado: string
+          expires_at: string
+          invite_id: string
+          status: Database["public"]["Enums"]["invite_status"]
+        }[]
+      }
       add_contribution: {
         Args: {
           p_amount_cents: number

@@ -45,6 +45,14 @@ end $$;
 -- próprio criador: qualquer código diferente entre esses casos seria um
 -- oráculo para quem estivesse varrendo tokens.
 -- create_invite devolve (resultado, token). Guarda o token quando dá certo.
+create function convite_teste.certo(rotulo text, obtido boolean)
+returns void language plpgsql as $$
+begin
+  if obtido is distinct from true then
+    raise exception 'FALHOU em "%"', rotulo;
+  end if;
+end $$;
+
 create function convite_teste.criar(rotulo text, esperado text, p_nome text,
                                     p_channel public.invite_channel,
                                     p_email text default null, p_nickname text default null)
@@ -336,6 +344,55 @@ begin
     (select count(*) from public.couple_invites where status = 'confirmed'), 0);
 
   raise notice 'couple_invites não aceita escrita direta';
+end $$;
+
+
+-- ===========================================================================
+-- 6b. E não devolve o e-mail de quem foi convidado, nem o token
+-- ===========================================================================
+
+-- O e-mail é de um TERCEIRO: a pessoa convidada nunca consentiu em aparecer
+-- para o parceiro de quem a convidou. E o token_hash é segredo do sistema.
+-- RLS não resolve isso — ela filtra linha, não coluna. Quem filtra é o grant.
+--
+-- A auditoria de 2026-09-10 achou as duas colunas legíveis por qualquer membro
+-- do casal. Estas asserções são as que teriam pego isso antes.
+do $$
+begin
+  perform convite_teste.recusa('membro do casal não lê invited_email',
+    'select invited_email from public.couple_invites limit 1');
+  perform convite_teste.recusa('membro do casal não lê token_hash',
+    'select token_hash from public.couple_invites limit 1');
+
+  -- E o "select *" cai junto, que é como a tela lia antes.
+  perform convite_teste.recusa('nem por select *',
+    'select * from public.couple_invites limit 1');
+
+  -- O que sobra continua legível: sem isso a tela não teria como listar nada.
+  -- Sem contagem fixa de propósito — o que importa é o select não explodir.
+  perform (select count(*) from (select id, channel, status, expires_at
+                                 from public.couple_invites) as x);
+
+  raise notice 'invited_email e token_hash fora do alcance do cliente';
+end $$;
+
+-- active_invites: o substituto que a tela usa, com o e-mail mascarado.
+do $$
+declare linha record;
+begin
+  select * into linha from public.active_invites()
+  where channel = 'email' limit 1;
+
+  perform convite_teste.certo('active_invites devolve o convite por e-mail',
+    linha.invite_id is not null);
+  perform convite_teste.certo('com o e-mail mascarado',
+    linha.email_mascarado like '%•%');
+  -- O domínio sobrevive à máscara (j••e@gm••l.com), mas o nome antes do @ não
+  -- pode sair inteiro.
+  perform convite_teste.certo('e nunca o endereço em claro',
+    split_part(linha.email_mascarado, '@', 1) like '%•%');
+
+  raise notice 'active_invites mascara o e-mail';
 end $$;
 
 

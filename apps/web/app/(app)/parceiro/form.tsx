@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 
-import type { CanalConvite, Convite, PedidoPendente } from "@repo/api";
+import type { CanalConvite, ConviteAberto, PedidoPendente } from "@repo/api";
 
 import { Campo, Enviar, Interruptor, Recado, type EstadoForm } from "@/components/form-ui";
 
@@ -143,16 +143,16 @@ function FormCriar() {
   );
 }
 
-function ConviteAtivo({ convite }: { convite: Convite }) {
+function ConviteAtivo({ convite }: { convite: ConviteAberto }) {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoPedido, {});
 
   return (
     <form action={acao} className="flex flex-col gap-2 border-t border-stone-200 pt-3">
-      <input type="hidden" name="id" value={convite.id} />
+      <input type="hidden" name="id" value={convite.invite_id} />
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm">
           {NOME_DO_CANAL[convite.channel]}
-          {convite.invited_email ? ` — ${convite.invited_email}` : ""}
+          {convite.email_mascarado ? ` — ${convite.email_mascarado}` : ""}
         </span>
         <button type="submit" name="acao" value="revogar" className="text-sm underline">
           Cancelar
@@ -217,7 +217,7 @@ export function TelaParceiro({
   membros,
 }: {
   pedidos: PedidoPendente[];
-  ativos: Convite[];
+  ativos: ConviteAberto[];
   membros: number;
 }) {
   const planoCheio = membros >= 2;
@@ -247,7 +247,7 @@ export function TelaParceiro({
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">Convites em aberto</h2>
           {ativos.map((convite) => (
-            <ConviteAtivo key={convite.id} convite={convite} />
+            <ConviteAtivo key={convite.invite_id} convite={convite} />
           ))}
         </section>
       ) : null}
