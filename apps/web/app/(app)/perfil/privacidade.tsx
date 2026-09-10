@@ -53,7 +53,7 @@ export function Privacidade({ userId }: { userId: string }) {
   const client = useSupabase();
   const router = useRouter();
 
-  const { data: perfil } = useMeuPerfil(userId);
+  const { data: perfil, isPending: carregandoPerfil } = useMeuPerfil(userId);
   const salvarConsentimento = useSalvarConsentimento(userId);
 
   const [erro, setErro] = useState("");
@@ -169,12 +169,21 @@ export function Privacidade({ userId }: { userId: string }) {
                 name={item.tipo}
                 checked={desde !== null}
                 onChange={(evento) => void alternar(item.tipo, evento.target.checked)}
-                disabled={salvarConsentimento.isPending}
+                // Enquanto o perfil não chegou, `desde` é nulo e a caixa
+                // aparece DESLIGADA — indistinguível de um "não" de verdade.
+                // Quem clicasse nesse instante concederia achando que estava
+                // revogando. Consentimento não pode depender de quem clica
+                // devagar.
+                disabled={carregandoPerfil || salvarConsentimento.isPending}
                 rotulo={item.rotulo}
                 descricao={item.descricao}
               />
               <p className="pl-7 text-xs text-stone-500">
-                {desde ? `Você disse sim em ${dia(desde)}.` : "Você não disse sim."}
+                {carregandoPerfil
+                  ? "Carregando…"
+                  : desde
+                    ? `Você disse sim em ${dia(desde)}.`
+                    : "Você não disse sim."}
               </p>
             </div>
           );
