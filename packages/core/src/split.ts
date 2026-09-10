@@ -35,6 +35,13 @@ export type Participante = {
   papel: "dono" | "parceiro";
   regra: RegraDivisao;
   faixaRenda: FaixaRenda | null;
+  /**
+   * A pessoa consentiu com o uso da faixa dela no cálculo?
+   *
+   * Sem consentimento a faixa existe no banco e não pode ser usada — é aqui, e
+   * só aqui, que o app deixa de usá-la. Uma leitura, um lugar.
+   */
+  usoDaFaixaConsentido: boolean;
   parteFixaCents: number | null;
 };
 
@@ -134,7 +141,10 @@ export function pesosDaRegra(
   if (regra === "proporcional") {
     const pesos: number[] = [];
     for (const pessoa of participantes) {
-      if (pessoa.faixaRenda === null) return null;
+      // Faixa que existe mas não pode ser usada vale o mesmo que faixa que não
+      // existe: a regra não se aplica, e a tela explica em vez de estourar.
+      // Revogar o consentimento não quebra nada — cai neste mesmo caminho.
+      if (pessoa.faixaRenda === null || !pessoa.usoDaFaixaConsentido) return null;
       pesos.push(PESO_FAIXA[pessoa.faixaRenda]);
     }
     return pesos;

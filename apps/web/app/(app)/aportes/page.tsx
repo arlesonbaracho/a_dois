@@ -1,4 +1,4 @@
-import { aportes, membrosDoCasal, metas, usuarioAtual } from "@repo/api";
+import { aportes, membrosDoCasal, metas, perfisDoCasal, usuarioAtual } from "@repo/api";
 import {
   type Participante,
   pesosDaRegra,
@@ -15,11 +15,19 @@ export default async function Aportes() {
   const supabase = await criarClienteServidor();
   const usuario = await usuarioAtual(supabase);
 
-  const [membros, listaMetas, listaAportes] = await Promise.all([
+  const [membros, listaMetas, listaAportes, perfis] = await Promise.all([
     membrosDoCasal(supabase),
     metas(supabase),
     aportes(supabase),
+    perfisDoCasal(supabase),
   ]);
+
+  // O consentimento com o uso da faixa mora no perfil de cada pessoa. Sem ele,
+  // pesosDaRegra trata a faixa como se não existisse — que é como revogar
+  // deixa de quebrar o app.
+  const consentiuFaixa = new Map(
+    perfis.map((perfil) => [perfil.user_id, perfil.consent_income_band_at !== null]),
+  );
 
   // Quem está ativo no casal, na forma que o core entende. A regra de divisão
   // é coluna por pessoa; quem desempata é regraDoCasal.
@@ -28,6 +36,7 @@ export default async function Aportes() {
     papel: membro.role,
     regra: membro.split_rule,
     faixaRenda: membro.income_band,
+    usoDaFaixaConsentido: consentiuFaixa.get(membro.user_id) ?? false,
     parteFixaCents: membro.fixed_share_cents,
   }));
 

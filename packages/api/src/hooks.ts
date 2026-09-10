@@ -10,6 +10,8 @@ import {
 
 import { aportes, registrarAporte, type Aporte } from "./contributions";
 import { meuCasal } from "./couple";
+import { salvarConsentimento, type TipoConsentimento } from "./privacy";
+import { meuPerfil } from "./profiles";
 import {
   apagarItem,
   criarItem,
@@ -39,6 +41,7 @@ import { useSupabase } from "./provider";
  */
 export const chaves = {
   casal: ["casal"] as const,
+  perfil: (userId: string) => ["perfil", userId] as const,
   metas: ["metas"] as const,
   // Raízes distintas de propósito. O invalidateQueries casa por PREFIXO: com
   // a chave do detalhe sendo ["metas", id], invalidar a lista arrastaria junto
@@ -61,6 +64,15 @@ export const chaves = {
 export function useCasal() {
   const client = useSupabase();
   return useQuery({ queryKey: chaves.casal, queryFn: () => meuCasal(client) });
+}
+
+export function useMeuPerfil(userId: string | undefined) {
+  const client = useSupabase();
+  return useQuery({
+    queryKey: chaves.perfil(userId ?? ""),
+    queryFn: () => meuPerfil(client, userId as string),
+    enabled: Boolean(userId),
+  });
 }
 
 export function useMetas(): UseQueryResult<Meta[]> {
@@ -188,5 +200,21 @@ export function useRegistrarAporte(
       await cache.invalidateQueries({ queryKey: chaves.aportes(goalId) });
       await cache.invalidateQueries({ queryKey: chaves.aportes() });
     },
+  });
+}
+
+/**
+ * Um consentimento por vez, de propósito: quem chama passa o tipo, e o banco
+ * escreve só aquela coluna. Consentimento agrupado não é consentimento.
+ */
+export function useSalvarConsentimento(
+  userId: string,
+): UseMutationResult<void, Error, { tipo: TipoConsentimento; aceito: boolean }> {
+  const client = useSupabase();
+  const cache = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ tipo, aceito }) => salvarConsentimento(client, tipo, aceito),
+    onSuccess: () => cache.invalidateQueries({ queryKey: chaves.perfil(userId) }),
   });
 }

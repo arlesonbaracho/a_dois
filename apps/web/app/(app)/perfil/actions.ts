@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { excluirConta, sair, type ResultadoExclusao } from "@repo/api";
 import { salvarPerfil } from "@repo/api";
 
 import type { EstadoForm } from "@/components/form-ui";
@@ -33,4 +34,34 @@ export async function acaoSalvarPerfil(
 
   revalidatePath("/perfil");
   return { aviso: "Pronto, seu perfil está salvo." };
+}
+
+/**
+ * Apagar a conta.
+ *
+ * Server Action, e não chamada do browser, por causa do cookie: o banco derruba
+ * as sessões, mas quem apaga o cookie httpOnly é o servidor. Sem isto a pessoa
+ * ficaria com um cookie apontando para uma conta que não existe mais.
+ *
+ * A palavra vai crua para o banco de propósito. Conferir aqui também seria uma
+ * segunda cópia da regra, e é a do banco que vale para quem chama a API direto.
+ */
+export async function acaoExcluirConta(
+  palavra: string,
+  confirmoApagarPlano: boolean,
+): Promise<ResultadoExclusao | "erro"> {
+  const supabase = await criarClienteServidor();
+
+  let resultado: ResultadoExclusao;
+  try {
+    resultado = await excluirConta(supabase, palavra, confirmoApagarPlano);
+  } catch {
+    return "erro";
+  }
+
+  if (resultado === "ok" || resultado === "conta_e_plano_apagados") {
+    await sair(supabase);
+  }
+
+  return resultado;
 }

@@ -15,6 +15,7 @@ function pessoa(over: Partial<Participante> & { userId: string }): Participante 
     papel: "parceiro",
     regra: "igual",
     faixaRenda: null,
+    usoDaFaixaConsentido: true,
     parteFixaCents: null,
     ...over,
   };
@@ -131,6 +132,32 @@ describe("pesosDaRegra", () => {
 
   // A faixa de renda é opcional. Sem ela a regra não se aplica, e isso é uma
   // resposta, não uma exceção: a tela desabilita a opção e explica.
+  // Revogar o consentimento não pode quebrar o app: ele cai no MESMO caminho
+  // de quem nunca informou a faixa.
+  it("devolve null quando alguém revogou o uso da faixa", () => {
+    const comFaixa = { ...ana, faixaRenda: "ate_2_sm" as const };
+    const outra = { ...bia, faixaRenda: "de_5_a_10_sm" as const };
+
+    expect(pesosDaRegra("proporcional", [comFaixa, outra])).not.toBeNull();
+    expect(
+      pesosDaRegra("proporcional", [{ ...comFaixa, usoDaFaixaConsentido: false }, outra]),
+    ).toBeNull();
+    expect(
+      pesosDaRegra("proporcional", [comFaixa, { ...outra, usoDaFaixaConsentido: false }]),
+    ).toBeNull();
+  });
+
+  it("revogar não mexe nos outros modos", () => {
+    const semConsentir = { ...ana, faixaRenda: "ate_2_sm" as const, usoDaFaixaConsentido: false };
+    expect(pesosDaRegra("igual", [semConsentir, bia])).toEqual([1, 1]);
+    expect(
+      pesosDaRegra("fixo", [
+        { ...semConsentir, parteFixaCents: 80000 },
+        { ...bia, parteFixaCents: 50000 },
+      ]),
+    ).toEqual([80000, 50000]);
+  });
+
   it("devolve null quando falta faixa de renda em alguém", () => {
     expect(pesosDaRegra("proporcional", [{ ...ana, faixaRenda: "ate_2_sm" }, bia])).toBeNull();
     expect(pesosDaRegra("proporcional", [ana, bia])).toBeNull();

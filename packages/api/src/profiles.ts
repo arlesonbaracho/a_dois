@@ -23,6 +23,16 @@ export async function meuPerfil(client: Client, userId: string): Promise<Perfil 
   return data;
 }
 
+/**
+ * Os perfis que a policy alcança: o seu e o de quem divide o casal com você.
+ * Sem filtro, porque é exatamente isso que profiles_select já devolve.
+ */
+export async function perfisDoCasal(client: Client): Promise<Perfil[]> {
+  const { data, error } = await client.from("profiles").select("*");
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function salvarPerfil(
   client: Client,
   dados: { displayName: string | null; nickname: string | null; discoverable: boolean },

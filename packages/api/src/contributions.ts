@@ -45,6 +45,10 @@ export async function registrarAporte(
  *
  * Escreve só na própria linha. O userId vem de quem chama, não do corpo de um
  * formulário: quem monta a chamada é o Server Component, que já tem a sessão.
+ *
+ * Escolher uma faixa aqui registra, no banco, o consentimento com o uso dela —
+ * é um gatilho em couple_members, e não uma chamada extra daqui, para que valha
+ * para qualquer caminho de escrita que exista amanhã.
  */
 export async function salvarMinhaDivisao(
   client: Client,

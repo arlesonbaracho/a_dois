@@ -31,8 +31,11 @@ const MODOS: { valor: RegraDivisao; rotulo: string; comoFunciona: string; oQueFa
     valor: "proporcional",
     rotulo: "Pela renda de cada um",
     comoFunciona: "Quem ganha mais entra com uma parte maior.",
+    // Cobre os dois motivos de indisponibilidade: faixa em branco, e faixa
+    // preenchida com o consentimento revogado no perfil. Mencionar só o
+    // primeiro deixaria quem revogou procurando um campo que já está cheio.
     oQueFalta:
-      "Para dividir assim, vocês dois precisam escolher uma faixa de renda ali embaixo. É opcional — e a gente nunca pergunta o valor exato, só a faixa.",
+      "Para dividir assim, cada um precisa escolher uma faixa de renda ali embaixo e deixar o uso dela ligado no perfil. É opcional — e a gente nunca pergunta o valor exato, só a faixa.",
   },
   {
     valor: "fixo",
