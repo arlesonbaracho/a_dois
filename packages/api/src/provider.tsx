@@ -44,6 +44,14 @@ export function SupabaseProvider({
             // vivo — trabalho dobrado para mostrar a mesma tela.
             refetchOnWindowFocus: false,
             staleTime: 30_000,
+
+            // "always", e não o `true` padrão: o postgres_changes NÃO reenvia o
+            // que passou enquanto a conexão estava fora. Com `true`, a consulta
+            // ainda dentro do staleTime é considerada fresca e não refaz — e o
+            // que o parceiro escreveu durante a queda some para sempre, até
+            // alguém navegar. Reconectar é o único momento em que a gente SABE
+            // que pode ter perdido evento, então relê sempre.
+            refetchOnReconnect: "always",
           },
         },
       }),

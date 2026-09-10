@@ -96,6 +96,15 @@ Suíte Playwright: **36 testes, 36 verdes** (o de cadastro duplicado está marca
   avisado de que foi sobrescrito. Não há regra definida, e este relatório não propõe uma.
 - **Reconexão:** B offline, A escreve, B volta — B converge sozinho, sem refresh.
 
+  > **CORREÇÃO, feita ao consertar o achado 7.** Este item foi dado como aprovado e
+  > **passou por sorte**. O `postgres_changes` não reenvia o que passou enquanto a
+  > conexão esteve fora, e o `refetchOnReconnect: true` padrão só refaz a consulta se
+  > ela estiver velha — com `staleTime` de 30s, uma queda curta deixava a tela do
+  > parceiro mentindo até alguém navegar. Rodando o mesmo teste três vezes, ele
+  > falhava. Corrigido com `refetchOnReconnect: "always"`; o teste passa três de três.
+  > Fica o aprendizado: teste de convergência que roda uma vez só não prova
+  > convergência.
+
 ---
 
 ## 4. O que NÃO consegui testar

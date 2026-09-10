@@ -49,6 +49,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | Achado 7 (Médio) fechado: `useSalvarItem` e `useSalvarConsentimento` com estado otimista completo — `onMutate`, rollback no `onError` e `cancelQueries` contra o refetch em voo. O e2e voltou de `click()` para `check()` | `1065f2d` |
 | 2026-09-10 | O teste de apelido longo passava **em vão**: `maxLength=20` cortava antes de enviar, então o banco nunca era perguntado. Virou sonda direta a `set_profile` | `2678bac` |
 | 2026-09-10 | Corrida no teste do convite (a tela de quem convidou era lida antes do claim aterrissar) e prazo do Playwright de 60s para 90s — os testes de dois contextos estouravam como "Request context disposed", que não diz nada sobre a causa | `325eb28` |
+| 2026-09-10 | **A auditoria tinha dado "reconexão" como aprovada, e estava errada.** O `postgres_changes` não reenvia evento perdido, e o `refetchOnReconnect` padrão respeita o `staleTime` — queda curta deixava a tela do parceiro mentindo. `refetchOnReconnect: "always"`, e o teste passa três de três | `(este commit)` |
 
 ---
 
@@ -222,6 +223,7 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | `centavosDeTexto` mora em `packages/core` e é a regra canônica de ler dinheiro digitado | Um parser ingênuo lê "1.234" como 123 centavos e grava valor mil vezes menor sem erro na tela. A regra existia testada em `open-graph.ts`; subiu para onde é pura, portável e usada pelo app |
 | 2026-09-10 | O e-mail do stack local morre no **Mailpit**, em <http://127.0.0.1:54324> | `[local_smtp] enabled = true` no `config.toml` captura tudo e não entrega a ninguém. Não é defeito: é o desenvolvimento funcionando. Caixa de entrada de verdade só depois de SMTP configurado no painel do projeto hospedado — e aí sem SPF + DKIM + DMARC no domínio o Gmail manda para spam |
 | 2026-09-10 | Teto de valor da meta é **constraint**; prazo vencido é **condição em `add_goal`** | Não é inconsistência. O teto vale nos dois caminhos de escrita, e editar meta não passa por `add_goal`. Já o prazo não pode valer no update: meta vencida é estado legítimo, e constraint tornaria impossível trocar o título de uma meta que venceu — defeito pior que o consertado |
+| 2026-09-10 | `refetchOnReconnect: "always"`, e não o `true` padrão | O `true` só refaz consulta velha, e com `staleTime` de 30s uma queda de dez segundos não refaz nada. Como o Realtime não reenvia o que passou, reconectar é o único instante em que se SABE que pode ter faltado evento — e é o instante em que se relê sempre |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
