@@ -49,7 +49,10 @@ export async function middleware(request: NextRequest) {
 
   if (!user && !casa(pathname, PUBLICAS)) {
     const login = new URL("/login", request.url);
-    login.searchParams.set("proxima", pathname);
+    // Com a query string junto: sem ela, quem clica no link de convite
+    // deslogado perde o token na ida ao login. A peneira contra redirect
+    // aberto continua em app/(auth)/actions.ts.
+    login.searchParams.set("proxima", pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
   }
 

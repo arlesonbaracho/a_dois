@@ -22,3 +22,20 @@ export async function meuCasal(client: Client) {
   if (error) throw error;
   return data;
 }
+
+export type MembroDoCasal = Database["public"]["Tables"]["couple_members"]["Row"];
+
+/**
+ * Quem está no casal agora. Sem filtro por couple_id de novo: a policy de
+ * select já reduz a tabela aos casais do auth.uid().
+ */
+export async function membrosDoCasal(client: Client): Promise<MembroDoCasal[]> {
+  const { data, error } = await client
+    .from("couple_members")
+    .select("*")
+    .is("left_at", null)
+    .order("created_at");
+
+  if (error) throw error;
+  return data ?? [];
+}
