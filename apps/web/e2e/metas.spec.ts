@@ -28,13 +28,11 @@ test.describe("metas e itens", () => {
     await expect(page.getByText("Geladeira")).toBeVisible();
     await expect(page.getByText("R$ 4.199,00")).toBeVisible();
 
-    // click, e não check: o check do Playwright exige que a caixa mude de
-    // estado no mesmo instante do clique, e esta é controlada — ela só marca
-    // quando a escrita volta do servidor. Isso é uma lentidão de verdade na
-    // tela, e está registrada em Dívidas.
+    // check(), e não click(): o check do Playwright exige que a caixa mude de
+    // estado no MESMO instante do clique. Ele falhava antes do estado otimista
+    // — é essa a diferença que este teste agora tranca.
     const comprado = page.getByRole("checkbox", { name: "Marcar Geladeira como comprado" });
-    await comprado.click();
-    await expect(comprado).toBeChecked();
+    await comprado.check();
 
     // E tem que sobreviver ao recarregar: sem isso, o teste passaria com um
     // estado que só existe no navegador.

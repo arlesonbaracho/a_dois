@@ -11,7 +11,7 @@ import {
 import { aportes, registrarAporte, type Aporte } from "./contributions";
 import { meuCasal } from "./couple";
 import { salvarConsentimento, type TipoConsentimento } from "./privacy";
-import { meuPerfil } from "./profiles";
+import { meuPerfil, type Perfil } from "./profiles";
 import {
   apagarItem,
   criarItem,
@@ -159,19 +159,56 @@ export function useCriarItem(
   });
 }
 
+/**
+ * Marcar um item mexe numa caixa de marcar, e caixa de marcar tem que responder
+ * no instante do clique. Sem o estado otimista ela só muda quando a escrita
+ * volta do servidor — em rede ruim parece que o clique não pegou, e a pessoa
+ * clica de novo.
+ *
+ * O par completo, e não só o onMutate: sem o rollback do onError, uma escrita
+ * que falha deixa a tela mentindo, que é pior que a demora.
+ */
 export function useSalvarItem(
   goalId: string,
 ): UseMutationResult<
   void,
   Error,
-  { itemId: string; nome?: string; precoCents?: number | null; status?: StatusItem }
+  { itemId: string; nome?: string; precoCents?: number | null; status?: StatusItem },
+  { anterior: Item[] | undefined }
 > {
   const client = useSupabase();
   const cache = useQueryClient();
 
   return useMutation({
     mutationFn: ({ itemId, ...dados }) => salvarItem(client, itemId, dados),
-    onSuccess: () => cache.invalidateQueries({ queryKey: chaves.itens(goalId) }),
+
+    onMutate: async ({ itemId, nome, precoCents, status }) => {
+      // Cancela o refetch em voo: se ele chegar depois, escreve por cima do
+      // otimista e a caixa pisca de volta.
+      await cache.cancelQueries({ queryKey: chaves.itens(goalId) });
+      const anterior = cache.getQueryData<Item[]>(chaves.itens(goalId));
+
+      cache.setQueryData<Item[]>(chaves.itens(goalId), (itens) =>
+        (itens ?? []).map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                ...(nome === undefined ? {} : { name: nome }),
+                ...(precoCents === undefined ? {} : { estimated_price_cents: precoCents }),
+                ...(status === undefined ? {} : { status }),
+              }
+            : item,
+        ),
+      );
+
+      return { anterior };
+    },
+
+    onError: (_erro, _dados, contexto) => {
+      if (contexto) cache.setQueryData(chaves.itens(goalId), contexto.anterior);
+    },
+
+    onSettled: () => cache.invalidateQueries({ queryKey: chaves.itens(goalId) }),
   });
 }
 
@@ -203,18 +240,51 @@ export function useRegistrarAporte(
   });
 }
 
+const COLUNA_DO_CONSENTIMENTO = {
+  analytics: "consent_analytics_at",
+  marketing: "consent_marketing_at",
+  income_band: "consent_income_band_at",
+} as const;
+
 /**
  * Um consentimento por vez, de propósito: quem chama passa o tipo, e o banco
  * escreve só aquela coluna. Consentimento agrupado não é consentimento.
+ *
+ * Otimista pelo mesmo motivo do item — e aqui pesa mais: um toggle de
+ * consentimento que demora a responder é um toggle que a pessoa clica duas
+ * vezes, e o segundo clique desfaz o primeiro.
  */
 export function useSalvarConsentimento(
   userId: string,
-): UseMutationResult<void, Error, { tipo: TipoConsentimento; aceito: boolean }> {
+): UseMutationResult<
+  void,
+  Error,
+  { tipo: TipoConsentimento; aceito: boolean },
+  { anterior: Perfil | null | undefined }
+> {
   const client = useSupabase();
   const cache = useQueryClient();
 
   return useMutation({
     mutationFn: ({ tipo, aceito }) => salvarConsentimento(client, tipo, aceito),
-    onSuccess: () => cache.invalidateQueries({ queryKey: chaves.perfil(userId) }),
+
+    onMutate: async ({ tipo, aceito }) => {
+      await cache.cancelQueries({ queryKey: chaves.perfil(userId) });
+      const anterior = cache.getQueryData<Perfil | null>(chaves.perfil(userId));
+
+      cache.setQueryData<Perfil | null>(chaves.perfil(userId), (perfil) =>
+        perfil
+          ? { ...perfil, [COLUNA_DO_CONSENTIMENTO[tipo]]: aceito ? new Date().toISOString() : null }
+          : perfil,
+      );
+
+      return { anterior };
+    },
+
+    onError: (_erro, _dados, contexto) => {
+      if (contexto) cache.setQueryData(chaves.perfil(userId), contexto.anterior);
+    },
+
+    onSettled: () => cache.invalidateQueries({ queryKey: chaves.perfil(userId) }),
   });
 }
