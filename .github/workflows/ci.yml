@@ -1,0 +1,82 @@
+name: CI
+
+# Em pull request, e também no push para a branch principal: um PR verde que
+# vira merge quebrado por causa de outro PR verde é o modo de falha clássico.
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+# PR novo cancela a rodada anterior do mesmo PR. Fila de CI esperando por
+# commit que ninguém vai mais olhar é dinheiro e minuto jogados fora.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O gitleaks precisa do histórico: segredo commitado e depois
+          # removido continua no histórico, e é exatamente esse que dói.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # ---------------------------------------------------------------
+      # 1. Código
+      # ---------------------------------------------------------------
+      - name: Instalar
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes unitários
+        run: npm test
+
+      # ---------------------------------------------------------------
+      # 2. Isolamento entre casais, contra o Supabase de verdade
+      # ---------------------------------------------------------------
+      # O runner do GitHub já tem Docker, e a CLI do Supabase é
+      # devDependency — então nada de instalar mais nada aqui.
+      - name: Subir o Supabase
+        run: npx supabase start
+
+      - name: Isolamento entre casais
+        run: npm run test:rls
+
+      # ---------------------------------------------------------------
+      # 3 e 4. Os guardas
+      # ---------------------------------------------------------------
+      # Os dois são scripts em scripts/, e não shell escrito aqui dentro, para
+      # rodarem na máquina antes do push: guarda que só existe no CI é guarda
+      # que a pessoa descobre dez minutos depois de mandar.
+      - name: Toda tabela com RLS
+        run: bash scripts/guarda-rls.sh
+
+      - name: packages/ sem API de navegador
+        run: bash scripts/guarda-portabilidade.sh
+
+      # ---------------------------------------------------------------
+      # 5. Segredo commitado
+      # ---------------------------------------------------------------
+      # Por último de propósito: é o passo mais lento, e os quatro de cima
+      # pegam a maioria dos problemas em menos tempo.
+      - name: Segredos
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derrubar o Supabase
+        if: always()
+        run: npx supabase stop --no-backup
