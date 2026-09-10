@@ -201,6 +201,26 @@ begin
   raise notice 'discoverable_by_nickname desligado responde como inexistente';
 end $$;
 
+-- "Como inexistente" precisa ser literal: se desse para distinguir "não existe"
+-- de "existe mas se escondeu", a busca contaria quem tem conta aqui — que é
+-- exatamente o que o interruptor existe para impedir.
+do $$
+begin
+  if exists (
+    (select * from public.find_by_nickname('lia_2026'))
+    except all
+    (select * from public.find_by_nickname('nao_existe_esse_apelido'))
+  ) or exists (
+    (select * from public.find_by_nickname('nao_existe_esse_apelido'))
+    except all
+    (select * from public.find_by_nickname('lia_2026'))
+  ) then
+    raise exception 'FALHOU: dá para distinguir quem se escondeu de quem não existe';
+  end if;
+
+  raise notice 'escondido e inexistente devolvem exatamente a mesma coisa';
+end $$;
+
 -- ===========================================================================
 -- Rate limit da busca: 20 por hora
 -- ===========================================================================

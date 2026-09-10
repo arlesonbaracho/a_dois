@@ -153,6 +153,24 @@ begin
 end $$;
 
 
+-- Auto-convite, com ator próprio para não gastar o orçamento da Ana.
+reset role;
+insert into auth.users (id, email, created_at) values
+  ('e0000008-0000-0000-0000-000000000008', 'convite-hugo@teste.invalid', now());
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"e0000008-0000-0000-0000-000000000008","role":"authenticated"}';
+
+do $$
+begin
+  perform convite_teste.criar('convite para o próprio e-mail', 'email_proprio',
+    null, 'email', 'convite-hugo@teste.invalid');
+  perform convite_teste.criar('convite por apelido que não existe', 'apelido_nao_encontrado',
+    null, 'nickname', null, 'ninguem_com_esse_apelido');
+
+  raise notice 'auto-convite e apelido inexistente recusados';
+end $$;
+
+
 -- ===========================================================================
 -- 2. Reivindicação recusada, sempre com a mesma frase
 -- ===========================================================================
@@ -220,6 +238,13 @@ begin
 end $$;
 
 -- Corrida: a segunda tentativa na mesma linha volta sem nada.
+--
+-- O teste é sequencial, e vale dizer em vez de fingir: psql roda numa conexão
+-- só, e nem dblink nem pg_background estão instalados. O que torna a
+-- concorrência segura é o predicado do update em claim_invite,
+-- "where id = ? and status = 'pending'" — sob concorrência real o perdedor
+-- bloqueia na trava de linha, reavalia o predicado e o encontra falso. É o
+-- mesmo caminho que este bloco percorre.
 set local request.jwt.claims = '{"sub":"e0000004-0000-0000-0000-000000000004","role":"authenticated"}';
 
 do $$
@@ -379,19 +404,84 @@ begin
 end $$;
 
 
+-- O confirm do bloco 7 revogou os outros dois convites da Ana. Um token
+-- revogado é tão indisponível quanto um inventado.
+set local request.jwt.claims = '{"sub":"e0000004-0000-0000-0000-000000000004","role":"authenticated"}';
+
+do $$
+begin
+  perform convite_teste.claim_da('token revogado', 'indisponivel',
+    (select token from tokens where nome = 'link'));
+  perform convite_teste.claim_da('token revogado, canal apelido', 'indisponivel',
+    (select token from tokens where nome = 'nickname'));
+  raise notice 'token revogado é recusado igual a token inventado';
+end $$;
+
+
 -- ===========================================================================
--- 8. Recusar apaga o dado de quem reivindicou, na hora
+-- 8. Link reivindicado por conta aleatória: passa, e não dá acesso a nada
 -- ===========================================================================
+
+-- O casal do Caio ganha uma linha em cada tabela: sem isso as asserções de
+-- "zero" abaixo seriam zero por não haver nada, e não por RLS.
+reset role;
+do $$
+declare
+  casal uuid := (select couple_id from public.couple_members
+                 where user_id = 'e0000003-0000-0000-0000-000000000003');
+  meta uuid;
+  item uuid;
+begin
+  insert into public.goals (couple_id, title, category, target_amount_cents)
+  values (casal, 'Entrada do apê', 'moradia', 12000000) returning id into meta;
+
+  insert into public.goal_items (couple_id, goal_id, name, estimated_price_cents)
+  values (casal, meta, 'Geladeira', 420000) returning id into item;
+
+  insert into public.contributions (couple_id, goal_id, user_id, amount_cents)
+  values (casal, meta, 'e0000003-0000-0000-0000-000000000003', 150000);
+
+  insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url)
+  values (casal, item, 410000, 'https://loja.test/geladeira');
+end $$;
+set local role authenticated;
 
 set local request.jwt.claims = '{"sub":"e0000003-0000-0000-0000-000000000003","role":"authenticated"}';
 
 do $$ begin perform convite_teste.criar('Caio convida por link', 'ok', 'recusa', 'link'); end $$;
 
 set local request.jwt.claims = '{"sub":"e0000004-0000-0000-0000-000000000004","role":"authenticated"}';
+-- O teste mais importante do arquivo. O canal 'link' é o mais aberto dos três:
+-- não amarra a ninguém, e qualquer conta autenticada reivindica. A pergunta é
+-- se reivindicar concede alguma coisa. Não concede.
 do $$
+declare casal_do_caio uuid := (select couple_id from public.couple_members
+                               where user_id = 'e0000003-0000-0000-0000-000000000003');
 begin
-  perform convite_teste.claim_da('Duda reivindica o convite do Caio', 'ok',
+  perform convite_teste.claim_da('conta aleatória reivindica um link', 'ok',
     (select token from tokens where nome = 'recusa'));
+
+  perform convite_teste.igual('e o claim ficou registrado',
+    (select count(*) from public.couple_invites
+      where status = 'claimed'
+        and claimed_by_user_id = 'e0000004-0000-0000-0000-000000000004'), 1);
+
+  perform convite_teste.igual('sem acesso a couples',
+    (select count(*) from public.couples where id = casal_do_caio), 0);
+  perform convite_teste.igual('sem acesso a couple_members',
+    (select count(*) from public.couple_members where couple_id = casal_do_caio), 0);
+  perform convite_teste.igual('sem acesso a goals',
+    (select count(*) from public.goals where couple_id = casal_do_caio), 0);
+  perform convite_teste.igual('sem acesso a goal_items',
+    (select count(*) from public.goal_items where couple_id = casal_do_caio), 0);
+  perform convite_teste.igual('sem acesso a contributions',
+    (select count(*) from public.contributions where couple_id = casal_do_caio), 0);
+  perform convite_teste.igual('sem acesso a price_quotes',
+    (select count(*) from public.price_quotes where couple_id = casal_do_caio), 0);
+  perform convite_teste.igual('e nem à meta pelo título',
+    (select count(*) from public.goals where title = 'Entrada do apê'), 0);
+
+  raise notice 'link reivindicado por conta aleatória: claim passa, acesso zero';
 end $$;
 
 set local request.jwt.claims = '{"sub":"e0000003-0000-0000-0000-000000000003","role":"authenticated"}';
@@ -560,7 +650,59 @@ begin
   raise notice 'varrer apelido pelo canal de convite para na sexta pergunta';
 end $$;
 
+
+-- ===========================================================================
+-- 13. Expurgo: convite morto não fica de lembrança
+-- ===========================================================================
+
+-- expire_and_purge é do servidor (execute revogado de authenticated), então
+-- roda como postgres. As linhas nascem com a data já para trás: o trigger de
+-- updated_at só dispara em update, e sobrescreveria qualquer tentativa de
+-- envelhecer a linha depois.
 reset role;
+
+do $$
+declare
+  casal uuid := (select couple_id from public.couple_members
+                 where user_id = 'e0000007-0000-0000-0000-000000000007');
+  hugo constant uuid := 'e0000008-0000-0000-0000-000000000008';
+begin
+  insert into public.couple_invites
+    (couple_id, channel, token_hash, status, rejected_at, expires_at, created_at, updated_at)
+  values
+    (casal, 'link', 'hash-velho', 'rejected', now() - interval '8 days',
+     now() - interval '8 days', now() - interval '8 days', now() - interval '8 days'),
+    (casal, 'link', 'hash-recente', 'rejected', now() - interval '1 day',
+     now() - interval '1 day', now() - interval '1 day', now() - interval '1 day');
+
+  insert into public.couple_invites
+    (couple_id, channel, token_hash, status, claimed_by_user_id, claimed_at,
+     expires_at, created_at, updated_at)
+  values
+    (casal, 'link', 'hash-parado', 'claimed', hugo, now() - interval '49 hours',
+     now() + interval '1 hour', now() - interval '50 hours', now() - interval '49 hours');
+
+  perform public.expire_and_purge();
+
+  perform convite_teste.igual('o terminal de 8 dias foi apagado',
+    (select count(*) from public.couple_invites where token_hash = 'hash-velho'), 0);
+
+  perform convite_teste.igual('o terminal de 1 dia continua lá',
+    (select count(*) from public.couple_invites where token_hash = 'hash-recente'), 1);
+
+  perform convite_teste.igual('o claim parado há 49h virou expired sem reivindicante',
+    (select count(*) from public.couple_invites
+      where token_hash = 'hash-parado'
+        and status = 'expired'
+        and claimed_by_user_id is null), 1);
+
+  perform convite_teste.igual('e o pendente vencido do bloco 9 finalmente virou expired',
+    (select count(*) from public.couple_invites
+      where status = 'pending' and expires_at <= now()), 0);
+
+  raise notice 'expurgo: terminal de 7 dias apagado, claim de 48h sem reivindicante';
+end $$;
+
 rollback;
 
 \echo ''
