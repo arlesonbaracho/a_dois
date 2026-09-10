@@ -9,7 +9,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@repo/core": "*"
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@supabase/supabase-js": "^2.116.0",
     "@types/react": "^19",
-    "react": "^19"
+    "react": "^19",
+    "vitest": "^5.0.0"
   }
 }
