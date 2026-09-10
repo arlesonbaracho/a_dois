@@ -18,6 +18,7 @@ testes=(
   "$raiz/supabase/tests/cadastro_cria_casal.sql"
   "$raiz/supabase/tests/perfil.sql"
   "$raiz/supabase/tests/convite.sql"
+  "$raiz/supabase/tests/saida.sql"
 )
 PG="${PGSQL_HOME:-$HOME/.local/pgsql}"
 

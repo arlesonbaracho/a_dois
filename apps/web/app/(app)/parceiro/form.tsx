@@ -4,9 +4,9 @@ import { useActionState, useState } from "react";
 
 import type { CanalConvite, Convite, PedidoPendente } from "@repo/api";
 
-import { Campo, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
+import { Campo, Enviar, Interruptor, Recado, type EstadoForm } from "@/components/form-ui";
 
-import { acaoCriarConvite, acaoPedido, type EstadoConvite } from "./actions";
+import { acaoCriarConvite, acaoPedido, acaoSair, type EstadoConvite } from "./actions";
 
 const NOME_DO_CANAL: Record<CanalConvite, string> = {
   email: "por e-mail",
@@ -166,15 +166,62 @@ function ConviteAtivo({ convite }: { convite: Convite }) {
   );
 }
 
+/**
+ * Sair do plano.
+ *
+ * Sozinho, sair é um delete irreversível do plano inteiro — daí a caixa de
+ * confirmação obrigatória. Acompanhado, é pseudonimização: o dinheiro fica, o
+ * nome sai.
+ */
+function SairDoPlano({ sozinho }: { sozinho: boolean }) {
+  const [estado, acao] = useActionState<EstadoForm, FormData>(acaoSair, {});
+
+  return (
+    <form action={acao} className="flex flex-col gap-3 border-t border-stone-200 pt-6">
+      <h2 className="text-sm font-semibold">Sair do plano</h2>
+
+      {sozinho ? (
+        <>
+          <p className="text-sm">
+            Você está sozinho aqui, então sair <strong>apaga o plano inteiro</strong>:
+            metas, itens, aportes e histórico de preço. Não dá para desfazer, e a
+            gente não guarda cópia.
+          </p>
+          <Interruptor
+            name="confirmo"
+            required
+            rotulo="Eu entendo que o plano será apagado"
+            descricao="Sem isto marcado, nada acontece."
+          />
+        </>
+      ) : (
+        <p className="text-sm">
+          Seus aportes continuam no plano, com os valores intactos, mas passam a
+          aparecer como <strong>ex-membro</strong>. Seu nome e sua faixa de renda
+          somem daqui, e sua sessão cai na hora.
+        </p>
+      )}
+
+      <Recado erro={estado.erro} aviso={estado.aviso} />
+
+      <button type="submit" className="self-start rounded-xl px-4 py-2 text-sm underline">
+        {sozinho ? "Sair e apagar o plano" : "Sair do plano"}
+      </button>
+    </form>
+  );
+}
+
 export function TelaParceiro({
   pedidos,
   ativos,
-  planoCheio,
+  membros,
 }: {
   pedidos: PedidoPendente[];
   ativos: Convite[];
-  planoCheio: boolean;
+  membros: number;
 }) {
+  const planoCheio = membros >= 2;
+
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-6 p-6">
       <div>
@@ -204,6 +251,8 @@ export function TelaParceiro({
           ))}
         </section>
       ) : null}
+
+      <SairDoPlano sozinho={membros < 2} />
     </main>
   );
 }

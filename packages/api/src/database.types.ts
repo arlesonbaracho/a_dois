@@ -428,6 +428,7 @@ export type Database = {
       gerar_token: { Args: never; Returns: string }
       hash_token: { Args: { p_token: string }; Returns: string }
       is_couple_member: { Args: { couple_id: string }; Returns: boolean }
+      leave_couple: { Args: { p_confirmo_apagar?: boolean }; Returns: string }
       mascarar_email: { Args: { p_email: string }; Returns: string }
       mascarar_pedaco: {
         Args: { p_texto: string; p_visivel: number }

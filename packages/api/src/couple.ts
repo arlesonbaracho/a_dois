@@ -39,3 +39,25 @@ export async function membrosDoCasal(client: Client): Promise<MembroDoCasal[]> {
   if (error) throw error;
   return data ?? [];
 }
+
+export type ResultadoSaida = "ok" | "plano_apagado" | "precisa_confirmar_apagar" | "sem_plano";
+
+/**
+ * Sai do casal.
+ *
+ * `confirmoApagar` só importa para quem está sozinho: nesse caso a saída apaga
+ * o plano inteiro, e sem a confirmação a função devolve
+ * `precisa_confirmar_apagar` sem escrever nada.
+ *
+ * A sessão morre junto, então quem chama isto vai ser deslogado na sequência.
+ */
+export async function sairDoCasal(
+  client: Client,
+  confirmoApagar = false,
+): Promise<ResultadoSaida> {
+  const { data, error } = await client.rpc("leave_couple", {
+    p_confirmo_apagar: confirmoApagar,
+  });
+  if (error) throw error;
+  return (data ?? "sem_plano") as ResultadoSaida;
+}

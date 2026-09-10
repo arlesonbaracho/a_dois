@@ -15,6 +15,6 @@ export default async function Parceiro() {
   ]);
 
   return (
-    <TelaParceiro pedidos={pedidos} ativos={ativos} planoCheio={membros.length >= 2} />
+    <TelaParceiro pedidos={pedidos} ativos={ativos} membros={membros.length} />
   );
 }

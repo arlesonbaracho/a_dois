@@ -10,12 +10,15 @@ import { acaoEntrar } from "../actions";
 export function FormLogin({
   proxima,
   erroInicial,
+  avisoInicial,
 }: {
   proxima: string;
   erroInicial?: string;
+  avisoInicial?: string;
 }) {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoEntrar, {
     erro: erroInicial,
+    aviso: avisoInicial,
   });
 
   return (
@@ -30,7 +33,7 @@ export function FormLogin({
           autoComplete="current-password"
           required
         />
-        <Recado erro={estado.erro} />
+        <Recado erro={estado.erro} aviso={estado.aviso} />
         <Enviar>Entrar</Enviar>
       </form>
 

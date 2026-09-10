@@ -3,11 +3,14 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
+import { redirect } from "next/navigation";
+
 import {
   confirmarPedido,
   criarConvite,
   recusarPedido,
   revogarConvite,
+  sairDoCasal,
   type CanalConvite,
   type ResultadoCriacao,
 } from "@repo/api";
@@ -103,4 +106,34 @@ export async function acaoPedido(
         ? "Pronto: o plano agora é de vocês dois."
         : "Feito. O convite não vale mais.",
   };
+}
+
+/**
+ * Sair do plano.
+ *
+ * Não devolve sucesso: a função do banco derruba a sessão, então quem sai é
+ * deslogado. O aviso vai pela query string do login, que é a única tela que
+ * ainda vai responder.
+ */
+export async function acaoSair(
+  _anterior: EstadoForm,
+  form: FormData,
+): Promise<EstadoForm> {
+  const supabase = await criarClienteServidor();
+
+  let resultado;
+  try {
+    resultado = await sairDoCasal(supabase, form.get("confirmo") === "on");
+  } catch (erro) {
+    return { erro: mensagemDoBanco(erro, "Não rolou agora. Tenta de novo daqui a pouco?") };
+  }
+
+  if (resultado === "precisa_confirmar_apagar") {
+    return { erro: "Marque a confirmação: sair sozinho apaga o plano inteiro." };
+  }
+  if (resultado === "sem_plano") {
+    return { erro: "Você já não está em nenhum plano." };
+  }
+
+  redirect(resultado === "plano_apagado" ? "/login?aviso=apagou" : "/login?aviso=saiu");
 }
