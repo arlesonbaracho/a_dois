@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { pedidosPendentes, usuarioAtual } from "@repo/api";
+import { aportes, pedidosPendentes, usuarioAtual } from "@repo/api";
 import { APP_NAME, formatBRL, sumCents } from "@repo/core";
 
 import { criarClienteServidor } from "@/lib/supabase/server";
@@ -8,22 +8,25 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 import { acaoSair } from "../(auth)/actions";
 import { Casal } from "./casal";
 
-// Home ainda provisória: as telas de verdade entram nos prompts de metas e
-// aportes. Por enquanto ela prova que a sessão chegou inteira nos dois lados —
-// servidor e browser.
-const aportes = [120000, 85000, 45000];
-
+// Home ainda provisória: a tela de metas entra no prompt 7. O número aqui,
+// porém, já é o de verdade — vem de contributions.
 export default async function Home() {
   const supabase = await criarClienteServidor();
   const usuario = await usuarioAtual(supabase);
-  const pedidos = await pedidosPendentes(supabase);
+  const [pedidos, listaAportes] = await Promise.all([
+    pedidosPendentes(supabase),
+    aportes(supabase),
+  ]);
 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-4 p-6">
       <h1 className="text-2xl font-bold">{APP_NAME}</h1>
       <p>Você entrou como {usuario?.email}.</p>
       <Casal />
-      <p>Quanto vocês já juntaram: {formatBRL(sumCents(aportes))}</p>
+      <p>
+        Quanto vocês já juntaram:{" "}
+        {formatBRL(sumCents(listaAportes.map((aporte) => aporte.amount_cents)))}
+      </p>
 
       {/* O aviso de pedido pendente. Sem valor nenhum no texto, como manda a
           regra 10 — e aqui nem faria sentido ter. */}
@@ -39,6 +42,9 @@ export default async function Home() {
       <div className="flex gap-4 text-sm">
         <Link href="/parceiro" className="underline">
           Quem divide o plano
+        </Link>
+        <Link href="/aportes" className="underline">
+          Aportes
         </Link>
         <Link href="/perfil" className="underline">
           Seu perfil

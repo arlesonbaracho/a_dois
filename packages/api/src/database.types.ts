@@ -152,6 +152,7 @@ export type Database = {
           couple_id: string
           created_at: string
           display_name: string | null
+          fixed_share_cents: number | null
           income_band: Database["public"]["Enums"]["income_band"] | null
           is_adult: boolean
           left_at: string | null
@@ -164,6 +165,7 @@ export type Database = {
           couple_id: string
           created_at?: string
           display_name?: string | null
+          fixed_share_cents?: number | null
           income_band?: Database["public"]["Enums"]["income_band"] | null
           is_adult?: boolean
           left_at?: string | null
@@ -176,6 +178,7 @@ export type Database = {
           couple_id?: string
           created_at?: string
           display_name?: string | null
+          fixed_share_cents?: number | null
           income_band?: Database["public"]["Enums"]["income_band"] | null
           is_adult?: boolean
           left_at?: string | null
@@ -391,6 +394,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_contribution: {
+        Args: {
+          p_amount_cents: number
+          p_contributed_at?: string
+          p_goal_id: string
+        }
+        Returns: string
+      }
+      add_goal: {
+        Args: { p_target_amount_cents?: number; p_title: string }
+        Returns: string
+      }
       casal_vazio: { Args: { p_couple_id: string }; Returns: boolean }
       checar_limite: {
         Args: {
@@ -472,7 +487,7 @@ export type Database = {
         | "rejected"
         | "revoked"
         | "expired"
-      split_rule: "igual" | "proporcional"
+      split_rule: "igual" | "proporcional" | "fixo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -616,7 +631,7 @@ export const Constants = {
         "revoked",
         "expired",
       ],
-      split_rule: ["igual", "proporcional"],
+      split_rule: ["igual", "proporcional", "fixo"],
     },
   },
 } as const
