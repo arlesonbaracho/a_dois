@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (aportes, e o guard anti-SSRF)
+**Última atualização:** 2026-09-10 (metas e itens, com Realtime)
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** Prompt 7 — metas e itens com Realtime, que também dá casa à tela de link de produto
+**Próximo passo:** Prompt 10 — direitos do titular (exportar, excluir, consentimentos)
 
 ---
 
@@ -31,6 +31,9 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | Aportes: `add_goal` e `add_contribution` em security definer, `goals_insert` e `contributions_insert` passam a negar, `split_rule` ganha `'fixo'` e `couple_members` ganha `fixed_share_cents`. Tela `/aportes` com saldo entre os dois, meta mínima e as três formas de dividir. `supabase/tests/aportes.sql` com ~20 asserções | `deca884` |
 | 2026-09-10 | `supabase/functions/_shared/ssrf-guard.ts`: protocolo, allowlist por rótulo e **DNS resolvido** com todo IP conferido, revalidado a cada redirect (máx. 3), timeout de 5s e corte em 2 MB. `supabase/functions` virou workspace npm para os 24 testes rodarem no Vitest, sem Deno. Reprovação comprovada com quatro mutações | `a551ac3` |
 | 2026-09-10 | Edge Function `extract-product-link`: JWT antes de tudo, dono do item conferido antes do fetch, Open Graph por regex, sanitização com entidades decodificadas antes da marcação sair, preço em centavos sem float, e `add_price_quote` append-only. Conferida contra magazineluiza, mercadolivre e americanas de verdade | `33bd96f` |
+| 2026-09-10 | `add_goal` cresce (categoria, prazo, prioridade), entram `add_goal_item` e `delete_goal`, e `goal_items` fecha o insert direto — nenhuma tabela de conteúdo aceita mais insert direto. `goals`, `goal_items` e `contributions` publicando para o Realtime. `supabase/tests/metas.sql` | `a8c05c1` |
+| 2026-09-10 | `packages/api` com hooks do TanStack Query (um por operação) e `useRealtimeDoCasal`: um canal por casal, filtrado por `couple_id`, invalidando só a chave da tabela que mudou. Chaves de cache em raízes disjuntas, para o `invalidateQueries` por prefixo não arrastar o que não mudou. `progressoPercentual` em `core` | `3e3531e` |
+| 2026-09-10 | Telas `/metas` e `/metas/[id]` (nomes que o Expo Router vai espelhar): CRUD de meta e de item, aporte pela própria meta, barra de progresso com `role="progressbar"`, e apagar em dois cliques. Conferido com duas contas: escrita do Beto por fora muda a tela da Ana sem reload, e um evento de aporte gera UMA requisição | `de255d5` |
 
 ---
 
@@ -38,7 +41,6 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-- [ ] **Prompt 7** — Metas e itens com Realtime (a meta de hoje é mínima: só título e valor alvo)
 - [ ] **Prompt 10** — Direitos do titular (exportar, excluir, consentimentos)
 - [ ] **Prompt 11** — CI no GitHub Actions
 
@@ -169,6 +171,17 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | A URL da imagem só volta se for `https` em nome, nunca em IP cru | Ela vira `src` numa tela nossa, e quem escolheu o endereço foi o site de terceiro. Mesma razão pela qual `profiles.avatar_url` existe e ninguém grava nela |
 | 2026-09-10 | A Edge Function confere o dono do item ANTES de buscar a página | Descoberto rodando: página sem preço nunca chegava ao insert, então item de outro casal recebia 200 — e a gente saía buscando na internet a mando de quem não tinha o que guardar |
 | 2026-09-10 | A Edge Function usa a anon key com o token de quem chamou, nunca service role | Assim ela roda como a pessoa e o RLS continua valendo. Service role aqui seria a regra 4 pela metade: a chave não vazaria, mas o efeito dela sim |
+| 2026-09-10 | **Não ligamos `replica identity full`.** Eu ia ligar; a sonda no navegador derrubou a teoria | O Realtime entrega o DELETE com `old` contendo só a chave primária mesmo com replica identity full. Ligar custaria a linha velha inteira no WAL para não mudar payload nenhum |
+| 2026-09-10 | No DELETE, o cliente invalida a raiz `["itens"]` em vez da meta específica | O payload não diz de qual meta era a linha apagada. Numa tela de meta aberta a raiz é exatamente uma consulta — muito menos que recarregar tudo, e com a garantia de que o item some da tela do outro |
+| 2026-09-10 | Chaves de cache em raízes disjuntas (`["metas"]` × `["meta", id]`, `["aportes-do-casal"]` × `["aportes-da-meta", id]`) | `invalidateQueries` casa por PREFIXO. Com o detalhe em `["metas", id]`, invalidar a lista arrastaria junto toda meta aberta, e "invalide as queries certas" viraria "invalide quase tudo" sem ninguém notar |
+| 2026-09-10 | O `QueryClient` nasce dentro do `SupabaseProvider`, em `useState` | Em módulo ele seria compartilhado entre requisições no servidor, e o cache de um casal vazaria para a renderização do outro. E os dois juntos num provider só porque são a mesma pergunta: "de onde vêm os dados desta árvore" |
+| 2026-09-10 | `refetchOnWindowFocus: false` com `staleTime` de 30s | Quem avisa que os dados mudaram é o Realtime. Sem isso, cada volta para a aba refaria tudo por cima do que já chegou ao vivo |
+| 2026-09-10 | Mutations invalidam mesmo com o Realtime invalidando também | Tirar a invalidação da mutation deixaria a escrita dependente do websocket estar de pé: com ele caído, o app pareceria não salvar. O custo é uma recarga a mais por escrita nossa — está em Dívidas |
+| 2026-09-10 | Um `<RealtimeDoCasal />` no layout de `(app)`, e não um por tela | Um canal só para o app inteiro. Por tela, cada uma teria que lembrar de assinar, e a que esquecesse ficaria parada no tempo sem ninguém perceber |
+| 2026-09-10 | Barra de progresso com `role="progressbar"` e `aria-value*` | Sem isso a informação principal da tela é uma div colorida, e some inteira para quem usa leitor de tela |
+| 2026-09-10 | Meta com alvo zero mostra 100% quando já tem dinheiro | É divisão por zero. A alternativa honesta seria proibir alvo zero, mas "juntar sem meta definida" é caso real — e o que não pode é "NaN%" na tela das duas pessoas |
+| 2026-09-10 | Apagar meta são dois cliques, e quem decide é o banco | `delete_goal` só devolve `precisa_confirmar` quando há aporte. A tela não sabe a regra: ela mostra o que o banco respondeu, e assim as duas não podem divergir |
+| 2026-09-10 | Update e delete de `goals` e `goal_items` continuam por PostgREST | As policies já conferem o casal nos dois lados e nenhum `couple_id` novo atravessa a rede. Função definer aqui seria cerimônia sem fronteira nova |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -218,6 +231,12 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `extract-product-link` | O caminho de gravação da função não foi exercido ponta a ponta: as páginas de loja que conseguimos alcançar não publicam `og:price:amount`, então o preço voltou nulo e o `add_price_quote` não chegou a ser chamado POR ELA. A RPC foi conferida pela mesma porta (anon key + JWT), e a extração tem 17 testes — falta só a emenda entre as duas | Média |
 | `supabase/functions/extract-product-link/index.ts` | Fora do `tsc`: o arquivo importa APIs do Deno e `npm:`, então só o `deno check` do `functions serve` e do deploy o confere. `_shared` continua no typecheck do monorepo | Baixa |
 | `extract-product-link` × app | Nenhuma tela chama a função ainda. Ela entra quando o prompt 7 criar os itens da meta, que é onde o link de produto vive | Baixa |
+| Realtime × DELETE | O evento de DELETE chega mesmo com `filter: couple_id=eq.X`, e o `old` só tem a chave primária — ou seja, o filtro não é aplicado a deletes. Na prática um parceiro de OUTRO casal, assinando a mesma tabela, receberia o uuid de linhas nossas apagadas. É um uuid e nada mais, mas é informação que não devia sair. O conserto é broadcast por trigger, com canal privado | Média |
+| escrita × Realtime | Toda escrita nossa recarrega duas vezes: a mutation invalida, e o eco do próprio evento no canal invalida de novo. É o preço de não depender do websocket para a tela responder | Baixa |
+| `components/cliente-supabase.tsx` | Em desenvolvimento, o Fast Refresh inspeciona o cliente e esbarra no proxy da opção `accessToken`, que levanta em qualquer acesso a `auth.*`. Vira um warning "Failed to re-render" no console. Só em dev, mas confunde quem está depurando outra coisa | Baixa |
+| `apps/web/app/(app)/metas` | Sem teste automatizado. CRUD, barra e Realtime foram conferidos à mão no navegador com duas contas, incluindo a prova de que não houve reload e de que só uma consulta sai por evento. Deveria ser Playwright, junto com auth, parceiro e aportes | Média |
+| `/metas` × `/aportes` | Duas entradas para registrar aporte (a meta e a tela de saldo). Chamam a mesma função de `packages/api`, então não são duas regras — mas são duas telas para manter quando o formulário mudar | Baixa |
+| lista de metas | A lista busca TODOS os aportes do casal para somar por meta no cliente. Com centenas de aportes isso vira payload à toa; o certo é uma view com o total por meta | Baixa |
 | `leave_couple` | `auth.sessions` é de `supabase_auth_admin`. Local o `postgres` apaga; se o projeto hospedado recusar, o passo cai calado e só o `left_at` protege — que já é o corte real, mas a sessão sobreviveria até o token vencer | Média |
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
 
