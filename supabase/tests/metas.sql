@@ -177,6 +177,12 @@ begin
 
   perform meta_teste.recusa('meta sem nome', 'select public.add_goal(''  '')');
 
+  -- Teto de R$ 100 milhões, na CRIAÇÃO...
+  perform meta_teste.recusa('meta acima do teto de valor',
+    'select public.add_goal(''Absurda'', 10000000001)');
+  perform meta_teste.recusa('prazo que já passou',
+    'select public.add_goal(''Vencida'', 1000, ''geral'', ''2020-01-01T12:00:00Z'')');
+
   -- Insert direto morre mesmo no PRÓPRIO casal: o couple_id não pode vir do
   -- corpo da requisição, nem quando o corpo está certo. Regra 3.
   perform meta_teste.recusa('insert direto em goal_items, no próprio casal',
@@ -206,6 +212,12 @@ begin
   perform meta_teste.texto('editar meta é update direto',
     (select title from public.goals where id = (select valor from cenario where chave = 'meta_a')),
     'Cozinha nova (2027)');
+
+  -- ... e na EDIÇÃO também, que é o caminho que add_goal nunca vê. É por isso
+  -- que o teto é constraint de coluna e não condição de função.
+  perform meta_teste.recusa('editar meta para acima do teto',
+    format('update public.goals set target_amount_cents = 10000000001 where id = %L',
+           (select valor from cenario where chave = 'meta_a')));
 
   -- O casal do lado continua fora de alcance.
   update public.goals set title = 'invadido' where id = meta_b;
@@ -306,6 +318,34 @@ begin
     (select count(*) from public.goals
      where id = (select valor from cenario where chave = 'meta_b')), 1);
 end $$;
+
+-- ===========================================================================
+-- 6. Meta vencida continua editável
+-- ===========================================================================
+
+-- A prova de que a recusa de prazo no passado ficou SÓ na criação. Se ela
+-- tivesse virado constraint ou gatilho, trocar o título de uma meta que
+-- venceu passaria a falhar — e meta vencida é estado normal, não erro.
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"c1000001-0000-0000-0000-000000000001","role":"authenticated"}';
+
+do $$
+declare vencida uuid;
+begin
+  vencida := public.add_goal('Ainda dá tempo', 100000, 'geral', now() + interval '1 day');
+
+  -- O prazo vence enquanto a meta existe. É a vida acontecendo.
+  update public.goals set deadline_at = now() - interval '30 days' where id = vencida;
+
+  update public.goals set title = 'Não deu tempo' where id = vencida;
+  perform meta_teste.texto('meta vencida continua editável',
+    (select title from public.goals where id = vencida), 'Não deu tempo');
+
+  raise notice 'prazo vencido não engessa a meta';
+end $$;
+
+reset role;
+reset request.jwt.claims;
 
 do $$ begin raise notice 'metas: tudo passou'; end $$;
 

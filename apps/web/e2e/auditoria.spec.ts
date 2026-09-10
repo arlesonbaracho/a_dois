@@ -277,19 +277,22 @@ test.describe("4.5 metas: validações e formatação de dinheiro", () => {
     await recusa("aporte zero", "add_contribution", { p_goal_id: meta, p_amount_cents: 0 });
     await recusa("aporte negativo", "add_contribution", { p_goal_id: meta, p_amount_cents: -100 });
 
-    // Prazo no passado: hoje o banco ACEITA. O relatório registra.
-    const passado = await cliente.rpc("add_goal", {
+    // Achado 4, consertado: os dois eram aceitos sem nada recusar.
+    await recusa("prazo que já passou", "add_goal", {
       p_title: "Prazo vencido",
       p_deadline_at: "2020-01-01T12:00:00Z",
     });
-    console.log(`PRAZO NO PASSADO: status ${passado.status()} (aceito = sem validação)`);
-
-    // Valor absurdo: bigint aguenta, mas a tela vai mostrar isso.
-    const absurdo = await cliente.rpc("add_goal", {
+    await recusa("valor acima do teto", "add_goal", {
       p_title: "Absurda",
       p_target_amount_cents: 9_000_000_000_000_000,
     });
-    console.log(`VALOR ABSURDO: status ${absurdo.status()}`);
+
+    // E o teto vale na EDIÇÃO também, que é o caminho que add_goal não vê.
+    const acimaDoTeto = await cliente.atualizar(`goals?id=eq.${meta}`, {
+      target_amount_cents: 10_000_000_001,
+    });
+    expect(acimaDoTeto.status(), "editar para acima do teto deveria ser recusado")
+      .toBeGreaterThanOrEqual(400);
   });
 
   test("o dinheiro na tela não está 100x maior nem menor", async ({ page, request }) => {
