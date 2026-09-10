@@ -1,29 +1,46 @@
 #!/usr/bin/env bash
-# Roda o teste de isolamento entre casais.
+# Roda o teste de isolamento entre casais, no melhor banco disponível.
 #
-# Com DATABASE_URL definido (stack local do Supabase, ou CI), roda direto
-# contra ele: lá os papéis, o schema auth e as migrations já existem.
+# Ordem de preferência:
+#   1. DATABASE_URL, se definida (CI, ou apontar para onde você quiser)
+#   2. o stack local do Supabase, se estiver no ar — auth, papéis e migrations
+#      de verdade, é o alvo que vale
+#   3. um Postgres descartável em socket unix, com o auth stubbado em
+#      bootstrap.sql — só para máquina sem Docker
 #
-# Sem DATABASE_URL, sobe um Postgres descartável em socket unix, aplica o
-# bootstrap e as migrations, roda o teste e derruba tudo. É o que permite
-# rodar este teste em máquina sem Docker.
+# O alvo escolhido é impresso. Um teste que roda contra o stub achando que
+# rodou contra o Supabase é pior do que teste nenhum.
 set -euo pipefail
 
 raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 teste="$raiz/supabase/tests/rls_isolamento.sql"
-
-if [ -n "${DATABASE_URL:-}" ]; then
-  exec psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$teste"
-fi
-
 PG="${PGSQL_HOME:-$HOME/.local/pgsql}"
-if [ ! -x "$PG/bin/initdb" ]; then
-  echo "Sem Postgres em $PG e sem DATABASE_URL." >&2
-  echo "Suba o stack do Supabase e exporte DATABASE_URL, ou aponte PGSQL_HOME." >&2
-  exit 1
-fi
+
+psql_bin="$(command -v psql || true)"
+[ -n "$psql_bin" ] || psql_bin="$PG/bin/psql"
+[ -x "$psql_bin" ] || { echo "psql não encontrado (nem no PATH, nem em $PG/bin)" >&2; exit 1; }
 export LD_LIBRARY_PATH="$PG/lib:${LD_LIBRARY_PATH:-}"
 
+# Porta do [db] em supabase/config.toml. Mudou lá? Exporte DATABASE_URL.
+local_supabase="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+
+alvo="${DATABASE_URL:-}"
+if [ -z "$alvo" ] && "$psql_bin" "$local_supabase" -c 'select 1' >/dev/null 2>&1; then
+  alvo="$local_supabase"
+fi
+
+if [ -n "$alvo" ]; then
+  echo "alvo: ${alvo%%\?*}"
+  exec "$psql_bin" "$alvo" -v ON_ERROR_STOP=1 -q -f "$teste"
+fi
+
+if [ ! -x "$PG/bin/initdb" ]; then
+  echo "Sem stack do Supabase no ar, sem DATABASE_URL e sem Postgres em $PG." >&2
+  echo "Rode 'npx supabase start', ou aponte PGSQL_HOME." >&2
+  exit 1
+fi
+
+echo "alvo: Postgres descartável com auth stubbado (o stack do Supabase não está no ar)"
 tmp="$(mktemp -d)"
 trap '"$PG/bin/pg_ctl" -D "$tmp/data" -m immediate stop >/dev/null 2>&1 || true; rm -rf "$tmp"' EXIT
 
