@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBRL, fromCents, sumCents, toCents } from "./money";
+import { formatBRL, fromCents, progressoPercentual, sumCents, toCents } from "./money";
 
 // O Intl usa espaço não-quebrável entre "R$" e o número, e o caractere muda
 // conforme a versão do ICU. Normalizar deixa o teste estável.
@@ -76,5 +76,28 @@ describe("sumCents", () => {
 
   it("recusa centavos fracionados", () => {
     expect(() => sumCents([100, 1.5])).toThrow(TypeError);
+  });
+});
+
+describe("progressoPercentual", () => {
+  it("mede o quanto já foi juntado", () => {
+    expect(progressoPercentual(0, 100000)).toBe(0);
+    expect(progressoPercentual(25000, 100000)).toBe(25);
+    expect(progressoPercentual(100000, 100000)).toBe(100);
+  });
+
+  it("não estoura a barra quando o casal junta mais do que combinou", () => {
+    expect(progressoPercentual(250000, 100000)).toBe(100);
+  });
+
+  // Sem isso, as duas pessoas veem "NaN%" na tela.
+  it("não divide por zero quando a meta não tem alvo", () => {
+    expect(progressoPercentual(0, 0)).toBe(0);
+    expect(progressoPercentual(50000, 0)).toBe(100);
+  });
+
+  it("recusa o que não é centavo inteiro", () => {
+    expect(() => progressoPercentual(10.5, 100000)).toThrow(TypeError);
+    expect(() => progressoPercentual(1000, 99.9)).toThrow(TypeError);
   });
 });

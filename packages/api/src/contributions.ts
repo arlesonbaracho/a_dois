@@ -6,12 +6,16 @@ type Client = SupabaseClient<Database>;
 
 export type Aporte = Database["public"]["Tables"]["contributions"]["Row"];
 
-/** Os aportes do casal, do mais recente para o mais antigo. */
-export async function aportes(client: Client): Promise<Aporte[]> {
-  const { data, error } = await client
-    .from("contributions")
-    .select("*")
-    .order("contributed_at", { ascending: false });
+/**
+ * Os aportes do casal, do mais recente para o mais antigo. Com `goalId`, só os
+ * de uma meta — é o que a barra de progresso daquela meta soma.
+ */
+export async function aportes(client: Client, goalId?: string): Promise<Aporte[]> {
+  const consulta = client.from("contributions").select("*");
+  const { data, error } = await (goalId ? consulta.eq("goal_id", goalId) : consulta).order(
+    "contributed_at",
+    { ascending: false },
+  );
 
   if (error) throw error;
   return data ?? [];

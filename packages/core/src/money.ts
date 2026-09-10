@@ -41,3 +41,19 @@ export function sumCents(values: number[]): number {
   values.forEach(assertCents);
   return values.reduce((total, cents) => total + cents, 0);
 }
+
+/**
+ * Quanto da meta já foi juntado, de 0 a 100.
+ *
+ * Inteiro, e nunca passa de 100: a barra não estoura quando o casal junta mais
+ * do que combinou. Meta de alvo zero devolve 100 se já tem dinheiro dentro e 0
+ * se não tem — sem alvo, qualquer aporte já é "chegou", e o que não pode
+ * acontecer é dividir por zero e mostrar NaN% para as duas pessoas.
+ */
+export function progressoPercentual(aportadoCents: number, alvoCents: number): number {
+  assertCents(aportadoCents);
+  assertCents(alvoCents);
+
+  if (alvoCents <= 0) return aportadoCents > 0 ? 100 : 0;
+  return Math.max(0, Math.min(100, Math.round((aportadoCents / alvoCents) * 100)));
+}
