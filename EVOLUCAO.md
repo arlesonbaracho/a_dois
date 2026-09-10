@@ -4,7 +4,7 @@ Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
 **Última atualização:** 2026-09-09
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** Prompt 3 — testes de isolamento entre casais (depende do Docker)
+**Próximo passo:** Prompt 4 — configuração de PWA
 
 ---
 
@@ -17,6 +17,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-09 | Monorepo Turborepo + npm workspaces; `apps/web` em Next.js 16 (App Router, TS strict, Tailwind 4, ESLint 9) rodando; `packages/core` em TS puro com `money.ts` (centavos inteiros, 13 testes), `constants.ts`, schemas zod e tipos inferidos; `packages/api` com `SupabaseProvider`/`useSupabase` recebendo o cliente por injeção | `aab890d` |
 | 2026-09-09 | Schema inicial: 7 tabelas com `couple_id` e RLS, 28 policies contra a lista de casais do `auth.uid()`, `is_couple_member` e `create_couple` em security definer com `search_path` vazio, FK composta `(goal_id, couple_id)`, índices em toda FK, trigger de `updated_at`, `price_quotes` append-only. **Não executada** — falta Docker | `34d4db1` |
 | 2026-09-09 | `database.types.ts` em `packages/api` (à mão, com teste que compara coluna a coluna contra a migration), `SupabaseClient<Database>` no provider, `packages/core/src/schemas.ts` reconciliado | `e8dae6d` |
+| 2026-09-09 | Teste de isolamento entre casais em `supabase/tests/`: 2 casais, 4 pessoas, 7 tabelas, ~70 asserções cobrindo select/update/delete/insert cruzados, anônimo sem JWT e append-only de `price_quotes`. Roda sem Docker via Postgres descartável. Reprovação comprovada com 4 policies quebradas de propósito | `fb03204` |
 
 ---
 
@@ -24,7 +25,6 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-- [ ] **Prompt 3** — Testes de isolamento entre casais
 - [ ] **Prompt 4** — Configuração de PWA (manifest, service worker, instalável)
 - [ ] **Prompt 5** — Autenticação com `@supabase/ssr`
 - [ ] **Prompt 6** — Convite e saída do parceiro
@@ -91,6 +91,9 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-09 | `contributions.goal_id` com `on delete restrict` | Apagar meta não vaporiza histórico de dinheiro; para apagar, os aportes saem antes |
 | 2026-09-09 | Enums do Postgres em vez de `text` + check | `gen types` transforma em união TypeScript de graça |
 | 2026-09-09 | `couples` sem coluna `couple_id`; o `id` dela é o couple_id | Coluna gerada igual ao `id` só custaria coluna e índice redundantes |
+| 2026-09-09 | Teste de RLS em SQL puro com asserções, não pgTAP | `supabase test db` exigiria a extensão e o stack no ar; SQL puro roda em qualquer Postgres e falha com exit != 0 |
+| 2026-09-09 | Postgres 17 userland em `~/.local/pgsql` para rodar o teste sem Docker | Um teste de RLS que nunca rodou não vale nada; `run.sh` usa `DATABASE_URL` quando ela existe |
+| 2026-09-09 | No update, a linha resultante passa pelo `with check` da policy de update E pelo `using` da de select; sem `with check`, o `using` do update serve de substituto | Comprovado em sonda isolada. O `with check` explícito fica assim mesmo: segurança não se apoia em fallback implícito |
 
 ---
 
@@ -104,8 +107,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `packages/*` | Sem ESLint — só `apps/web` tem config. Não vale um pacote `eslint-config` com um consumidor só | Baixa |
 | `packages/core/src/schemas.ts` | Tipos de domínio escritos antes do schema existir. O Prompt 2 (migrations) é a fonte de verdade e vai reconciliar campos | Média |
 | `apps/web/app/page.tsx` | Home provisória, só prova de fumaça do workspace | Baixa |
-| `supabase/migrations/20260910003818_esquema_inicial.sql` | **Nunca executada.** Falta Docker na máquina, então `supabase db reset` não rodou. Nenhuma linha de SQL foi testada de verdade | Alta |
-| `packages/api/src/database.types.ts` | Escrito à mão, não gerado. O teste compara nome de tabela e de coluna contra a migration, mas não tipo nem nulabilidade. Regenerar com `npm run db:types` quando o Docker subir | Alta |
+| `supabase/migrations/20260910003818_esquema_inicial.sql` | Já **executa** e as policies estão comprovadas contra Postgres 17. O que ainda não rodou é o stack Supabase inteiro: `auth` de verdade, PostgREST e GoTrue. O teste usa um `auth` stub em `supabase/tests/bootstrap.sql` | Média |
+| `packages/api/src/database.types.ts` | Escrito à mão, não gerado. `supabase gen types` exige Docker mesmo com `--db-url` — testado, não tem como contornar. O teste compara nome de tabela e de coluna contra a migration, mas não tipo nem nulabilidade | Alta |
 | `contributions.user_id` | FK para `auth.users`, sem garantia de que o usuário é membro daquele casal. Um membro consegue registrar aporte atribuído a alguém de fora | Baixa |
 | `packages/core/src/schemas.ts` × `database.types.ts` | Duas descrições da mesma forma. Devem divergir de propósito quando os formulários entrarem (schema de entrada × linha do banco); até lá é duplicação | Média |
 
@@ -117,4 +120,4 @@ O que está travado esperando algo de fora (decisão sua, conta de terceiro, res
 
 | Desde | O que trava | Esperando |
 |---|---|---|
-| 2026-09-09 | `supabase start`, `db reset`, `gen types` e o Prompt 3 inteiro | Docker instalado na máquina |
+| 2026-09-09 | `supabase start`, `db reset` e `gen types` (este exige Docker mesmo com `--db-url`) | Docker instalado na máquina |
