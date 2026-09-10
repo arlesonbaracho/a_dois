@@ -84,37 +84,58 @@ export type Database = {
       }
       couple_invites: {
         Row: {
+          channel: Database["public"]["Enums"]["invite_channel"]
+          claimed_at: string | null
+          claimed_by_user_id: string | null
+          confirmed_at: string | null
           couple_id: string
           created_at: string
+          created_by: string | null
           expires_at: string
           id: string
-          invited_by: string | null
-          invited_email: string
+          invited_email: string | null
+          invited_user_id: string | null
+          rejected_at: string | null
+          revoked_at: string | null
+          status: Database["public"]["Enums"]["invite_status"]
           token_hash: string
           updated_at: string
-          used_at: string | null
         }
         Insert: {
+          channel: Database["public"]["Enums"]["invite_channel"]
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          confirmed_at?: string | null
           couple_id: string
           created_at?: string
-          expires_at?: string
+          created_by?: string | null
+          expires_at: string
           id?: string
-          invited_by?: string | null
-          invited_email: string
+          invited_email?: string | null
+          invited_user_id?: string | null
+          rejected_at?: string | null
+          revoked_at?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
           token_hash: string
           updated_at?: string
-          used_at?: string | null
         }
         Update: {
+          channel?: Database["public"]["Enums"]["invite_channel"]
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          confirmed_at?: string | null
           couple_id?: string
           created_at?: string
+          created_by?: string | null
           expires_at?: string
           id?: string
-          invited_by?: string | null
-          invited_email?: string
+          invited_email?: string | null
+          invited_user_id?: string | null
+          rejected_at?: string | null
+          revoked_at?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
           token_hash?: string
           updated_at?: string
-          used_at?: string | null
         }
         Relationships: [
           {
@@ -370,6 +391,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      casal_vazio: { Args: { p_couple_id: string }; Returns: boolean }
       checar_limite: {
         Args: {
           p_acao: string
@@ -377,10 +399,24 @@ export type Database = {
           p_janela: string
           p_limite: number
         }
-        Returns: undefined
+        Returns: boolean
       }
+      claim_invite: { Args: { p_token: string }; Returns: string }
+      confirm_invite: { Args: { p_invite_id: string }; Returns: undefined }
       create_couple: { Args: never; Returns: string }
       create_couple_for: { Args: { p_user_id: string }; Returns: string }
+      create_invite: {
+        Args: {
+          p_channel: Database["public"]["Enums"]["invite_channel"]
+          p_email?: string
+          p_nickname?: string
+        }
+        Returns: {
+          resultado: string
+          token: string
+        }[]
+      }
+      expire_and_purge: { Args: never; Returns: undefined }
       find_by_nickname: {
         Args: { p_nickname: string }
         Returns: {
@@ -389,7 +425,30 @@ export type Database = {
           nickname: string
         }[]
       }
+      gerar_token: { Args: never; Returns: string }
+      hash_token: { Args: { p_token: string }; Returns: string }
       is_couple_member: { Args: { couple_id: string }; Returns: boolean }
+      mascarar_email: { Args: { p_email: string }; Returns: string }
+      mascarar_pedaco: {
+        Args: { p_texto: string; p_visivel: number }
+        Returns: string
+      }
+      membros_ativos: { Args: { p_couple_id: string }; Returns: number }
+      meu_casal_id: { Args: never; Returns: string }
+      pending_claim: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          channel: Database["public"]["Enums"]["invite_channel"]
+          conta_criada_ha_dias: number
+          display_name: string
+          email_mascarado: string
+          invite_id: string
+          nickname: string
+        }[]
+      }
+      reject_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      revoke_invite: { Args: { p_invite_id: string }; Returns: undefined }
       set_profile: {
         Args: {
           p_discoverable?: boolean
@@ -404,6 +463,14 @@ export type Database = {
       goal_item_status: "desejado" | "pesquisando" | "comprado"
       goal_priority: "baixa" | "media" | "alta"
       income_band: "ate_2_sm" | "de_2_a_5_sm" | "de_5_a_10_sm" | "acima_10_sm"
+      invite_channel: "email" | "nickname" | "link"
+      invite_status:
+        | "pending"
+        | "claimed"
+        | "confirmed"
+        | "rejected"
+        | "revoked"
+        | "expired"
       split_rule: "igual" | "proporcional"
     }
     CompositeTypes: {
@@ -539,6 +606,15 @@ export const Constants = {
       goal_item_status: ["desejado", "pesquisando", "comprado"],
       goal_priority: ["baixa", "media", "alta"],
       income_band: ["ate_2_sm", "de_2_a_5_sm", "de_5_a_10_sm", "acima_10_sm"],
+      invite_channel: ["email", "nickname", "link"],
+      invite_status: [
+        "pending",
+        "claimed",
+        "confirmed",
+        "rejected",
+        "revoked",
+        "expired",
+      ],
       split_rule: ["igual", "proporcional"],
     },
   },

@@ -81,9 +81,12 @@ insert into public.couple_members (couple_id, user_id, role, display_name) value
   ('bbbbbbbb-0000-0000-0000-00000000000b', 'b0000001-0000-0000-0000-000000000001', 'dono',     'Bia'),
   ('bbbbbbbb-0000-0000-0000-00000000000b', 'b0000002-0000-0000-0000-000000000002', 'parceiro', 'Bruno');
 
-insert into public.couple_invites (couple_id, token_hash, invited_email, invited_by) values
-  ('aaaaaaaa-0000-0000-0000-00000000000a', 'hash-do-casal-a', 'rls-convidado-a@teste.invalid', 'a0000001-0000-0000-0000-000000000001'),
-  ('bbbbbbbb-0000-0000-0000-00000000000b', 'hash-do-casal-b', 'rls-convidado-b@teste.invalid', 'b0000001-0000-0000-0000-000000000001');
+insert into public.couple_invites
+  (couple_id, created_by, channel, invited_email, token_hash, expires_at) values
+  ('aaaaaaaa-0000-0000-0000-00000000000a', 'a0000001-0000-0000-0000-000000000001',
+   'email', 'rls-convidado-a@teste.invalid', 'hash-do-casal-a', now() + interval '72 hours'),
+  ('bbbbbbbb-0000-0000-0000-00000000000b', 'b0000001-0000-0000-0000-000000000001',
+   'email', 'rls-convidado-b@teste.invalid', 'hash-do-casal-b', now() + interval '72 hours');
 
 insert into public.goals (id, couple_id, title, category, target_amount_cents) values
   ('a1000000-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-00000000000a', 'Entrada do apê', 'moradia', 12000000),
@@ -185,7 +188,7 @@ begin
   update public.couple_members set display_name = 'invadido'  where couple_id = casal_b;
   get diagnostics n = row_count; perform rls_teste.igual('update couple_members de B', n, 0);
 
-  update public.couple_invites set used_at = now()            where couple_id = casal_b;
+  update public.couple_invites set expires_at = now()         where couple_id = casal_b;
   get diagnostics n = row_count; perform rls_teste.igual('update couple_invites de B', n, 0);
 
   update public.goals          set title = 'invadido'         where couple_id = casal_b;
@@ -238,8 +241,8 @@ begin
   end;
 
   begin
-    insert into public.couple_invites (couple_id, token_hash, invited_email)
-    values (casal_b, 'hash-invasor', 'invasor@exemplo.test');
+    insert into public.couple_invites (couple_id, channel, invited_email, token_hash, expires_at)
+    values (casal_b, 'email', 'invasor@teste.invalid', 'hash-invasor', now() + interval '1 hour');
     raise exception 'VAZAMENTO: insert em couple_invites do casal B passou';
   exception when insufficient_privilege then null;
   end;
@@ -270,13 +273,13 @@ begin
   end;
   -- Mover a PRÓPRIA linha para o casal B. É o que o "with check" do update
   -- existe para barrar: só com "using", esta linha passaria.
-  -- Testado em couple_invites e couple_members porque neles o couple_id pode
-  -- mudar sem esbarrar antes na FK composta.
-  begin
-    update public.couple_invites set couple_id = casal_b where couple_id = casal_a;
-    raise exception 'VAZAMENTO: A empurrou o próprio convite para o casal B (falta with check no update)';
-  exception when insufficient_privilege then null;
-  end;
+  --
+  -- couple_invites não entra mais aqui por with check: desde o convite com
+  -- confirmação, ela não aceita update de ninguém, e a máquina de estados só
+  -- anda por função. A prova então é que nada muda, e não que levanta 42501.
+  update public.couple_invites set couple_id = casal_b where couple_id = casal_a;
+  get diagnostics n = row_count;
+  perform rls_teste.igual('empurrar o próprio convite para o casal B', n, 0);
 
   begin
     update public.couple_members set couple_id = casal_b where user_id = ana;
