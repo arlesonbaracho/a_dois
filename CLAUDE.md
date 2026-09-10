@@ -76,13 +76,54 @@ Um PR que viole qualquer uma delas está errado.
 |---|---|
 | `couples` | O espaço compartilhado |
 | `couple_members` | Vínculo usuário ↔ casal, papel, regra de divisão, faixa de renda |
-| `couple_invites` | Convites: token **hasheado**, TTL 72h, uso único, vinculado ao e-mail |
+| `profiles` | Perfil mínimo por pessoa: nome de exibição, apelido, avatar. **Sem leitura ampla** — só a própria linha e a de quem divide casal |
+| `couple_invites` | Convites como **máquina de estados**. Ver abaixo |
 | `goals` | Metas: título, categoria, `target_amount_cents`, prazo, prioridade |
 | `goal_items` | Itens da meta: nome, `estimated_price_cents`, status, URL escolhida |
 | `contributions` | Aportes: `user_id`, `amount_cents`, data, meta |
 | `price_quotes` | Histórico de preço. **Append-only: nunca update, nunca delete.** |
+| `rate_limit_hits` | Batidas de rate limit. RLS ligado e **zero policies**: só funções `security definer` alcançam |
 
-Saída do casal: quem sai é **pseudonimizado** (nome, e-mail e renda apagados; aportes viram "ex-membro"). Hard delete só quando o último membro sai.
+### `couple_invites`: reivindicar não concede, confirmar concede
+
+Aceitar um convite **não dá acesso a nada**: cria um pedido. Quem convidou vê
+quem apareceu do outro lado — nome, apelido, e-mail **mascarado** e idade da
+conta — e só a confirmação cria o vínculo em `couple_members`. O canal é
+entrega; a autorização é sempre do lado de quem convidou.
+
+Seis estados, e só estas transições:
+
+```
+pending  -> claimed | revoked | expired
+claimed  -> confirmed | rejected | revoked | expired
+confirmed, rejected, revoked, expired  são terminais
+```
+
+Três canais, com prazo proporcional à exposição: `email` e `nickname` amarram o
+convite a alguém e valem 72h; `link` não amarra a ninguém e vale 24h. Token de
+32 bytes, guardado só como **SHA-256**. Máximo 3 em aberto por casal e 5 por
+hora.
+
+Regras que não se negociam nesta tabela:
+
+- **A tabela nega insert, update e delete nas policies.** Toda transição passa
+  por função `security definer` que confere o estado de origem. Update direto
+  de `status` seria a máquina de estados inteira pela porta dos fundos.
+- **Nenhuma função confia no status `expired`.** Vitalidade é sempre
+  `pending and expires_at > now()`, avaliada na hora. Se o `pg_cron` do expurgo
+  parar, o convite vencido continua recusado.
+- **Recusa, revogação, token inventado, vencido, já usado e de canal errado
+  devolvem todos a mesma resposta.** Qualquer diferença vira oráculo para quem
+  estiver varrendo tokens.
+- **Funções de convite devolvem código, não levantam exceção.** Exceção desfaz
+  a transação e leva junto a batida de rate limit que a função acabou de
+  gravar — o limite deixaria de contar justamente as tentativas que falham.
+
+Saída do casal: quem sai é **pseudonimizado** (nome e faixa de renda apagados
+do vínculo, e-mail apagado dos convites, aportes viram "ex-membro" com o valor
+intacto). O que corta o acesso é o `left_at`, que `is_couple_member` já confere.
+Hard delete do plano só quando o último membro sai, e só com confirmação
+explícita.
 
 ## Dados que NÃO coletamos
 
