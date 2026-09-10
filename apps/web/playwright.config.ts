@@ -20,7 +20,12 @@ export default defineConfig({
   // Não é lentidão do app: é o preço de não fazer um build de produção por
   // rodada. Daí o teto de workers e o minuto de fôlego por teste.
   workers: 4,
-  timeout: 60_000,
+  // 90s, e não os 30s padrão: os testes mais pesados abrem DOIS contextos de
+  // navegador, fazem o ciclo inteiro de convite e ainda esperam e-mail chegar
+  // no Mailpit — tudo contra um servidor que compila a rota na primeira
+  // visita. Estourar o prazo aqui aparece como "Request context disposed", que
+  // não diz nada sobre a causa.
+  timeout: 90_000,
 
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,

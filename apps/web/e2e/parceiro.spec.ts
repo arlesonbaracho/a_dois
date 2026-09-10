@@ -84,6 +84,10 @@ test.describe("quem divide o plano", () => {
     await betoPage.goto(new URL(link).pathname + new URL(link).search);
     await betoPage.getByLabel("Como você quer aparecer para ela").fill("Beto");
     await betoPage.getByRole("button", { name: "Pedir para entrar" }).click();
+    // Esperar o pedido aterrissar antes de olhar a tela da Ana. Sem isto, sob
+    // carga a página dela carrega antes do claim e o teste falha por corrida,
+    // não por defeito.
+    await expect(betoPage.getByRole("heading", { name: "Pedido enviado" })).toBeVisible();
 
     await page.goto("/parceiro");
     const pedido = page.getByText("Alguém pediu para entrar no plano de vocês").locator("..");
