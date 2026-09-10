@@ -12,3 +12,9 @@ public/workbox-*.js
 .DS_Store
 supabase/.temp/
 .claude/settings.local.json
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
