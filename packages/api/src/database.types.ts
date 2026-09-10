@@ -1,271 +1,469 @@
-// Tipos do banco.
-//
-// PROVISÓRIO: escrito à mão a partir de
-// supabase/migrations/20260910003818_esquema_inicial.sql, porque esta máquina
-// ainda não tem Docker e o stack local não sobe. Assim que subir, este arquivo
-// é substituído pelo gerado:
-//
-//   npm run db:types
-//
-// Este cabeçalho some junto. Qualquer coisa no diff além dele significa que a
-// versão escrita à mão estava errada — vale olhar linha a linha nessa hora.
-// Depois disso não se edita à mão: mexe na migration e regenera.
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      couples: {
-        Row: {
-          id: string;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      couple_members: {
-        Row: {
-          couple_id: string;
-          user_id: string;
-          role: Database["public"]["Enums"]["couple_role"];
-          split_rule: Database["public"]["Enums"]["split_rule"];
-          income_band: Database["public"]["Enums"]["income_band"] | null;
-          is_adult: boolean;
-          display_name: string | null;
-          left_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          couple_id: string;
-          user_id: string;
-          role?: Database["public"]["Enums"]["couple_role"];
-          split_rule?: Database["public"]["Enums"]["split_rule"];
-          income_band?: Database["public"]["Enums"]["income_band"] | null;
-          is_adult?: boolean;
-          display_name?: string | null;
-          left_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          couple_id?: string;
-          user_id?: string;
-          role?: Database["public"]["Enums"]["couple_role"];
-          split_rule?: Database["public"]["Enums"]["split_rule"];
-          income_band?: Database["public"]["Enums"]["income_band"] | null;
-          is_adult?: boolean;
-          display_name?: string | null;
-          left_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      couple_invites: {
-        Row: {
-          id: string;
-          couple_id: string;
-          token_hash: string;
-          invited_email: string;
-          invited_by: string | null;
-          expires_at: string;
-          used_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          couple_id: string;
-          token_hash: string;
-          invited_email: string;
-          invited_by?: string | null;
-          expires_at?: string;
-          used_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          couple_id?: string;
-          token_hash?: string;
-          invited_email?: string;
-          invited_by?: string | null;
-          expires_at?: string;
-          used_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      goals: {
-        Row: {
-          id: string;
-          couple_id: string;
-          title: string;
-          category: string;
-          target_amount_cents: number;
-          deadline_at: string | null;
-          priority: Database["public"]["Enums"]["goal_priority"];
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          couple_id: string;
-          title: string;
-          category: string;
-          target_amount_cents?: number;
-          deadline_at?: string | null;
-          priority?: Database["public"]["Enums"]["goal_priority"];
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          couple_id?: string;
-          title?: string;
-          category?: string;
-          target_amount_cents?: number;
-          deadline_at?: string | null;
-          priority?: Database["public"]["Enums"]["goal_priority"];
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      goal_items: {
-        Row: {
-          id: string;
-          couple_id: string;
-          goal_id: string;
-          name: string;
-          estimated_price_cents: number | null;
-          status: Database["public"]["Enums"]["goal_item_status"];
-          url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          couple_id: string;
-          goal_id: string;
-          name: string;
-          estimated_price_cents?: number | null;
-          status?: Database["public"]["Enums"]["goal_item_status"];
-          url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          couple_id?: string;
-          goal_id?: string;
-          name?: string;
-          estimated_price_cents?: number | null;
-          status?: Database["public"]["Enums"]["goal_item_status"];
-          url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
       contributions: {
         Row: {
-          id: string;
-          couple_id: string;
-          goal_id: string;
-          user_id: string | null;
-          amount_cents: number;
-          contributed_at: string;
-          created_at: string;
-          updated_at: string;
-        };
+          amount_cents: number
+          contributed_at: string
+          couple_id: string
+          created_at: string
+          goal_id: string
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
         Insert: {
-          id?: string;
-          couple_id: string;
-          goal_id: string;
-          user_id?: string | null;
-          amount_cents: number;
-          contributed_at?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
+          amount_cents: number
+          contributed_at?: string
+          couple_id: string
+          created_at?: string
+          goal_id: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
         Update: {
-          id?: string;
-          couple_id?: string;
-          goal_id?: string;
-          user_id?: string | null;
-          amount_cents?: number;
-          contributed_at?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          amount_cents?: number
+          contributed_at?: string
+          couple_id?: string
+          created_at?: string
+          goal_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contributions_goal_id_couple_id_fkey"
+            columns: ["goal_id", "couple_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id", "couple_id"]
+          },
+        ]
+      }
+      couple_invites: {
+        Row: {
+          couple_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          invited_email: string
+          token_hash: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          couple_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_email: string
+          token_hash: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          couple_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_email?: string
+          token_hash?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couple_invites_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      couple_members: {
+        Row: {
+          couple_id: string
+          created_at: string
+          display_name: string | null
+          income_band: Database["public"]["Enums"]["income_band"] | null
+          is_adult: boolean
+          left_at: string | null
+          role: Database["public"]["Enums"]["couple_role"]
+          split_rule: Database["public"]["Enums"]["split_rule"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          couple_id: string
+          created_at?: string
+          display_name?: string | null
+          income_band?: Database["public"]["Enums"]["income_band"] | null
+          is_adult?: boolean
+          left_at?: string | null
+          role?: Database["public"]["Enums"]["couple_role"]
+          split_rule?: Database["public"]["Enums"]["split_rule"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          couple_id?: string
+          created_at?: string
+          display_name?: string | null
+          income_band?: Database["public"]["Enums"]["income_band"] | null
+          is_adult?: boolean
+          left_at?: string | null
+          role?: Database["public"]["Enums"]["couple_role"]
+          split_rule?: Database["public"]["Enums"]["split_rule"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couple_members_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      couples: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      goal_items: {
+        Row: {
+          couple_id: string
+          created_at: string
+          estimated_price_cents: number | null
+          goal_id: string
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["goal_item_status"]
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          couple_id: string
+          created_at?: string
+          estimated_price_cents?: number | null
+          goal_id: string
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["goal_item_status"]
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          couple_id?: string
+          created_at?: string
+          estimated_price_cents?: number | null
+          goal_id?: string
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["goal_item_status"]
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_items_goal_id_couple_id_fkey"
+            columns: ["goal_id", "couple_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id", "couple_id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          category: string
+          couple_id: string
+          created_at: string
+          deadline_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["goal_priority"]
+          target_amount_cents: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          couple_id: string
+          created_at?: string
+          deadline_at?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["goal_priority"]
+          target_amount_cents?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          couple_id?: string
+          created_at?: string
+          deadline_at?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["goal_priority"]
+          target_amount_cents?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_quotes: {
         Row: {
-          id: string;
-          couple_id: string;
-          goal_item_id: string;
-          price_cents: number;
-          source_url: string;
-          created_at: string;
-        };
+          couple_id: string
+          created_at: string
+          goal_item_id: string
+          id: string
+          price_cents: number
+          source_url: string
+        }
         Insert: {
-          id?: string;
-          couple_id: string;
-          goal_item_id: string;
-          price_cents: number;
-          source_url: string;
-          created_at?: string;
-        };
+          couple_id: string
+          created_at?: string
+          goal_item_id: string
+          id?: string
+          price_cents: number
+          source_url: string
+        }
         Update: {
-          id?: string;
-          couple_id?: string;
-          goal_item_id?: string;
-          price_cents?: number;
-          source_url?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-    };
-    Views: { [_ in never]: never };
+          couple_id?: string
+          created_at?: string
+          goal_item_id?: string
+          id?: string
+          price_cents?: number
+          source_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_quotes_goal_item_id_couple_id_fkey"
+            columns: ["goal_item_id", "couple_id"]
+            isOneToOne: false
+            referencedRelation: "goal_items"
+            referencedColumns: ["id", "couple_id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
-      create_couple: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
-      is_couple_member: {
-        Args: { couple_id: string };
-        Returns: boolean;
-      };
-    };
+      create_couple: { Args: never; Returns: string }
+      is_couple_member: { Args: { couple_id: string }; Returns: boolean }
+    }
     Enums: {
-      couple_role: "dono" | "parceiro";
-      split_rule: "igual" | "proporcional";
-      income_band: "ate_2_sm" | "de_2_a_5_sm" | "de_5_a_10_sm" | "acima_10_sm";
-      goal_priority: "baixa" | "media" | "alta";
-      goal_item_status: "desejado" | "pesquisando" | "comprado";
-    };
-    CompositeTypes: { [_ in never]: never };
-  };
-};
+      couple_role: "dono" | "parceiro"
+      goal_item_status: "desejado" | "pesquisando" | "comprado"
+      goal_priority: "baixa" | "media" | "alta"
+      income_band: "ate_2_sm" | "de_2_a_5_sm" | "de_5_a_10_sm" | "acima_10_sm"
+      split_rule: "igual" | "proporcional"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      couple_role: ["dono", "parceiro"],
+      goal_item_status: ["desejado", "pesquisando", "comprado"],
+      goal_priority: ["baixa", "media", "alta"],
+      income_band: ["ate_2_sm", "de_2_a_5_sm", "de_5_a_10_sm", "acima_10_sm"],
+      split_rule: ["igual", "proporcional"],
+    },
+  },
+} as const
+

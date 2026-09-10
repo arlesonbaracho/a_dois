@@ -14,7 +14,8 @@
     "test": "turbo run test",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > packages/api/src/database.types.ts",
-    "test:rls": "bash supabase/tests/run.sh"
+    "test:rls": "bash supabase/tests/run.sh",
+    "db:types:check": "npm run db:types && git diff --exit-code packages/api/src/database.types.ts"
   },
   "devDependencies": {
     "supabase": "2.117.0",
