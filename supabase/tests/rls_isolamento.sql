@@ -60,10 +60,10 @@ grant execute on all functions in schema rls_teste to anon, authenticated;
 -- ===========================================================================
 
 insert into auth.users (id, email) values
-  ('a0000001-0000-0000-0000-000000000001', 'ana@exemplo.test'),
-  ('a0000002-0000-0000-0000-000000000002', 'artur@exemplo.test'),
-  ('b0000001-0000-0000-0000-000000000001', 'bia@exemplo.test'),
-  ('b0000002-0000-0000-0000-000000000002', 'bruno@exemplo.test');
+  ('a0000001-0000-0000-0000-000000000001', 'rls-ana@teste.invalid'),
+  ('a0000002-0000-0000-0000-000000000002', 'rls-artur@teste.invalid'),
+  ('b0000001-0000-0000-0000-000000000001', 'rls-bia@teste.invalid'),
+  ('b0000002-0000-0000-0000-000000000002', 'rls-bruno@teste.invalid');
 
 -- A trigger on_auth_user_created acabou de dar um casal a cada um dos quatro.
 -- Este teste monta o mundo à mão, com uuids fixos, para poder falar "o casal A"
@@ -82,8 +82,8 @@ insert into public.couple_members (couple_id, user_id, role, display_name) value
   ('bbbbbbbb-0000-0000-0000-00000000000b', 'b0000002-0000-0000-0000-000000000002', 'parceiro', 'Bruno');
 
 insert into public.couple_invites (couple_id, token_hash, invited_email, invited_by) values
-  ('aaaaaaaa-0000-0000-0000-00000000000a', 'hash-do-casal-a', 'convidado-a@exemplo.test', 'a0000001-0000-0000-0000-000000000001'),
-  ('bbbbbbbb-0000-0000-0000-00000000000b', 'hash-do-casal-b', 'convidado-b@exemplo.test', 'b0000001-0000-0000-0000-000000000001');
+  ('aaaaaaaa-0000-0000-0000-00000000000a', 'hash-do-casal-a', 'rls-convidado-a@teste.invalid', 'a0000001-0000-0000-0000-000000000001'),
+  ('bbbbbbbb-0000-0000-0000-00000000000b', 'hash-do-casal-b', 'rls-convidado-b@teste.invalid', 'b0000001-0000-0000-0000-000000000001');
 
 insert into public.goals (id, couple_id, title, category, target_amount_cents) values
   ('a1000000-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-00000000000a', 'Entrada do apê', 'moradia', 12000000),

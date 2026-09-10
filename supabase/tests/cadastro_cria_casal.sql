@@ -33,7 +33,7 @@ declare
   ines constant uuid := 'c0000001-0000-0000-0000-000000000001';
   casal uuid;
 begin
-  insert into auth.users (id, email) values (ines, 'ines@exemplo.test');
+  insert into auth.users (id, email) values (ines, 'cadastro-ines@teste.invalid');
 
   select m.couple_id into casal
   from public.couple_members as m
@@ -72,7 +72,7 @@ declare
   ines constant uuid := 'c0000001-0000-0000-0000-000000000001';
   ivo  constant uuid := 'c0000002-0000-0000-0000-000000000002';
 begin
-  insert into auth.users (id, email) values (ivo, 'ivo@exemplo.test');
+  insert into auth.users (id, email) values (ivo, 'cadastro-ivo@teste.invalid');
 
   perform cadastro_teste.igual(
     'cada pessoa nova ganha o próprio casal',

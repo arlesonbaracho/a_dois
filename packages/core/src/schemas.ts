@@ -53,3 +53,20 @@ export const contributionSchema = z.object({
   createdAt: timestamp,
   updatedAt: timestamp,
 });
+
+// ---------------------------------------------------------------------------
+// Entrada de auth
+// ---------------------------------------------------------------------------
+
+// Espelha minimum_password_length de supabase/config.toml. Quem recusa de
+// verdade é o servidor de auth; isto aqui existe para a pessoa saber antes de
+// enviar. Se um mudar, o outro muda junto.
+export const SENHA_MINIMA = 10;
+
+export const emailSchema = z.email();
+export const senhaSchema = z.string().min(SENHA_MINIMA);
+
+export const credenciaisSchema = z.object({
+  email: emailSchema,
+  senha: senhaSchema,
+});

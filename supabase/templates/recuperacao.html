@@ -1,0 +1,11 @@
+<h2>Vamos trocar sua senha</h2>
+
+<p>Recebemos um pedido para escolher uma senha nova.</p>
+
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">
+    Escolher nova senha
+  </a>
+</p>
+
+<p>O link vale por uma hora. Se não foi você, ignore: sua senha continua a mesma.</p>

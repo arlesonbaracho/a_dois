@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+/* Ainda não existe paleta nem modo escuro: o app se compromete com o claro até
+   o design system entrar. Sem isto, navegador em modo escuro pinta o fundo de
+   preto e as telas de auth ficam texto escuro sobre fundo escuro. */
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #fff;
+  color: #1c1917; /* stone-900 */
+}
