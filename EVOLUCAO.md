@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (saída do casal)
+**Última atualização:** 2026-09-10 (aportes, e o guard anti-SSRF)
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** Prompt 7 — metas e itens com Realtime
+**Próximo passo:** Prompt 7 — metas e itens com Realtime, que também dá casa à tela de link de produto
 
 ---
 
@@ -27,6 +27,10 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | Telas `/parceiro` (criar, revogar, confirmar, recusar) e `/convite` (reivindicar), aviso de pedido pendente na home, `Referrer-Policy: no-referrer` em `/convite`, e o `proxima` do middleware passou a guardar a query string. Verificado no navegador com duas contas: reivindicar não dá acesso, confirmar dá, e o casal vazio de quem entrou some | `7c9439f` |
 | 2026-09-10 | Saída do casal: nome e faixa de renda apagados do vínculo, e-mail apagado dos convites, aportes viram "ex-membro" com o valor intacto, convites criados por quem saiu revogados, sessões derrubadas, e hard delete do plano só no último membro com confirmação explícita. `supabase/tests/saida.sql` | `2b50be0` |
 | 2026-09-10 | Os seis itens que faltavam da lista obrigatória de testes: token revogado, link por conta aleatória com sete asserções de acesso zero, auto-convite, expurgo de 7 dias e de 48h, e busca por apelido escondido idêntica à de apelido inexistente. Reprovação comprovada abrindo `goals_select` | `82ce3ab` |
+| 2026-09-10 | `packages/core/src/split.ts`: `dividirCentavos` pelo método do maior resto, com a soma exata como invariante — negativo é dividido pelo módulo com o sinal reposto no fim, e o `-0` morre na saída. `pesosDaRegra` devolve `null` (não exceção) quando a regra não se aplica. 41 testes, incluindo 2000 combinações aleatórias | `7864a9c` |
+| 2026-09-10 | Aportes: `add_goal` e `add_contribution` em security definer, `goals_insert` e `contributions_insert` passam a negar, `split_rule` ganha `'fixo'` e `couple_members` ganha `fixed_share_cents`. Tela `/aportes` com saldo entre os dois, meta mínima e as três formas de dividir. `supabase/tests/aportes.sql` com ~20 asserções | `deca884` |
+| 2026-09-10 | `supabase/functions/_shared/ssrf-guard.ts`: protocolo, allowlist por rótulo e **DNS resolvido** com todo IP conferido, revalidado a cada redirect (máx. 3), timeout de 5s e corte em 2 MB. `supabase/functions` virou workspace npm para os 24 testes rodarem no Vitest, sem Deno. Reprovação comprovada com quatro mutações | `a551ac3` |
+| 2026-09-10 | Edge Function `extract-product-link`: JWT antes de tudo, dono do item conferido antes do fetch, Open Graph por regex, sanitização com entidades decodificadas antes da marcação sair, preço em centavos sem float, e `add_price_quote` append-only. Conferida contra magazineluiza, mercadolivre e americanas de verdade | `33bd96f` |
 
 ---
 
@@ -34,10 +38,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-- [ ] **Prompt 6b** — Saída do parceiro, com pseudonimização
-- [ ] **Prompt 7** — Metas e itens com Realtime
-- [ ] **Prompt 8** — Aportes e divisão proporcional
-- [ ] **Prompt 9** — Guard anti-SSRF e extração de link de produto
+- [ ] **Prompt 7** — Metas e itens com Realtime (a meta de hoje é mínima: só título e valor alvo)
 - [ ] **Prompt 10** — Direitos do titular (exportar, excluir, consentimentos)
 - [ ] **Prompt 11** — CI no GitHub Actions
 
@@ -147,6 +148,27 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | Os aportes de quem sai ficam, com o valor intacto e sem dono | Apagar mentiria sobre quanto o casal juntou. Pseudonimizar é tirar a pessoa do dado, não tirar o dado |
 | 2026-09-10 | Convite que carrega o e-mail de quem saiu é apagado, não anulado | O check de coerência de canal exige `invited_email` não-nulo quando `channel = 'email'`. E convite morto é dado pessoal parado, não histórico útil |
 | 2026-09-10 | Hard delete do plano exige `p_confirmo_apagar` explícito | É irreversível e leva metas, itens, aportes e histórico de preço junto. Uma tela com bug não faz isso por acidente |
+| 2026-09-10 | Divisão pelo método do maior resto, e não por cumulativo arredondado | Os dois fecham a soma; o maior resto é determinístico e explicável para quem reclamar do centavo ("quem tinha a maior fração levou"), e o empate resolve pela ordem da lista |
+| 2026-09-10 | Total negativo é dividido pelo módulo, com o sinal reposto no fim | `Math.floor` com negativo arredonda para longe do zero e o resto muda de sinal: seriam dois caminhos, e o segundo é o que ninguém testa. Assim é um caminho só |
+| 2026-09-10 | `dividirCentavos` recusa `total * somaPesos` acima do inteiro seguro | Acima disso o produto passa a mentir e a divisão devolve conta errada em silêncio. Erro é melhor que resposta errada quando o assunto é dinheiro |
+| 2026-09-10 | `pesosDaRegra` devolve `null` quando a regra não se aplica, em vez de levantar | A faixa de renda é opcional e não informar é resposta legítima. Exceção obrigaria a tela a tratar caso normal como falha, e é assim que nasce tela de erro para quem não fez nada de errado |
+| 2026-09-10 | `regraDoCasal` desempata pelo papel `dono` | `split_rule` é coluna por pessoa, então as duas linhas podem discordar. A função existe só para consertar o modelo — está em Dívidas |
+| 2026-09-10 | Peso da faixa é o ponto médio dela em salários mínimos, ×2 | Precisa ser inteiro para a divisão em centavos, e o que importa é a proporção entre as faixas, não o valor absoluto. A faixa aberta do topo entra como 15 SM, que é chute honesto |
+| 2026-09-10 | O rateio ignora o dinheiro de quem saiu do casal | `contributions.user_id` nulo não tem a quem cobrar. Incluir esse valor inflaria o que os dois que ficaram devem um ao outro, por uma conta que ninguém pode acertar |
+| 2026-09-10 | `goals`, `contributions` e `price_quotes` passam a negar insert nas policies | A policy antiga aceitava o `couple_id` do corpo e só conferia se era um dos seus. Barra IDOR, mas deixa o cliente escolher o casal e o `user_id` do aporte. As funções definer tiram as duas escolhas da mão de quem chama — regra 3 |
+| 2026-09-10 | A data do aporte vem do cliente, o resto não | Aporte de ontem é caso normal, e a data não é fronteira de segurança. `couple_id` e `user_id` são, e esses saem do JWT |
+| 2026-09-10 | Data do formulário vira `T12:00:00Z`, e não meia-noite | Meia-noite UTC é 21h do dia anterior no Brasil: o aporte "andaria" um dia para trás na tela. Meio-dia sobrevive a qualquer fuso do país |
+| 2026-09-10 | Meta mínima (título e valor alvo, categoria `'geral'`) entrou junto dos aportes | Aporte é vinculado a meta e o prompt 7 ainda não rodou. Sem isso não havia como usar nem conferir o que o commit dos aportes entrega |
+| 2026-09-10 | `ssrf-guard.ts` é TS puro com o resolvedor de DNS injetável | É o que deixa as 24 recusas rodarem no Vitest que já existe. Instalar o Deno na máquina para rodar teste de guard não se paga, e guard sem teste é decoração |
+| 2026-09-10 | `ipReservado` falha fechada: o que não dá para classificar volta como reservado | Numa peneira de segurança, "não entendi" e "não pode" têm que dar na mesma coisa. A alternativa é deixar passar o que ninguém previu |
+| 2026-09-10 | A allowlist compara por rótulo, não por sufixo de texto | `amazon.com.br.malvado.com` termina com `amazon.com.br` no meio do nome. Comparação por sufixo deixaria passar, e o teste que prova isso reprova a versão ingênua |
+| 2026-09-10 | `redirect: "manual"` com laço próprio, em vez de deixar o `fetch` seguir | Com `follow`, o guard rodaria uma vez, na URL que não importa: o 302 para a rede interna passaria por baixo. Há um teste que reprova só a troca desse flag |
+| 2026-09-10 | Um `AbortSignal.timeout` para a operação inteira, não por salto | Cinco segundos por salto com três redirects seriam vinte segundos de janela aberta |
+| 2026-09-10 | `sanitizarTexto` decodifica entidades ANTES de tirar a marcação | Na ordem contrária, `&lt;script&gt;` sai daqui como `<script>` inteiro. A ordem é a peneira |
+| 2026-09-10 | Sem parser de DOM na Edge Function; regex sobre `<meta>` | `deno-dom` seria dependência inteira para ler quatro tags, num runtime onde ela não se paga — e um parser completo tem muito mais superfície do que a regex que só olha `<meta>` |
+| 2026-09-10 | A URL da imagem só volta se for `https` em nome, nunca em IP cru | Ela vira `src` numa tela nossa, e quem escolheu o endereço foi o site de terceiro. Mesma razão pela qual `profiles.avatar_url` existe e ninguém grava nela |
+| 2026-09-10 | A Edge Function confere o dono do item ANTES de buscar a página | Descoberto rodando: página sem preço nunca chegava ao insert, então item de outro casal recebia 200 — e a gente saía buscando na internet a mando de quem não tinha o que guardar |
+| 2026-09-10 | A Edge Function usa a anon key com o token de quem chamou, nunca service role | Assim ela roda como a pessoa e o RLS continua valendo. Service role aqui seria a regra 4 pela metade: a chave não vazaria, mas o efeito dela sim |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -186,6 +208,16 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `confirm_invite` | Quem já tem plano com movimentação não consegue entrar em outro, e não existe caminho para mesclar os dois. Hoje a saída é apagar o próprio plano à mão | Média |
 | `pg_cron` | O expurgo depende da extensão estar habilitada. Local funciona; no projeto hospedado precisa ser ligada antes da migration rodar | Média |
 | `apps/web/app/(app)/parceiro` × `/convite` | Sem teste automatizado das telas. O fluxo de duas contas foi conferido à mão no navegador, incluindo o e-mail mascarado e o token sobrevivendo ao login. Deveria ser Playwright, junto com o das telas de auth | Média |
+| `couple_members.split_rule` | A regra de divisão é coluna por pessoa, e você pediu "três modos por casal". As duas linhas podem discordar, e `regraDoCasal` desempata pelo papel `dono` — regra de negócio que só existe para consertar o modelo. O certo é a coluna morar em `couples` | Média |
+| `apps/web/app/(app)/aportes/form.tsx` | Um botão Salvar escreve três fatos independentes (regra, faixa de renda, valor fixo). Se o formulário estiver desatualizado quando alguém envia, salvar a REGRA apaga a FAIXA. Não é alcançável clicando (o botão desabilita durante o envio, e o caminho de gente foi conferido no navegador), mas é forma frágil para dado pessoal — deviam ser três escritas separadas | Média |
+| `couple_members_update` | Um parceiro continua podendo editar a linha do outro, inclusive a faixa de renda dela. Já era assim; os aportes não pioraram nem melhoraram isso. O conserto é `user_id = auth.uid()` no `with check`, e mexe em asserção do `rls_isolamento.sql` | Média |
+| `contributions_update` | Insert agora é só pela função, mas o update continua aberto ao casal: dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Fecha a mesma dívida antiga por outro caminho | Baixa |
+| `apps/web/app/(app)/aportes` | Sem teste automatizado. Os três modos foram conferidos à mão no navegador com R$ 1.500,01, que divide mal nos três, e todos fecharam exato. Deveria ser Playwright, junto com auth e parceiro | Média |
+| `supabase/functions/_shared/ssrf-guard.ts` | O guard resolve o DNS e o `fetch` resolve de novo: existe janela de DNS rebinding entre as duas. Fechar exigiria conectar no IP fixado, que o `fetch` não oferece. Marcado com `ponytail:` no código | Média |
+| `supabase/functions/_shared/open-graph.ts` | `precoParaCentavos` duplica a ideia de `packages/core/src/money.ts`. O Deno não importa do workspace npm sem passo de bundle, então por ora são duas implementações da mesma regra | Baixa |
+| `extract-product-link` | O caminho de gravação da função não foi exercido ponta a ponta: as páginas de loja que conseguimos alcançar não publicam `og:price:amount`, então o preço voltou nulo e o `add_price_quote` não chegou a ser chamado POR ELA. A RPC foi conferida pela mesma porta (anon key + JWT), e a extração tem 17 testes — falta só a emenda entre as duas | Média |
+| `supabase/functions/extract-product-link/index.ts` | Fora do `tsc`: o arquivo importa APIs do Deno e `npm:`, então só o `deno check` do `functions serve` e do deploy o confere. `_shared` continua no typecheck do monorepo | Baixa |
+| `extract-product-link` × app | Nenhuma tela chama a função ainda. Ela entra quando o prompt 7 criar os itens da meta, que é onde o link de produto vive | Baixa |
 | `leave_couple` | `auth.sessions` é de `supabase_auth_admin`. Local o `postgres` apaga; se o projeto hospedado recusar, o passo cai calado e só o `left_at` protege — que já é o corte real, mas a sessão sobreviveria até o token vencer | Média |
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
 
