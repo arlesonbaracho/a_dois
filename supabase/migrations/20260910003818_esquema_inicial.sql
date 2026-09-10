@@ -11,6 +11,14 @@
 --
 -- As policies são todas "to authenticated". O papel anon tem grant nas tabelas
 -- mas nenhuma policy, o que já significa zero linhas e zero escrita.
+--
+-- Sobre o "with check" dos updates: no Postgres, a linha resultante de um
+-- update precisa passar pelo with check da policy de update E pelo using da
+-- policy de select. Se o with check faltasse, o using da própria policy de
+-- update seria usado no lugar dele. Ou seja, há duas redes por baixo — e é
+-- exatamente por isso que a terceira está escrita à mão: ninguém deve precisar
+-- lembrar de duas regras implícitas para saber por que a linha não escapa.
+-- Comprovado em supabase/tests/rls_isolamento.sql.
 
 
 -- ===========================================================================
@@ -334,8 +342,10 @@ create policy couples_insert on public.couples
   for insert to authenticated
   with check (public.is_couple_member(id));
 
--- Só membro altera o próprio casal. As duas pontas são checadas para que a
--- linha não possa ser reapontada para um casal alheio durante o update.
+-- Só membro altera o próprio casal. O with check é explícito de propósito:
+-- o Postgres o derivaria do using se ele faltasse, e a policy de select ainda
+-- barraria a linha nova, mas fronteira de segurança não se apoia em dois
+-- comportamentos implícitos. Escrito é escrito.
 create policy couples_update on public.couples
   for update to authenticated
   using (public.is_couple_member(id))
@@ -365,7 +375,7 @@ create policy couple_members_insert on public.couple_members
   with check (public.is_couple_member(couple_id));
 
 -- Editar papel, regra de divisão ou faixa de renda, e marcar left_at na saída.
--- As duas pontas impedem mover o vínculo para outro casal.
+-- O with check impede empurrar o vínculo para outro casal.
 create policy couple_members_update on public.couple_members
   for update to authenticated
   using (public.is_couple_member(couple_id))
@@ -420,8 +430,8 @@ create policy goals_insert on public.goals
   for insert to authenticated
   with check (public.is_couple_member(couple_id));
 
--- Editar meta do próprio casal. O with check impede que um update mova a meta
--- (e todos os itens e aportes pendurados nela) para outro casal.
+-- Editar meta do próprio casal. O with check impede mover a meta — e os itens
+-- e aportes pendurados nela — para outro casal.
 create policy goals_update on public.goals
   for update to authenticated
   using (public.is_couple_member(couple_id))
@@ -474,8 +484,8 @@ create policy contributions_insert on public.contributions
   for insert to authenticated
   with check (public.is_couple_member(couple_id));
 
--- Corrigir valor ou data do aporte, dentro do casal. As duas pontas impedem
--- que um aporte seja empurrado para o casal do lado.
+-- Corrigir valor ou data do aporte, dentro do casal. O with check impede que
+-- um aporte seja empurrado para o casal do lado.
 create policy contributions_update on public.contributions
   for update to authenticated
   using (public.is_couple_member(couple_id))
