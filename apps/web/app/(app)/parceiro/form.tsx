@@ -119,7 +119,7 @@ function FormCriar() {
       <p className="text-sm text-stone-600">
         {canal === "link"
           ? "O link vale 24 horas, e serve para quem estiver com ele."
-          : "O convite vale 72 horas e só funciona para essa pessoa."}{" "}
+          : "O convite vale 72 horas e só funciona para essa pessoa — mas quem manda o link é você, não a gente."}{" "}
         Em qualquer um dos casos, quem receber ainda vai depender da sua
         confirmação para ver alguma coisa.
       </p>
