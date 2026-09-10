@@ -1,0 +1,26 @@
+{
+  "name": "@repo/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/core": "*"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "@types/react": "^19",
+    "react": "^19"
+  }
+}
