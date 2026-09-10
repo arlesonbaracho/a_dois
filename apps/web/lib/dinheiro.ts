@@ -1,18 +1,12 @@
-import { toCents } from "@repo/core";
+import { centavosDeTexto } from "@repo/core";
 
 /**
  * Reais digitados num campo viram centavos, aqui na borda, e nunca voltam a ser
- * float. Devolve null quando não dá para ler um número — vazio, letra, infinito.
- *
- * Aceita vírgula porque é assim que se escreve dinheiro em português, e o
- * `<input type="number">` do Firefox em pt-BR entrega exatamente isso.
+ * float. A regra de leitura mora em `@repo/core`, testada, porque ela é a mesma
+ * no web e no Expo da fase 2 — e porque errar nela devolve valor mil vezes
+ * menor sem nenhum erro na tela.
  */
-export function paraCentavos(texto: string): number | null {
-  const cru = texto.trim().replace(",", ".");
-  if (cru === "") return null;
-  const reais = Number(cru);
-  return Number.isFinite(reais) ? toCents(reais) : null;
-}
+export const paraCentavos = centavosDeTexto;
 
 /** Data de `<input type="date">` para instante.
  *

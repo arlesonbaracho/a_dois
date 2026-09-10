@@ -121,9 +121,7 @@ export function TelaAportes({
           <Campo
             rotulo="Quanto (R$)"
             name="valor"
-            type="number"
-            step="0.01"
-            min="0.01"
+            type="text"
             required
             inputMode="decimal"
             placeholder="0,00"
@@ -193,9 +191,7 @@ export function TelaAportes({
         <Campo
           rotulo="Quanto você combina de colocar (R$, opcional)"
           name="parte_fixa"
-          type="number"
-          step="0.01"
-          min="0"
+          type="text"
           inputMode="decimal"
           defaultValue={minhaParteFixaCents === null ? "" : fromCents(minhaParteFixaCents)}
           placeholder="0,00"

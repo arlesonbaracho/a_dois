@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBRL, fromCents, progressoPercentual, sumCents, toCents } from "./money";
+import {
+  centavosDeTexto,
+  formatBRL,
+  fromCents,
+  progressoPercentual,
+  sumCents,
+  toCents,
+} from "./money";
 
 // O Intl usa espaço não-quebrável entre "R$" e o número, e o caractere muda
 // conforme a versão do ICU. Normalizar deixa o teste estável.
@@ -99,5 +106,40 @@ describe("progressoPercentual", () => {
   it("recusa o que não é centavo inteiro", () => {
     expect(() => progressoPercentual(10.5, 100000)).toThrow(TypeError);
     expect(() => progressoPercentual(1000, 99.9)).toThrow(TypeError);
+  });
+});
+
+describe("centavosDeTexto", () => {
+  it("lê o jeito brasileiro de escrever dinheiro", () => {
+    expect(centavosDeTexto("1.234,56")).toBe(123456);
+    expect(centavosDeTexto("R$ 4.200,00")).toBe(420000);
+    expect(centavosDeTexto("1250,50")).toBe(125050);
+    expect(centavosDeTexto("0,01")).toBe(1);
+  });
+
+  it("lê ponto decimal também, que é o que o teclado numérico dá", () => {
+    expect(centavosDeTexto("1234.56")).toBe(123456);
+    expect(centavosDeTexto("1,234.56")).toBe(123456);
+    expect(centavosDeTexto("99.90")).toBe(9990);
+  });
+
+  // O caso que fez a função existir: o parser ingênuo lia isto como R$ 1,23.
+  it("não confunde separador de milhar com centavos", () => {
+    expect(centavosDeTexto("1.234")).toBe(123400);
+    expect(centavosDeTexto("1234")).toBe(123400);
+    expect(centavosDeTexto("12.345.678,90")).toBe(1234567890);
+  });
+
+  it("devolve null quando não há número", () => {
+    expect(centavosDeTexto("")).toBeNull();
+    expect(centavosDeTexto("   ")).toBeNull();
+    expect(centavosDeTexto("R$")).toBeNull();
+    expect(centavosDeTexto("abc")).toBeNull();
+  });
+
+  it("nunca devolve fração de centavo", () => {
+    for (const texto of ["1.234,56", "0,01", "1234", "9.999.999,99", "1,5"]) {
+      expect(Number.isInteger(centavosDeTexto(texto)), texto).toBe(true);
+    }
   });
 });

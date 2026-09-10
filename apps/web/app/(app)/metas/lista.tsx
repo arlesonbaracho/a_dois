@@ -121,9 +121,7 @@ export function Lista() {
         <Campo
           rotulo="Quanto vocês querem juntar (R$)"
           name="alvo"
-          type="number"
-          step="0.01"
-          min="0"
+          type="text"
           required
           inputMode="decimal"
           placeholder="0,00"

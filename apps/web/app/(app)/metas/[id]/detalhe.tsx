@@ -159,9 +159,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
         <Campo
           rotulo="Quanto (R$)"
           name="valor"
-          type="number"
-          step="0.01"
-          min="0.01"
+          type="text"
           required
           inputMode="decimal"
           placeholder="0,00"
@@ -250,9 +248,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
           <Campo
             rotulo="Quanto deve custar (R$, opcional)"
             name="preco"
-            type="number"
-            step="0.01"
-            min="0"
+            type="text"
             inputMode="decimal"
             placeholder="0,00"
           />
@@ -280,9 +276,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
           <Campo
             rotulo="Quanto vocês querem juntar (R$)"
             name="alvo"
-            type="number"
-            step="0.01"
-            min="0"
+            type="text"
             required
             inputMode="decimal"
             defaultValue={meta.target_amount_cents / 100}

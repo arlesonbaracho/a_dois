@@ -57,3 +57,44 @@ export function progressoPercentual(aportadoCents: number, alvoCents: number): n
   if (alvoCents <= 0) return aportadoCents > 0 ? 100 : 0;
   return Math.max(0, Math.min(100, Math.round((aportadoCents / alvoCents) * 100)));
 }
+
+/**
+ * Dinheiro digitado por gente virando centavos inteiros.
+ *
+ * Aceita "1.234,56", "1234.56", "1,234.56", "R$ 99,90" e "1234". A conta é
+ * feita em cima do TEXTO, e não com ponto flutuante: dinheiro não passa por
+ * float nem aqui, na borda mais suja do sistema.
+ *
+ * O caso que justifica a função existir é "1.234". Um parser ingênuo troca a
+ * vírgula por ponto e chama Number(): esse lê 1,234 e devolve 123 centavos,
+ * quando quem digitou queria R$ 1.234,00. Valor mil vezes menor, sem erro
+ * nenhum na tela. Três casas depois do separador é milhar, não fração de real.
+ *
+ * Devolve null quando não há número nenhum — vazio, letra, só "R$".
+ */
+export function centavosDeTexto(cru: string): number | null {
+  const limpo = cru.replace(/[^\d.,]/g, "");
+  if (!/\d/.test(limpo)) return null;
+
+  const virgula = limpo.lastIndexOf(",");
+  const ponto = limpo.lastIndexOf(".");
+  let separador = -1;
+
+  if (virgula >= 0 && ponto >= 0) {
+    // Os dois aparecem: o último é o decimal, o outro separa milhar.
+    separador = Math.max(virgula, ponto);
+  } else {
+    const unico = Math.max(virgula, ponto);
+    const decimais = limpo.length - unico - 1;
+    if (unico >= 0 && limpo.indexOf(limpo[unico]) === unico && decimais >= 1 && decimais <= 2) {
+      separador = unico;
+    }
+  }
+
+  const inteiro = (separador >= 0 ? limpo.slice(0, separador) : limpo).replace(/[.,]/g, "");
+  const fracao = separador >= 0 ? limpo.slice(separador + 1).replace(/[.,]/g, "") : "";
+  if (inteiro === "" && fracao === "") return null;
+
+  const centavos = Number(inteiro || "0") * 100 + Number(`${fracao}00`.slice(0, 2));
+  return Number.isSafeInteger(centavos) && centavos >= 0 ? centavos : null;
+}
