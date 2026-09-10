@@ -191,7 +191,6 @@ test.describe("4.3 perfil e apelido", () => {
     const prefixo = conta.email.split("@")[0].slice(0, 20).toLowerCase();
     const recusados: [string, string][] = [
       ["ab", "menos de 3"],
-      ["a".repeat(21), "mais de 20"],
       ["com espaço", "caractere inválido"],
       ["Maiúscula", "maiúscula"],
       ["suporte", "reservado"],
@@ -206,8 +205,19 @@ test.describe("4.3 perfil e apelido", () => {
       await page.reload();
     }
 
-    // O que ficou gravado é o bom, não os recusados.
+    // "Mais de 20" não entra nesse laço: o campo tem maxLength=20 e o navegador
+    // corta antes de enviar, então pela tela ele nunca chega a ser recusado. A
+    // recusa que importa é a do banco, e é lá que ela é conferida.
     const cliente = await comoPessoa(request, conta);
+    const longo = await cliente.rpc("set_profile", {
+      p_display_name: "X",
+      p_nickname: "a".repeat(21),
+      p_discoverable: true,
+    });
+    expect(longo.status(), "apelido de 21 letras deveria ser recusado pelo banco")
+      .toBeGreaterThanOrEqual(400);
+
+    // O que ficou gravado é o bom, não os recusados.
     const [perfil] = await cliente.ler<{ nickname: string }[]>(
       `profiles?select=nickname&user_id=eq.${conta.userId}`,
     );
