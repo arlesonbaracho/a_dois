@@ -403,7 +403,22 @@ export type Database = {
         Returns: string
       }
       add_goal: {
-        Args: { p_target_amount_cents?: number; p_title: string }
+        Args: {
+          p_category?: string
+          p_deadline_at?: string
+          p_priority?: Database["public"]["Enums"]["goal_priority"]
+          p_target_amount_cents?: number
+          p_title: string
+        }
+        Returns: string
+      }
+      add_goal_item: {
+        Args: {
+          p_estimated_price_cents?: number
+          p_goal_id: string
+          p_name: string
+          p_url?: string
+        }
         Returns: string
       }
       add_price_quote: {
@@ -438,6 +453,10 @@ export type Database = {
           resultado: string
           token: string
         }[]
+      }
+      delete_goal: {
+        Args: { p_confirmo_apagar?: boolean; p_goal_id: string }
+        Returns: string
       }
       expire_and_purge: { Args: never; Returns: undefined }
       find_by_nickname: {
