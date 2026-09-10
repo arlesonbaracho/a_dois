@@ -16,3 +16,13 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/blob-report/
+
+# Gerados pelo "next dev" a cada execução. Não são nossos, e apagar não
+# adianta: ele reescreve na próxima vez.
+/apps/web/AGENTS.md
+/apps/web/CLAUDE.md

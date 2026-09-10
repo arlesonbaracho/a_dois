@@ -17,7 +17,8 @@
     "db:types": "supabase gen types typescript --local > packages/api/src/database.types.ts",
     "test:rls": "bash supabase/tests/run.sh",
     "db:types:check": "npm run db:types && git diff --exit-code packages/api/src/database.types.ts",
-    "guardas": "bash scripts/guarda-rls.sh && bash scripts/guarda-portabilidade.sh"
+    "guardas": "bash scripts/guarda-rls.sh && bash scripts/guarda-portabilidade.sh",
+    "test:e2e": "npm run test:e2e --workspace web"
   },
   "devDependencies": {
     "supabase": "2.117.0",

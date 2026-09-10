@@ -55,6 +55,25 @@ jobs:
       - name: Isolamento entre casais
         run: npm run test:rls
 
+      # O navegador do Playwright não vem no runner, e o cache do npm não o
+      # guarda: ele mora em ~/.cache/ms-playwright.
+      - name: Instalar o Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      - name: Ponta a ponta
+        run: npm run test:e2e
+
+      # O rastro só interessa quando algo reprovou — e é ele que mostra o que
+      # a tela estava fazendo na hora.
+      - name: Guardar o rastro do que falhou
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
+
       # ---------------------------------------------------------------
       # 3 e 4. Os guardas
       # ---------------------------------------------------------------
