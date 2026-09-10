@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (metas e itens, com Realtime)
+**Última atualização:** 2026-09-10 (direitos do titular, e o CI)
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** Prompt 10 — direitos do titular (exportar, excluir, consentimentos)
+**Próximo passo:** backlog — o que sobrou da fase 1 está em Falta e em Dívidas
 
 ---
 
@@ -34,6 +34,9 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | `add_goal` cresce (categoria, prazo, prioridade), entram `add_goal_item` e `delete_goal`, e `goal_items` fecha o insert direto — nenhuma tabela de conteúdo aceita mais insert direto. `goals`, `goal_items` e `contributions` publicando para o Realtime. `supabase/tests/metas.sql` | `a8c05c1` |
 | 2026-09-10 | `packages/api` com hooks do TanStack Query (um por operação) e `useRealtimeDoCasal`: um canal por casal, filtrado por `couple_id`, invalidando só a chave da tabela que mudou. Chaves de cache em raízes disjuntas, para o `invalidateQueries` por prefixo não arrastar o que não mudou. `progressoPercentual` em `core` | `3e3531e` |
 | 2026-09-10 | Telas `/metas` e `/metas/[id]` (nomes que o Expo Router vai espelhar): CRUD de meta e de item, aporte pela própria meta, barra de progresso com `role="progressbar"`, e apagar em dois cliques. Conferido com duas contas: escrita do Beto por fora muda a tela da Ana sem reload, e um evento de aporte gera UMA requisição | `de255d5` |
+| 2026-09-10 | `export_my_data` (plano inteiro em jsonb, e-mail do parceiro mascarado, `token_hash` nunca sai), `delete_account` exigindo a palavra EXCLUIR conferida no banco, e três consentimentos como colunas de `profiles`. `leave_couple` virou invólucro de `sair_do_casal_interno`. `supabase/tests/direitos.sql` | `bf517fa` |
+| 2026-09-10 | Tela de privacidade no perfil: baixar JSON e CSV, três toggles independentes, e apagar a conta com a lista do que some e do que fica. `paraCsv` em `core` (formato longo, com BOM no download). Revogar o uso da faixa cai no caminho que já existia e não quebra nada | `ce24612` |
+| 2026-09-10 | CI no GitHub Actions com cinco portões, dois deles em `scripts/` para rodarem antes do push (`npm run guardas`): RLS em toda tabela, e `packages/` sem API de navegador. Reprovação dos dois comprovada | `8cb9b96` |
 
 ---
 
@@ -41,8 +44,10 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-- [ ] **Prompt 10** — Direitos do titular (exportar, excluir, consentimentos)
-- [ ] **Prompt 11** — CI no GitHub Actions
+A fila dos prompts acabou. O que falta está em **Falta (backlog)** e em
+**Dívidas** — e a primeira coisa a puxar de lá é o Playwright, que é a única
+rede de proteção que o projeto inteiro não tem.
+
 
 ---
 
@@ -182,6 +187,19 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | Meta com alvo zero mostra 100% quando já tem dinheiro | É divisão por zero. A alternativa honesta seria proibir alvo zero, mas "juntar sem meta definida" é caso real — e o que não pode é "NaN%" na tela das duas pessoas |
 | 2026-09-10 | Apagar meta são dois cliques, e quem decide é o banco | `delete_goal` só devolve `precisa_confirmar` quando há aporte. A tela não sabe a regra: ela mostra o que o banco respondeu, e assim as duas não podem divergir |
 | 2026-09-10 | Update e delete de `goals` e `goal_items` continuam por PostgREST | As policies já conferem o casal nos dois lados e nenhum `couple_id` novo atravessa a rede. Função definer aqui seria cerimônia sem fronteira nova |
+| 2026-09-10 | Consentimento em três colunas de `profiles`, não em tabela de eventos | O timestamp é o registro E a flag: nulo é "nunca", data é "consentiu nesta hora". Tabela de histórico guardaria dado pessoal que ninguém vai ler antes de existir auditoria, e guardar por precaução é o oposto de minimizar |
+| 2026-09-10 | Escolher a faixa de renda no formulário É o ato de consentir, e um gatilho registra | Um toggle escondido em outra tela não é consentimento informado, e o padrão opt-in desligaria o modo proporcional para quem já usava. Como é gatilho e não chamada da UI, vale para qualquer caminho de escrita que exista amanhã |
+| 2026-09-10 | O gatilho do consentimento é `security definer` | `profiles` nega update nas policies desde a migration dos perfis, e gatilho roda como quem chamou. Sem o definer ele atualizava zero linhas em silêncio — foi o teste que pegou |
+| 2026-09-10 | A palavra EXCLUIR é conferida no banco, não na tela | Proteção que mora no cliente é proteção que quem chama a API direto não tem |
+| 2026-09-10 | O corpo de `leave_couple` virou `sair_do_casal_interno`, com as duas entrando por ele | A exclusão de conta é os mesmos sete passos menos o último. Duplicar noventa linhas com uma diferença no fim é garantir que elas divirjam |
+| 2026-09-10 | Na exclusão de conta, a linha de `couple_members` **some** (diferente da saída do casal, onde ela fica pseudonimizada) | Depois de pseudonimizar, o que sobra na linha é o `user_id`, que é identificador de pessoa. Os aportes já viraram "ex-membro" com o valor intacto, que é o que a regra protege |
+| 2026-09-10 | O e-mail do parceiro sai **mascarado** no export, mesmo com "tudo do parceiro" escolhido | Faixa e nome ela já enxerga pela policy, então o export não dá acesso novo. `auth.users` não é exposta a ninguém, e a tela de convite já mostra `j••e@gm••l.com` de propósito: cru aqui desfaria essa decisão por outra porta |
+| 2026-09-10 | Revogar o consentimento da faixa **não apaga** a faixa; quem para de usar é `pesosDaRegra` | Escolha sua. Eu disse que exigiria um branch em toda leitura e estava errado: a leitura é uma só. Fica a ressalva de que guardar dado que não se pode usar contraria o Art. 6º, III — está em Dívidas |
+| 2026-09-10 | CSV em formato longo (`tabela,linha,campo,valor`), num arquivo só | Um arquivo por tabela viraria zip, e zip precisa de biblioteca. O formato longo é CSV de verdade, abre no Excel, e aguenta o schema mudar sem ninguém mexer nele |
+| 2026-09-10 | BOM no CSV baixado, e só nele | Sem o BOM o Excel em português abre "Apê" como "ApÃª". O arquivo é para a pessoa ler |
+| 2026-09-10 | Os guardas do CI moram em `scripts/`, não inline no YAML | Guarda que só existe no CI é guarda que a pessoa descobre dez minutos depois de mandar. `npm run guardas` roda os dois na máquina |
+| 2026-09-10 | O guarda de portabilidade ignora comentário | Senão ele proíbe explicar por que a regra existe. E pega o que o compilador não pega: `core` já barra `window` pelo `lib` sem DOM, mas `packages/api` tem `@types/react` e passaria batido |
+| 2026-09-10 | CI roda em pull request **e** no push para a principal | Um PR verde que vira merge quebrado por causa de outro PR verde é o modo de falha que só rodar em PR não pega |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -237,6 +255,12 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/app/(app)/metas` | Sem teste automatizado. CRUD, barra e Realtime foram conferidos à mão no navegador com duas contas, incluindo a prova de que não houve reload e de que só uma consulta sai por evento. Deveria ser Playwright, junto com auth, parceiro e aportes | Média |
 | `/metas` × `/aportes` | Duas entradas para registrar aporte (a meta e a tela de saldo). Chamam a mesma função de `packages/api`, então não são duas regras — mas são duas telas para manter quando o formulário mudar | Baixa |
 | lista de metas | A lista busca TODOS os aportes do casal para somar por meta no cliente. Com centenas de aportes isso vira payload à toa; o certo é uma view com o total por meta | Baixa |
+| `couple_members.income_band` | Revogar o consentimento não apaga a faixa guardada: o app para de usar, mas o dado fica. Contraria o Art. 6º, III (minimização) — o certo é apagar junto com a revogação. Decisão sua, registrada aqui | Média |
+| consentimento | Sem histórico: a coluna guarda só a última resposta. Se alguém consentiu, revogou e consentiu de novo, o banco lembra só da última data. Vira problema quando houver auditoria de verdade | Baixa |
+| analytics e marketing | Os dois toggles guardam a resposta e mais nada — não existe Sentry nem medição no projeto. O texto da tela diz isso. Quando entrar, alguém precisa lembrar de LER a coluna antes de disparar qualquer evento | Média |
+| `apps/web/app/(app)/perfil/privacidade.tsx` | Sem teste automatizado. Export, toggles, a palavra EXCLUIR e a exclusão de ponta a ponta foram conferidos à mão no navegador, interceptando o Blob para ver os bytes baixados. Deveria ser Playwright | Média |
+| `delete_account` | O e-mail apagado some de `auth.users`, mas o Supabase pode ter cópia em log de auth e em backup. Eliminação de verdade exige combinar retenção com o provedor — entra no plano de resposta a incidente | Média |
+| CI | Nunca rodou: não existe remote no GitHub ainda. O workflow foi escrito contra a documentação, e os dois guardas foram provados localmente, mas os passos de `supabase start` e do gitleaks só serão exercidos no primeiro PR | Média |
 | `leave_couple` | `auth.sessions` é de `supabase_auth_admin`. Local o `postgres` apaga; se o projeto hospedado recusar, o passo cai calado e só o `left_at` protege — que já é o corte real, mas a sessão sobreviveria até o token vencer | Média |
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
 
