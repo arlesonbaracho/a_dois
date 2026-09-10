@@ -298,9 +298,18 @@ begin
   perform rls_teste.igual('o preço original continua lá',
     (select count(*) from public.price_quotes where couple_id = casal_a and price_cents = 410000), 1);
 
-  -- Append-only não é somente-leitura: preço novo entra.
-  insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url)
-  values (casal_a, 'a2000000-0000-0000-0000-00000000000a', 399000, 'https://loja.test/geladeira');
+  -- Insert direto morre até no próprio casal: o couple_id não pode vir do
+  -- corpo da requisição, nem quando o corpo está certo. Regra 3.
+  begin
+    insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url)
+    values (casal_a, 'a2000000-0000-0000-0000-00000000000a', 399000, 'https://loja.test/x');
+    raise exception 'VAZAMENTO: insert direto em price_quotes do próprio casal passou';
+  exception when insufficient_privilege then null;
+  end;
+
+  -- Append-only não é somente-leitura: preço novo entra, pela função.
+  perform public.add_price_quote(
+    'a2000000-0000-0000-0000-00000000000a', 399000, 'https://loja.test/geladeira');
   perform rls_teste.igual('preço novo entrou',
     (select count(*) from public.price_quotes where couple_id = casal_a), 2);
   raise notice 'price_quotes recusa update e delete até no próprio casal';

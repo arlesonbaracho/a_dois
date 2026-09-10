@@ -197,6 +197,12 @@ async function resolverPadrao(host: string): Promise<string[]> {
   return ips;
 }
 
+/** O host já é um endereço, e não um nome que precise passar pelo DNS? */
+export function ehIpLiteral(host: string): boolean {
+  const limpo = host.replace(/^\[|\]$/g, "");
+  return ipv4ParaNumero(limpo) !== null || ipv6Grupos(limpo) !== null;
+}
+
 /**
  * Compara por rótulo, e não por sufixo de texto. "amazon.com.br.malvado.com"
  * termina com "amazon.com.br" no meio do nome e não é a Amazon coisa nenhuma.
@@ -241,8 +247,7 @@ export async function assertSafeUrl(
   const host = alvo.hostname.replace(/^\[|\]$/g, "");
 
   // Host que já é IP não precisa de DNS: ele é a própria resposta.
-  const literal = ipv4ParaNumero(host) !== null || ipv6Grupos(host) !== null;
-  const ips = literal ? [host] : await (opcoes.resolver ?? resolverPadrao)(host);
+  const ips = ehIpLiteral(host) ? [host] : await (opcoes.resolver ?? resolverPadrao)(host);
 
   if (ips.length === 0) throw new UrlRecusada("dns", host);
   for (const ip of ips) {

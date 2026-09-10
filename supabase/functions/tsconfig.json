@@ -2,7 +2,14 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
-    "types": []
+    "types": [],
+    // Deno exige a extensão no import relativo, e o tsc só aceita ver ".ts"
+    // no código-fonte com esta opção (que exige noEmit, e temos).
+    "allowImportingTsExtensions": true
   },
-  "include": ["_shared/**/*.ts"]
+  // Só o que é TypeScript puro. auth.ts e as Edge Functions importam APIs do
+  // Deno e módulos npm: por resolução, quem confere aquilo é o deno check, no
+  // "supabase functions serve" e no deploy.
+  "include": ["_shared/**/*.ts"],
+  "exclude": ["_shared/auth.ts"]
 }

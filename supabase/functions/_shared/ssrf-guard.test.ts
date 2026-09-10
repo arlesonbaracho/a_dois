@@ -6,7 +6,7 @@ import {
   buscarComGuard,
   ipReservado,
   UrlRecusada,
-} from "./ssrf-guard";
+} from "./ssrf-guard.ts";
 
 /** Resolvedor de mentira: todo nome cai nos IPs que o teste mandar. */
 const resolvendoPara = (...ips: string[]) => () => Promise.resolve(ips);

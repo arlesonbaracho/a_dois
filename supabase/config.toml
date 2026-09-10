@@ -388,6 +388,12 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+[functions.extract-product-link]
+# Redundante com a checagem dentro da função, e é para ser: a regra 5 pede a
+# validação na função, e este verify_jwt barra token inválido antes de o
+# runtime acordar.
+verify_jwt = true
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

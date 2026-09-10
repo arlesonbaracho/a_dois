@@ -406,6 +406,14 @@ export type Database = {
         Args: { p_target_amount_cents?: number; p_title: string }
         Returns: string
       }
+      add_price_quote: {
+        Args: {
+          p_goal_item_id: string
+          p_price_cents: number
+          p_source_url: string
+        }
+        Returns: string
+      }
       casal_vazio: { Args: { p_couple_id: string }; Returns: boolean }
       checar_limite: {
         Args: {
