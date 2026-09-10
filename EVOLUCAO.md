@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (auditoria, e os três primeiros consertos)
+**Última atualização:** 2026-09-10 (a auditoria fechada: achados 4, 6 e 7)
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** achados 4 a 7 da auditoria (validação de meta, `token_hash`, formulário de login, estado otimista)
+**Próximo passo:** `couple_members_update` — um parceiro ainda edita a linha do outro, faixa de renda incluída
 
 ---
 
@@ -44,6 +44,11 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | Achado 2 (Médio) fechado: os seis campos de dinheiro viraram `type="text"` com `inputMode="decimal"`, e `centavosDeTexto` subiu para `packages/core` — o parser antigo lia "1.234" como R$ 1,23, valor mil vezes menor em silêncio | `205adba` |
 | 2026-09-10 | Achados 3 e 5 (Médio + Baixo) fechados: `invited_email` e `token_hash` saíram do grant de `couple_invites` (grant por coluna, lista explícita), e a tela do parceiro passou a usar `active_invites()`, que mascara o e-mail | `62535f4` |
 | 2026-09-10 | `e2e/auditoria.spec.ts` com 16 testes: Mailpit, recuperação de senha, cookie de sessão, recusas de apelido, validações, edição simultânea e reconexão. A suíte foi de 21 para 37 | `1c52786` |
+| 2026-09-10 | Achado 4 (Médio) fechado: teto de R$ 100 milhões como **constraint de coluna** (vale para insert e update) e recusa de prazo vencido dentro de `add_goal` (só na criação). O relatório dizia "duas condições em `add_goal`" e estava errado — editar meta faz update direto pelo PostgREST e nunca passa pela função | `71cc465` |
+| 2026-09-10 | Achado 6 (Baixo) fechado: `EstadoForm` ganha `email?` e errar a senha não apaga mais o endereço digitado. A senha nunca faz o caminho de volta | `7199c1e` |
+| 2026-09-10 | Achado 7 (Médio) fechado: `useSalvarItem` e `useSalvarConsentimento` com estado otimista completo — `onMutate`, rollback no `onError` e `cancelQueries` contra o refetch em voo. O e2e voltou de `click()` para `check()` | `1065f2d` |
+| 2026-09-10 | O teste de apelido longo passava **em vão**: `maxLength=20` cortava antes de enviar, então o banco nunca era perguntado. Virou sonda direta a `set_profile` | `2678bac` |
+| 2026-09-10 | Corrida no teste do convite (a tela de quem convidou era lida antes do claim aterrissar) e prazo do Playwright de 60s para 90s — os testes de dois contextos estouravam como "Request context disposed", que não diz nada sobre a causa | `325eb28` |
 
 ---
 
@@ -51,9 +56,12 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-A fila dos prompts acabou. O que falta está em **Falta (backlog)** e em
-**Dívidas**. O Playwright já entrou: as cinco telas têm rede de proteção, e o
-CI reprova quando ela rasga.
+A fila dos prompts acabou, e a da auditoria também: os sete achados estão
+fechados. O que falta está em **Falta (backlog)** e em **Dívidas**.
+
+A próxima que eu pegaria é `couple_members_update`, por ser dado pessoal com
+conserto de uma linha, seguida de `couple_members.split_rule`, que mora na
+tabela errada.
 
 
 ---
@@ -212,6 +220,8 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | `exige_grant` do teste de RLS passou a usar `has_any_column_privilege` | Ele conferia `has_table_privilege` e reprovou na hora em que o grant virou por coluna — fez o trabalho dele. A pergunta que importa continua a mesma: sobrou alguma coluna legível para "zero linhas" significar RLS? |
 | 2026-09-10 | O erro de cadastro é normalizado em `packages/api`, não em `acaoCadastrar` | Mesmo motivo já registrado para o erro de login: com a decisão na tela, o próximo chamador esquece e o oráculo volta por outra porta |
 | 2026-09-10 | `centavosDeTexto` mora em `packages/core` e é a regra canônica de ler dinheiro digitado | Um parser ingênuo lê "1.234" como 123 centavos e grava valor mil vezes menor sem erro na tela. A regra existia testada em `open-graph.ts`; subiu para onde é pura, portável e usada pelo app |
+| 2026-09-10 | O e-mail do stack local morre no **Mailpit**, em <http://127.0.0.1:54324> | `[local_smtp] enabled = true` no `config.toml` captura tudo e não entrega a ninguém. Não é defeito: é o desenvolvimento funcionando. Caixa de entrada de verdade só depois de SMTP configurado no painel do projeto hospedado — e aí sem SPF + DKIM + DMARC no domínio o Gmail manda para spam |
+| 2026-09-10 | Teto de valor da meta é **constraint**; prazo vencido é **condição em `add_goal`** | Não é inconsistência. O teto vale nos dois caminhos de escrita, e editar meta não passa por `add_goal`. Já o prazo não pode valer no update: meta vencida é estado legítimo, e constraint tornaria impossível trocar o título de uma meta que venceu — defeito pior que o consertado |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -268,14 +278,12 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | analytics e marketing | Os dois toggles guardam a resposta e mais nada — não existe Sentry nem medição no projeto. O texto da tela diz isso. Quando entrar, alguém precisa lembrar de LER a coluna antes de disparar qualquer evento | Média |
 | `delete_account` | O e-mail apagado some de `auth.users`, mas o Supabase pode ter cópia em log de auth e em backup. Eliminação de verdade exige combinar retenção com o provedor — entra no plano de resposta a incidente | Média |
 | CI | Nunca rodou: não existe remote no GitHub ainda. O workflow foi escrito contra a documentação, e os dois guardas foram provados localmente, mas os passos de `supabase start` e do gitleaks só serão exercidos no primeiro PR | Média |
-| `add_goal` | **Achado 4 (Médio).** Aceita prazo no passado e valor alvo de R$ 90 trilhões sem recusar nada | Média |
-| `/login` | **Achado 6 (Baixo).** Errar a senha limpa também o campo de e-mail: o React 19 reseta o formulário depois de toda Server Action, inclusive quando ela falha | Baixa |
 | Realtime × edição simultânea | Não há resolução de conflito: os dois updates passam, o banco fica com o último e as telas convergem para ele. Quem escreveu primeiro não é avisado de que foi sobrescrito. Comportamento observado na auditoria; não existe regra definida | Média |
 | `apps/web/public/sw.js` | O navegador da auditoria recusa registrar service worker, então o Cache Storage **não foi inspecionado em execução**. A leitura do código mostra que só o `install` popula o cache, com allowlist fechado, sem nenhum `cache.put` em runtime — mas isso é revisão estática, não prova | Média |
-| caixas de marcar | Item comprado e consentimentos são controlados sem estado otimista: a caixa só marca quando a escrita volta do servidor. Em rede ruim parece que o clique não pegou. É por isso que o e2e usa `click` e não `check` | Média |
-| e2e × servidor de desenvolvimento | A suíte roda contra `next dev`, que compila cada rota na primeira visita — daí o teto de 4 workers e o minuto por teste. Contra build de produção seria estável e rápida, ao custo de um build por rodada | Baixa |
+| e2e × servidor de desenvolvimento | A suíte roda contra `next dev`, que compila cada rota na primeira visita — daí o teto de 4 workers e os 90s de prazo por teste. Contra build de produção seria estável e rápida, ao custo de um build por rodada | Baixa |
 | `apps/web/public/sw.js` | Continua sem teste: o service worker só registra em produção, e a suíte roda em desenvolvimento. É a única regra de segurança da fase 1 ainda sem rede de proteção | Média |
 | `leave_couple` | `auth.sessions` é de `supabase_auth_admin`. Local o `postgres` apaga; se o projeto hospedado recusar, o passo cai calado e só o `left_at` protege — que já é o corte real, mas a sessão sobreviveria até o token vencer | Média |
+| `goals_target_amount_cents_teto` | A constraint é validada contra as linhas existentes. Local não dói, porque `db reset` sobe do zero — mas um `db push` para banco que já tenha meta acima de R$ 100 milhões vai falhar na hora, e a mensagem não diz qual linha | Baixa |
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
 
 ---
