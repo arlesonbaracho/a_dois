@@ -40,6 +40,9 @@ export default async function Home() {
       ) : null}
 
       <div className="flex gap-4 text-sm">
+        <Link href="/metas" className="underline">
+          Metas
+        </Link>
         <Link href="/parceiro" className="underline">
           Quem divide o plano
         </Link>

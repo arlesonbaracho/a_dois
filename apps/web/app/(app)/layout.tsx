@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ClienteSupabase } from "@/components/cliente-supabase";
+import { RealtimeDoCasal } from "@/components/realtime";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 export default async function LayoutApp({ children }: LayoutProps<"/">) {
@@ -16,5 +17,10 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
 
   if (!session) redirect("/login");
 
-  return <ClienteSupabase accessToken={session.access_token}>{children}</ClienteSupabase>;
+  return (
+    <ClienteSupabase accessToken={session.access_token}>
+      <RealtimeDoCasal />
+      {children}
+    </ClienteSupabase>
+  );
 }

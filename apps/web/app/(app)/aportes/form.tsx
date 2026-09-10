@@ -7,7 +7,7 @@ import { formatBRL, fromCents, type RegraDivisao, type Saldo } from "@repo/core"
 
 import { Campo, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
 
-import { acaoCriarMeta, acaoRegistrarAporte, acaoSalvarDivisao } from "./actions";
+import { acaoRegistrarAporte, acaoSalvarDivisao } from "./actions";
 
 type Meta = { id: string; titulo: string; alvoCents: number };
 type Aporte = { id: string; quem: string; valorCents: number; quando: string };
@@ -69,7 +69,6 @@ export function TelaAportes({
     acaoRegistrarAporte,
     {},
   );
-  const [estadoMeta, salvarMeta] = useActionState<EstadoForm, FormData>(acaoCriarMeta, {});
   const [estadoDivisao, salvarDivisao] = useActionState<EstadoForm, FormData>(
     acaoSalvarDivisao,
     {},
@@ -91,8 +90,11 @@ export function TelaAportes({
 
       {metas.length === 0 ? (
         <p className="rounded-2xl bg-orange-50 p-4 text-sm text-orange-900">
-          Antes do primeiro aporte, criem uma meta ali embaixo. Pode ser a viagem,
-          a entrada do apê, ou só um &ldquo;fundo do sossego&rdquo;.
+          Antes do primeiro aporte, criem uma meta em{" "}
+          <Link href="/metas" className="underline">
+            metas de vocês
+          </Link>
+          .
         </p>
       ) : (
         <form action={salvarAporte} className="flex flex-col gap-4">
@@ -216,28 +218,15 @@ export function TelaAportes({
         </section>
       ) : null}
 
-      <details className="text-sm">
-        <summary className="cursor-pointer font-semibold">Criar uma meta nova</summary>
-        <form action={salvarMeta} className="mt-4 flex flex-col gap-4">
-          <Campo rotulo="Nome da meta" name="titulo" maxLength={120} required />
-          <Campo
-            rotulo="Quanto vocês querem juntar (R$)"
-            name="alvo"
-            type="number"
-            step="0.01"
-            min="0"
-            required
-            inputMode="decimal"
-            placeholder="0,00"
-          />
-          <Recado erro={estadoMeta.erro} aviso={estadoMeta.aviso} />
-          <Enviar>Criar meta</Enviar>
-        </form>
-      </details>
 
-      <Link href="/" className="text-sm underline">
-        Voltar
-      </Link>
+      <div className="flex gap-4 text-sm">
+        <Link href="/" className="underline">
+          Voltar
+        </Link>
+        <Link href="/metas" className="underline">
+          As metas de vocês
+        </Link>
+      </div>
     </main>
   );
 }

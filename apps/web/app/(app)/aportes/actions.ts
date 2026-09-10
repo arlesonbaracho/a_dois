@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import { criarMeta, registrarAporte, salvarMinhaDivisao, usuarioAtual } from "@repo/api";
-import { type FaixaRenda, PESO_FAIXA, type RegraDivisao, toCents } from "@repo/core";
+import { registrarAporte, salvarMinhaDivisao, usuarioAtual } from "@repo/api";
+import { type FaixaRenda, PESO_FAIXA, type RegraDivisao } from "@repo/core";
 
 import type { EstadoForm } from "@/components/form-ui";
+import { paraCentavos } from "@/lib/dinheiro";
 import { mensagemDoBanco } from "@/lib/erro";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
@@ -20,34 +21,8 @@ function texto(form: FormData, campo: string): string {
   return typeof valor === "string" ? valor.trim() : "";
 }
 
-/**
- * Reais digitados viram centavos aqui, na borda, e nunca voltam a ser float.
- * Devolve null quando não dá para ler um número — vazio, letra, infinito.
- */
 function centavos(form: FormData, campo: string): number | null {
-  const cru = texto(form, campo).replace(",", ".");
-  if (cru === "") return null;
-  const reais = Number(cru);
-  return Number.isFinite(reais) ? toCents(reais) : null;
-}
-
-export async function acaoCriarMeta(
-  _anterior: EstadoForm,
-  form: FormData,
-): Promise<EstadoForm> {
-  const alvo = centavos(form, "alvo");
-  if (alvo === null) return { erro: "Escreva o valor da meta em reais." };
-
-  const supabase = await criarClienteServidor();
-
-  try {
-    await criarMeta(supabase, { titulo: texto(form, "titulo"), alvoCents: alvo });
-  } catch (erro) {
-    return { erro: mensagemDoBanco(erro, "Não rolou agora. Tenta de novo daqui a pouco?") };
-  }
-
-  revalidatePath("/aportes");
-  return { aviso: "Meta criada. Agora é só ir enchendo." };
+  return paraCentavos(texto(form, campo));
 }
 
 export async function acaoRegistrarAporte(

@@ -59,15 +59,22 @@ export function Interruptor({
   );
 }
 
-export function Enviar({ children }: { children: ReactNode }) {
+/**
+ * `pendente` existe porque nem todo formulário do app é Server Action: os de
+ * metas e itens enviam por mutation do TanStack Query, e ali o useFormStatus
+ * não tem o que observar. Quem sabe se está ocupado passa; quem não passa cai
+ * no useFormStatus, como antes.
+ */
+export function Enviar({ children, pendente }: { children: ReactNode; pendente?: boolean }) {
   const { pending } = useFormStatus();
+  const ocupado = pendente ?? pending;
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={ocupado}
       className="rounded-xl bg-orange-700 px-4 py-2 font-semibold text-orange-50 disabled:opacity-60"
     >
-      {pending ? "Um instante…" : children}
+      {ocupado ? "Um instante…" : children}
     </button>
   );
 }
