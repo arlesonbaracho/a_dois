@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (direitos do titular, e o CI)
+**Última atualização:** 2026-09-10 (Playwright: 21 testes de ponta a ponta)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** backlog — o que sobrou da fase 1 está em Falta e em Dívidas
 
@@ -37,6 +37,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | `export_my_data` (plano inteiro em jsonb, e-mail do parceiro mascarado, `token_hash` nunca sai), `delete_account` exigindo a palavra EXCLUIR conferida no banco, e três consentimentos como colunas de `profiles`. `leave_couple` virou invólucro de `sair_do_casal_interno`. `supabase/tests/direitos.sql` | `bf517fa` |
 | 2026-09-10 | Tela de privacidade no perfil: baixar JSON e CSV, três toggles independentes, e apagar a conta com a lista do que some e do que fica. `paraCsv` em `core` (formato longo, com BOM no download). Revogar o uso da faixa cai no caminho que já existia e não quebra nada | `ce24612` |
 | 2026-09-10 | CI no GitHub Actions com cinco portões, dois deles em `scripts/` para rodarem antes do push (`npm run guardas`): RLS em toda tabela, e `packages/` sem API de navegador. Reprovação dos dois comprovada | `8cb9b96` |
+| 2026-09-10 | Achado pelo Playwright: os três toggles de consentimento renderizavam **desligados** enquanto o perfil carregava, então um clique rápido CONCEDIA achando que revogava. Agora ficam desabilitados até o perfil chegar | `3a9a3f3` |
+| 2026-09-10 | Playwright com 21 testes cobrindo auth, parceiro, metas, aportes e privacidade, contra o stack local de verdade. Contas com e-mail único por teste, sem estado compartilhado. Entrou no CI como sexto portão | `91a51a0` |
 
 ---
 
@@ -45,8 +47,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 O que está na fila imediata, em ordem de execução.
 
 A fila dos prompts acabou. O que falta está em **Falta (backlog)** e em
-**Dívidas** — e a primeira coisa a puxar de lá é o Playwright, que é a única
-rede de proteção que o projeto inteiro não tem.
+**Dívidas**. O Playwright já entrou: as cinco telas têm rede de proteção, e o
+CI reprova quando ela rasga.
 
 
 ---
@@ -232,18 +234,15 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/public/icon-*.png` | Ícones placeholder: dois anéis entrelaçados feitos por script. Serve para instalar, não para lançar | Baixa |
 | `handle_new_user` | Todo cadastro ganha um casal, inclusive o abandonado antes de confirmar o e-mail. O caso do convidado foi resolvido: `confirm_invite` apaga o casal solo e vazio de quem entra. Sobra só o lixo do cadastro abandonado | Baixa |
 | `components/cliente-supabase.tsx` | O access token fica em memória e só é trocado quando o servidor renderiza de novo. Numa aba aberta além de `jwt_expiry` (1h) sem navegar, o cliente do browser passa a usar token vencido até a próxima navegação. Só vai doer quando houver tela de longa permanência com Realtime (prompt 7) | Média |
-| `apps/web/app/(auth)` | Nenhum teste automatizado das telas. Login, cadastro e recuperação foram conferidos à mão no navegador, incluindo o erro genérico e o redirect aberto. Isso deveria ser Playwright | Média |
 | cadastro | Não pedimos nome. `couple_members.display_name` fica nulo, e o prompt 6 vai precisar dele para mostrar quem é quem | Baixa |
 | `apps/web/app/globals.css` | Tema claro na marra, sem tokens e sem modo escuro | Baixa |
 | `checar_limite` | Contagem sem trava: uma rajada simultânea pode passar de um do limite. Marcado com `ponytail:` no código; o conserto é advisory lock por chave | Baixa |
 | `confirm_invite` | Quem já tem plano com movimentação não consegue entrar em outro, e não existe caminho para mesclar os dois. Hoje a saída é apagar o próprio plano à mão | Média |
 | `pg_cron` | O expurgo depende da extensão estar habilitada. Local funciona; no projeto hospedado precisa ser ligada antes da migration rodar | Média |
-| `apps/web/app/(app)/parceiro` × `/convite` | Sem teste automatizado das telas. O fluxo de duas contas foi conferido à mão no navegador, incluindo o e-mail mascarado e o token sobrevivendo ao login. Deveria ser Playwright, junto com o das telas de auth | Média |
 | `couple_members.split_rule` | A regra de divisão é coluna por pessoa, e você pediu "três modos por casal". As duas linhas podem discordar, e `regraDoCasal` desempata pelo papel `dono` — regra de negócio que só existe para consertar o modelo. O certo é a coluna morar em `couples` | Média |
 | `apps/web/app/(app)/aportes/form.tsx` | Um botão Salvar escreve três fatos independentes (regra, faixa de renda, valor fixo). Se o formulário estiver desatualizado quando alguém envia, salvar a REGRA apaga a FAIXA. Não é alcançável clicando (o botão desabilita durante o envio, e o caminho de gente foi conferido no navegador), mas é forma frágil para dado pessoal — deviam ser três escritas separadas | Média |
 | `couple_members_update` | Um parceiro continua podendo editar a linha do outro, inclusive a faixa de renda dela. Já era assim; os aportes não pioraram nem melhoraram isso. O conserto é `user_id = auth.uid()` no `with check`, e mexe em asserção do `rls_isolamento.sql` | Média |
 | `contributions_update` | Insert agora é só pela função, mas o update continua aberto ao casal: dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Fecha a mesma dívida antiga por outro caminho | Baixa |
-| `apps/web/app/(app)/aportes` | Sem teste automatizado. Os três modos foram conferidos à mão no navegador com R$ 1.500,01, que divide mal nos três, e todos fecharam exato. Deveria ser Playwright, junto com auth e parceiro | Média |
 | `supabase/functions/_shared/ssrf-guard.ts` | O guard resolve o DNS e o `fetch` resolve de novo: existe janela de DNS rebinding entre as duas. Fechar exigiria conectar no IP fixado, que o `fetch` não oferece. Marcado com `ponytail:` no código | Média |
 | `supabase/functions/_shared/open-graph.ts` | `precoParaCentavos` duplica a ideia de `packages/core/src/money.ts`. O Deno não importa do workspace npm sem passo de bundle, então por ora são duas implementações da mesma regra | Baixa |
 | `extract-product-link` | O caminho de gravação da função não foi exercido ponta a ponta: as páginas de loja que conseguimos alcançar não publicam `og:price:amount`, então o preço voltou nulo e o `add_price_quote` não chegou a ser chamado POR ELA. A RPC foi conferida pela mesma porta (anon key + JWT), e a extração tem 17 testes — falta só a emenda entre as duas | Média |
@@ -252,15 +251,17 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | Realtime × DELETE | O evento de DELETE chega mesmo com `filter: couple_id=eq.X`, e o `old` só tem a chave primária — ou seja, o filtro não é aplicado a deletes. Na prática um parceiro de OUTRO casal, assinando a mesma tabela, receberia o uuid de linhas nossas apagadas. É um uuid e nada mais, mas é informação que não devia sair. O conserto é broadcast por trigger, com canal privado | Média |
 | escrita × Realtime | Toda escrita nossa recarrega duas vezes: a mutation invalida, e o eco do próprio evento no canal invalida de novo. É o preço de não depender do websocket para a tela responder | Baixa |
 | `components/cliente-supabase.tsx` | Em desenvolvimento, o Fast Refresh inspeciona o cliente e esbarra no proxy da opção `accessToken`, que levanta em qualquer acesso a `auth.*`. Vira um warning "Failed to re-render" no console. Só em dev, mas confunde quem está depurando outra coisa | Baixa |
-| `apps/web/app/(app)/metas` | Sem teste automatizado. CRUD, barra e Realtime foram conferidos à mão no navegador com duas contas, incluindo a prova de que não houve reload e de que só uma consulta sai por evento. Deveria ser Playwright, junto com auth, parceiro e aportes | Média |
 | `/metas` × `/aportes` | Duas entradas para registrar aporte (a meta e a tela de saldo). Chamam a mesma função de `packages/api`, então não são duas regras — mas são duas telas para manter quando o formulário mudar | Baixa |
 | lista de metas | A lista busca TODOS os aportes do casal para somar por meta no cliente. Com centenas de aportes isso vira payload à toa; o certo é uma view com o total por meta | Baixa |
 | `couple_members.income_band` | Revogar o consentimento não apaga a faixa guardada: o app para de usar, mas o dado fica. Contraria o Art. 6º, III (minimização) — o certo é apagar junto com a revogação. Decisão sua, registrada aqui | Média |
 | consentimento | Sem histórico: a coluna guarda só a última resposta. Se alguém consentiu, revogou e consentiu de novo, o banco lembra só da última data. Vira problema quando houver auditoria de verdade | Baixa |
 | analytics e marketing | Os dois toggles guardam a resposta e mais nada — não existe Sentry nem medição no projeto. O texto da tela diz isso. Quando entrar, alguém precisa lembrar de LER a coluna antes de disparar qualquer evento | Média |
-| `apps/web/app/(app)/perfil/privacidade.tsx` | Sem teste automatizado. Export, toggles, a palavra EXCLUIR e a exclusão de ponta a ponta foram conferidos à mão no navegador, interceptando o Blob para ver os bytes baixados. Deveria ser Playwright | Média |
 | `delete_account` | O e-mail apagado some de `auth.users`, mas o Supabase pode ter cópia em log de auth e em backup. Eliminação de verdade exige combinar retenção com o provedor — entra no plano de resposta a incidente | Média |
 | CI | Nunca rodou: não existe remote no GitHub ainda. O workflow foi escrito contra a documentação, e os dois guardas foram provados localmente, mas os passos de `supabase start` e do gitleaks só serão exercidos no primeiro PR | Média |
+| campos de dinheiro | São `<input type="number">`, e o Chromium **recusa a vírgula**. Quem digita "1250,50", que é como se escreve dinheiro em português, não consegue. `paraCentavos` já sabe ler vírgula — quem barra é o campo. O conserto é `type="text"` com `inputMode="decimal"`, em quatro campos | Alta |
+| caixas de marcar | Item comprado e consentimentos são controlados sem estado otimista: a caixa só marca quando a escrita volta do servidor. Em rede ruim parece que o clique não pegou. É por isso que o e2e usa `click` e não `check` | Média |
+| e2e × servidor de desenvolvimento | A suíte roda contra `next dev`, que compila cada rota na primeira visita — daí o teto de 4 workers e o minuto por teste. Contra build de produção seria estável e rápida, ao custo de um build por rodada | Baixa |
+| `apps/web/public/sw.js` | Continua sem teste: o service worker só registra em produção, e a suíte roda em desenvolvimento. É a única regra de segurança da fase 1 ainda sem rede de proteção | Média |
 | `leave_couple` | `auth.sessions` é de `supabase_auth_admin`. Local o `postgres` apaga; se o projeto hospedado recusar, o passo cai calado e só o `left_at` protege — que já é o corte real, mas a sessão sobreviveria até o token vencer | Média |
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
 
