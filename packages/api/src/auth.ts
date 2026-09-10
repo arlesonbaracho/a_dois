@@ -31,9 +31,15 @@ export async function entrar(
 /**
  * Cadastra e dispara o e-mail de confirmação.
  *
- * Também não confirma se o e-mail já existia: o Supabase devolve sucesso com
- * um usuário fantasma nesse caso, e quem chama daqui deve mostrar a mesma
- * mensagem dos dois jeitos.
+ * Também não confirma se o e-mail já existia — e isso é trabalho DESTA função,
+ * não da tela. O GoTrue responde 422 `user_already_exists` para e-mail que já
+ * tem conta, então deixar o erro passar transformaria o cadastro no oráculo de
+ * enumeração que o login evita com cuidado: bastava tentar cadastrar um
+ * endereço para saber se ele usa o app. Aqui ele vira sucesso, e quem chama
+ * mostra a mesma frase dos dois jeitos.
+ *
+ * (A auditoria de 2026-09-10 achou isto. O comentário antigo dizia que o
+ * Supabase devolvia sucesso com um usuário fantasma; não devolve nesta versão.)
  */
 export async function cadastrar(
   client: Client,
@@ -47,6 +53,7 @@ export async function cadastrar(
     options: { emailRedirectTo: redirecionarPara },
   });
   if (!error) return null;
+  if (error.code === "user_already_exists") return null;
   return error.code === "weak_password" ? "senha_fraca" : "desconhecida";
 }
 
