@@ -25,7 +25,16 @@ export function FormLogin({
     <Cartao titulo="Bem-vindo de volta" subtitulo="O plano de vocês está esperando.">
       <form action={acao} className="flex flex-col gap-4">
         <input type="hidden" name="proxima" value={proxima} />
-        <Campo rotulo="E-mail" name="email" type="email" autoComplete="email" required />
+        <Campo
+          rotulo="E-mail"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          // O React reseta o formulário depois da ação; o defaultValue novo é
+          // onde esse reset cai.
+          defaultValue={estado.email ?? ""}
+        />
         <Campo
           rotulo="Senha"
           name="senha"

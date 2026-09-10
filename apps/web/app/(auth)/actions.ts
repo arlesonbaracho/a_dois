@@ -29,15 +29,20 @@ function destinoSeguro(bruto: FormDataEntryValue | null): string {
 }
 
 export async function acaoEntrar(_anterior: EstadoForm, form: FormData): Promise<EstadoForm> {
+  // Devolvido junto do erro para o campo não voltar vazio. Vai como veio, sem
+  // schema: se não passou na validação, é justamente o texto que a pessoa
+  // precisa ver para consertar.
+  const digitado = typeof form.get("email") === "string" ? String(form.get("email")) : "";
+
   const dados = credenciaisSchema.safeParse({
     email: form.get("email"),
     senha: form.get("senha"),
   });
-  if (!dados.success) return { erro: ERRO_CREDENCIAIS };
+  if (!dados.success) return { erro: ERRO_CREDENCIAIS, email: digitado };
 
   const supabase = await criarClienteServidor();
   if (await entrar(supabase, dados.data.email, dados.data.senha)) {
-    return { erro: ERRO_CREDENCIAIS };
+    return { erro: ERRO_CREDENCIAIS, email: digitado };
   }
 
   redirect(destinoSeguro(form.get("proxima")));

@@ -133,11 +133,9 @@ test.describe("4.2 login e sessão", () => {
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page.getByRole("status")).toHaveText("E-mail ou senha inválidos.");
 
-    // O e-mail precisa ser digitado DE NOVO: o React 19 limpa os campos do
-    // formulário depois de toda submissão de Server Action, inclusive quando
-    // ela falha. É chateação de verdade para quem erra a senha, e está no
-    // relatório como Baixo.
-    await page.getByLabel("E-mail").fill(conta.email);
+    // Achado 6, consertado: errar a senha não apaga mais o e-mail. Só a senha
+    // precisa ser digitada de novo.
+    await expect(page.getByLabel("E-mail")).toHaveValue(conta.email);
     await page.getByLabel("Senha").fill(nova);
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page).toHaveURL("/");

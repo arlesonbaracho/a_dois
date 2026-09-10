@@ -5,8 +5,15 @@ import { useFormStatus } from "react-dom";
 
 // Peças burras dos formulários: nenhuma delas sabe o que é Supabase.
 
-/** O que uma Server Action devolve para a tela. */
-export type EstadoForm = { erro?: string; aviso?: string };
+/**
+ * O que uma Server Action devolve para a tela.
+ *
+ * `email` existe porque o React 19 reseta o formulário depois de TODA ação,
+ * inclusive quando ela falha: sem devolver o endereço, quem erra a senha
+ * redigita o e-mail a cada tentativa. A senha nunca volta — ela não faz o
+ * caminho de volta para o cliente por nada.
+ */
+export type EstadoForm = { erro?: string; aviso?: string; email?: string };
 
 export function Cartao({
   titulo,
