@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (Playwright: 21 testes de ponta a ponta)
+**Última atualização:** 2026-09-10 (auditoria, e os três primeiros consertos)
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** backlog — o que sobrou da fase 1 está em Falta e em Dívidas
+**Próximo passo:** achados 4 a 7 da auditoria (validação de meta, `token_hash`, formulário de login, estado otimista)
 
 ---
 
@@ -39,6 +39,11 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | CI no GitHub Actions com cinco portões, dois deles em `scripts/` para rodarem antes do push (`npm run guardas`): RLS em toda tabela, e `packages/` sem API de navegador. Reprovação dos dois comprovada | `8cb9b96` |
 | 2026-09-10 | Achado pelo Playwright: os três toggles de consentimento renderizavam **desligados** enquanto o perfil carregava, então um clique rápido CONCEDIA achando que revogava. Agora ficam desabilitados até o perfil chegar | `3a9a3f3` |
 | 2026-09-10 | Playwright com 21 testes cobrindo auth, parceiro, metas, aportes e privacidade, contra o stack local de verdade. Contas com e-mail único por teste, sem estado compartilhado. Entrou no CI como sexto portão | `91a51a0` |
+| 2026-09-10 | **Auditoria completa das 5 camadas**, com ambiente subido do zero: 272 verificações, 266 passaram, 5 falharam, 9 não testáveis. **Nenhum Bloqueador e nenhum Crítico.** Isolamento entre casais sem um único achado em 40 sondagens diretas de API; o teste central do convite passou nos três canais. 7 achados (1 Alto, 3 Médios, 3 Baixos) em `relatorios/auditoria-2026-09-10.md`. A suíte e2e foi de 21 para 36 testes | `(esta sessão)` |
+| 2026-09-10 | Achado 1 (Alto) fechado: `cadastrar()` engole o `422 user_already_exists` do GoTrue, e a tela de cadastro devolve a mesma frase para e-mail novo e para e-mail que já tem conta | `7206812` |
+| 2026-09-10 | Achado 2 (Médio) fechado: os seis campos de dinheiro viraram `type="text"` com `inputMode="decimal"`, e `centavosDeTexto` subiu para `packages/core` — o parser antigo lia "1.234" como R$ 1,23, valor mil vezes menor em silêncio | `205adba` |
+| 2026-09-10 | Achados 3 e 5 (Médio + Baixo) fechados: `invited_email` e `token_hash` saíram do grant de `couple_invites` (grant por coluna, lista explícita), e a tela do parceiro passou a usar `active_invites()`, que mascara o e-mail | `62535f4` |
+| 2026-09-10 | `e2e/auditoria.spec.ts` com 16 testes: Mailpit, recuperação de senha, cookie de sessão, recusas de apelido, validações, edição simultânea e reconexão. A suíte foi de 21 para 37 | `1c52786` |
 
 ---
 
@@ -202,6 +207,11 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | Os guardas do CI moram em `scripts/`, não inline no YAML | Guarda que só existe no CI é guarda que a pessoa descobre dez minutos depois de mandar. `npm run guardas` roda os dois na máquina |
 | 2026-09-10 | O guarda de portabilidade ignora comentário | Senão ele proíbe explicar por que a regra existe. E pega o que o compilador não pega: `core` já barra `window` pelo `lib` sem DOM, mas `packages/api` tem `@types/react` e passaria batido |
 | 2026-09-10 | CI roda em pull request **e** no push para a principal | Um PR verde que vira merge quebrado por causa de outro PR verde é o modo de falha que só rodar em PR não pega |
+| 2026-09-10 | Coluna sensível fecha por **grant de coluna**, não por policy | RLS filtra linha, não coluna. `invited_email` e `token_hash` saíram da lista do `grant select (...)`, e a lista é explícita: coluna nova nasce ilegível até alguém liberar. Falha fechada, como o allowlist do service worker |
+| 2026-09-10 | `anon` recebe a mesma lista de colunas de `couple_invites` | O modelo do projeto é "anon tem grant e nenhuma policy, logo zero linhas". Sem o grant, zero linha passaria a vir de permissão negada, e o teste de isolamento deixaria de provar que quem barra é o RLS |
+| 2026-09-10 | `exige_grant` do teste de RLS passou a usar `has_any_column_privilege` | Ele conferia `has_table_privilege` e reprovou na hora em que o grant virou por coluna — fez o trabalho dele. A pergunta que importa continua a mesma: sobrou alguma coluna legível para "zero linhas" significar RLS? |
+| 2026-09-10 | O erro de cadastro é normalizado em `packages/api`, não em `acaoCadastrar` | Mesmo motivo já registrado para o erro de login: com a decisão na tela, o próximo chamador esquece e o oráculo volta por outra porta |
+| 2026-09-10 | `centavosDeTexto` mora em `packages/core` e é a regra canônica de ler dinheiro digitado | Um parser ingênuo lê "1.234" como 123 centavos e grava valor mil vezes menor sem erro na tela. A regra existia testada em `open-graph.ts`; subiu para onde é pura, portável e usada pelo app |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -244,7 +254,7 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `couple_members_update` | Um parceiro continua podendo editar a linha do outro, inclusive a faixa de renda dela. Já era assim; os aportes não pioraram nem melhoraram isso. O conserto é `user_id = auth.uid()` no `with check`, e mexe em asserção do `rls_isolamento.sql` | Média |
 | `contributions_update` | Insert agora é só pela função, mas o update continua aberto ao casal: dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Fecha a mesma dívida antiga por outro caminho | Baixa |
 | `supabase/functions/_shared/ssrf-guard.ts` | O guard resolve o DNS e o `fetch` resolve de novo: existe janela de DNS rebinding entre as duas. Fechar exigiria conectar no IP fixado, que o `fetch` não oferece. Marcado com `ponytail:` no código | Média |
-| `supabase/functions/_shared/open-graph.ts` | `precoParaCentavos` duplica a ideia de `packages/core/src/money.ts`. O Deno não importa do workspace npm sem passo de bundle, então por ora são duas implementações da mesma regra | Baixa |
+| `supabase/functions/_shared/open-graph.ts` | `precoParaCentavos` é a MESMA regra de `centavosDeTexto`, que agora mora em `packages/core/src/money.ts` e é a canônica. O Deno não importa do workspace npm sem passo de bundle, então a cópia continua — e agora com a obrigação de andar junto | Média |
 | `extract-product-link` | O caminho de gravação da função não foi exercido ponta a ponta: as páginas de loja que conseguimos alcançar não publicam `og:price:amount`, então o preço voltou nulo e o `add_price_quote` não chegou a ser chamado POR ELA. A RPC foi conferida pela mesma porta (anon key + JWT), e a extração tem 17 testes — falta só a emenda entre as duas | Média |
 | `supabase/functions/extract-product-link/index.ts` | Fora do `tsc`: o arquivo importa APIs do Deno e `npm:`, então só o `deno check` do `functions serve` e do deploy o confere. `_shared` continua no typecheck do monorepo | Baixa |
 | `extract-product-link` × app | Nenhuma tela chama a função ainda. Ela entra quando o prompt 7 criar os itens da meta, que é onde o link de produto vive | Baixa |
@@ -258,7 +268,10 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | analytics e marketing | Os dois toggles guardam a resposta e mais nada — não existe Sentry nem medição no projeto. O texto da tela diz isso. Quando entrar, alguém precisa lembrar de LER a coluna antes de disparar qualquer evento | Média |
 | `delete_account` | O e-mail apagado some de `auth.users`, mas o Supabase pode ter cópia em log de auth e em backup. Eliminação de verdade exige combinar retenção com o provedor — entra no plano de resposta a incidente | Média |
 | CI | Nunca rodou: não existe remote no GitHub ainda. O workflow foi escrito contra a documentação, e os dois guardas foram provados localmente, mas os passos de `supabase start` e do gitleaks só serão exercidos no primeiro PR | Média |
-| campos de dinheiro | São `<input type="number">`, e o Chromium **recusa a vírgula**. Quem digita "1250,50", que é como se escreve dinheiro em português, não consegue. `paraCentavos` já sabe ler vírgula — quem barra é o campo. O conserto é `type="text"` com `inputMode="decimal"`, em quatro campos | Alta |
+| `add_goal` | **Achado 4 (Médio).** Aceita prazo no passado e valor alvo de R$ 90 trilhões sem recusar nada | Média |
+| `/login` | **Achado 6 (Baixo).** Errar a senha limpa também o campo de e-mail: o React 19 reseta o formulário depois de toda Server Action, inclusive quando ela falha | Baixa |
+| Realtime × edição simultânea | Não há resolução de conflito: os dois updates passam, o banco fica com o último e as telas convergem para ele. Quem escreveu primeiro não é avisado de que foi sobrescrito. Comportamento observado na auditoria; não existe regra definida | Média |
+| `apps/web/public/sw.js` | O navegador da auditoria recusa registrar service worker, então o Cache Storage **não foi inspecionado em execução**. A leitura do código mostra que só o `install` popula o cache, com allowlist fechado, sem nenhum `cache.put` em runtime — mas isso é revisão estática, não prova | Média |
 | caixas de marcar | Item comprado e consentimentos são controlados sem estado otimista: a caixa só marca quando a escrita volta do servidor. Em rede ruim parece que o clique não pegou. É por isso que o e2e usa `click` e não `check` | Média |
 | e2e × servidor de desenvolvimento | A suíte roda contra `next dev`, que compila cada rota na primeira visita — daí o teto de 4 workers e o minuto por teste. Contra build de produção seria estável e rápida, ao custo de um build por rodada | Baixa |
 | `apps/web/public/sw.js` | Continua sem teste: o service worker só registra em produção, e a suíte roda em desenvolvimento. É a única regra de segurança da fase 1 ainda sem rede de proteção | Média |
