@@ -65,6 +65,12 @@ insert into auth.users (id, email) values
   ('b0000001-0000-0000-0000-000000000001', 'bia@exemplo.test'),
   ('b0000002-0000-0000-0000-000000000002', 'bruno@exemplo.test');
 
+-- A trigger on_auth_user_created acabou de dar um casal a cada um dos quatro.
+-- Este teste monta o mundo à mão, com uuids fixos, para poder falar "o casal A"
+-- e "o casal B"; os automáticos saem daqui. Que a trigger funciona é assunto de
+-- cadastro_cria_casal.sql.
+delete from public.couples;
+
 insert into public.couples (id) values
   ('aaaaaaaa-0000-0000-0000-00000000000a'),
   ('bbbbbbbb-0000-0000-0000-00000000000b');

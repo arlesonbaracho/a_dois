@@ -320,6 +320,7 @@ export type Database = {
     }
     Functions: {
       create_couple: { Args: never; Returns: string }
+      create_couple_for: { Args: { p_user_id: string }; Returns: string }
       is_couple_member: { Args: { couple_id: string }; Returns: boolean }
     }
     Enums: {

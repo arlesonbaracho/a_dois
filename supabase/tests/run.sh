@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Roda o teste de isolamento entre casais, no melhor banco disponível.
+# Roda os testes de SQL do projeto, no melhor banco disponível.
 #
 # Ordem de preferência:
 #   1. DATABASE_URL, se definida (CI, ou apontar para onde você quiser)
@@ -13,7 +13,10 @@
 set -euo pipefail
 
 raiz="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-teste="$raiz/supabase/tests/rls_isolamento.sql"
+testes=(
+  "$raiz/supabase/tests/rls_isolamento.sql"
+  "$raiz/supabase/tests/cadastro_cria_casal.sql"
+)
 PG="${PGSQL_HOME:-$HOME/.local/pgsql}"
 
 psql_bin="$(command -v psql || true)"
@@ -31,7 +34,10 @@ fi
 
 if [ -n "$alvo" ]; then
   echo "alvo: ${alvo%%\?*}"
-  exec "$psql_bin" "$alvo" -v ON_ERROR_STOP=1 -q -f "$teste"
+  for t in "${testes[@]}"; do
+    "$psql_bin" "$alvo" -v ON_ERROR_STOP=1 -q -f "$t"
+  done
+  exit 0
 fi
 
 if [ ! -x "$PG/bin/initdb" ]; then
@@ -51,4 +57,4 @@ rodar() { "$PG/bin/psql" -h "$tmp" -U postgres -d postgres -v ON_ERROR_STOP=1 -q
 
 rodar -f "$raiz/supabase/tests/bootstrap.sql"
 for m in "$raiz"/supabase/migrations/*.sql; do rodar -f "$m"; done
-rodar -f "$teste"
+for t in "${testes[@]}"; do rodar -f "$t"; done
