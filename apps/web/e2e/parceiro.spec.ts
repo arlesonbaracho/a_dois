@@ -43,7 +43,7 @@ test.describe("quem divide o plano", () => {
     await expect(betoPage.getByRole("heading", { name: "Pedido enviado" })).toBeVisible();
 
     // O ponto do arquivo inteiro: ele reivindicou, e continua sem ver nada.
-    await betoPage.goto("/metas");
+    await betoPage.goto("/jornadas");
     await expect(betoPage.getByText("Entrada do apê")).toHaveCount(0);
 
     const antes = await (await comoPessoa(request, beto)).ler<unknown[]>("goals?select=id");
@@ -55,7 +55,7 @@ test.describe("quem divide o plano", () => {
     await page.getByRole("button", { name: "Confirmar" }).click();
 
     // ---- Agora sim ----
-    await betoPage.goto("/metas");
+    await betoPage.goto("/jornadas");
     await expect(betoPage.getByText("Entrada do apê")).toBeVisible();
 
     const depois = await (await comoPessoa(request, beto)).ler<unknown[]>(

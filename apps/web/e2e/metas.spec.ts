@@ -5,14 +5,14 @@ import { comoPessoa, criarConta, entrar, parear } from "./apoio";
 test.describe("metas e itens", () => {
   test("criar meta, listar, abrir e anotar item", async ({ page, request }) => {
     await entrar(page, await criarConta(request, "metas"));
-    await page.goto("/metas");
+    await page.goto("/jornadas");
 
-    await expect(page.getByText("Ainda não tem meta nenhuma")).toBeVisible();
+    await expect(page.getByText("Ainda não tem jornada nenhuma")).toBeVisible();
 
     await page.getByLabel("O que vocês querem").fill("Entrada do apê");
     await page.getByLabel("Quanto vocês querem juntar (R$)").fill("120000");
     await page.getByLabel("Categoria").fill("casa");
-    await page.getByRole("button", { name: "Criar meta" }).click();
+    await page.getByRole("button", { name: "Criar jornada" }).click();
 
     const cartao = page.getByRole("link", { name: /Entrada do apê/ });
     await expect(cartao).toBeVisible();
@@ -50,7 +50,7 @@ test.describe("metas e itens", () => {
       p_target_amount_cents: 800000,
     })).json();
 
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
     await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
 
     await page.getByLabel("Quanto (R$)").fill("2000");
@@ -79,7 +79,7 @@ test.describe("metas e itens", () => {
     })).json();
 
     await entrar(page, ana);
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
     await expect(page.getByText("Geladeira")).toBeVisible();
 
     // Marcador que só sobrevive se a página NÃO recarregar. Sem ele, o teste
@@ -115,16 +115,16 @@ test.describe("metas e itens", () => {
     })).json();
     await comoAna.rpc("add_contribution", { p_goal_id: meta, p_amount_cents: 50000 });
 
-    await page.goto(`/metas/${meta}`);
-    await page.getByRole("button", { name: "Apagar esta meta" }).click();
+    await page.goto(`/jornadas/${meta}`);
+    await page.getByRole("button", { name: "Apagar esta jornada" }).click();
 
     await expect(page.getByText(/já tem dinheiro dentro/)).toBeVisible();
-    await expect(page).toHaveURL(`/metas/${meta}`);
+    await expect(page).toHaveURL(`/jornadas/${meta}`);
     expect(await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`)).toHaveLength(1);
 
     await page.getByRole("button", { name: "Apagar mesmo assim" }).click();
 
-    await expect(page).toHaveURL("/metas");
+    await expect(page).toHaveURL("/jornadas");
     expect(await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`)).toHaveLength(0);
   });
 });

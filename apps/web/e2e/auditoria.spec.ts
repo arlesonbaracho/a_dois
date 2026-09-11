@@ -170,6 +170,8 @@ test.describe("4.2 login e sessão", () => {
     const conta = await criarConta(request, "persistente");
     await entrar(page, conta);
 
+    // O e-mail da conta agora aparece no perfil, não na home.
+    await page.goto("/perfil");
     await page.reload();
     await expect(page.getByText(conta.email)).toBeVisible();
 
@@ -178,8 +180,8 @@ test.describe("4.2 login e sessão", () => {
     const contexto = page.context();
     await page.close();
     const nova = await contexto.newPage();
-    await nova.goto("/metas");
-    await expect(nova).toHaveURL("/metas");
+    await nova.goto("/jornadas");
+    await expect(nova).toHaveURL("/jornadas");
     await nova.close();
   });
 });
@@ -327,7 +329,7 @@ test.describe("4.5 metas: validações e formatação de dinheiro", () => {
     await cliente.rpc("add_goal_item", { p_goal_id: meta, p_name: "Item", p_estimated_price_cents: 99999 });
 
     await entrar(page, conta);
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
 
     await expect(page.getByText("R$ 617,28 de R$ 12.345,67 · 5%")).toBeVisible();
     await expect(page.getByText("R$ 999,99")).toBeVisible();
@@ -350,7 +352,7 @@ test.describe("4.5 metas: validações e formatação de dinheiro", () => {
     })).json();
 
     await entrar(page, conta);
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
     await page.getByLabel("Quanto (R$)").fill("1.234,56");
     await page.getByRole("button", { name: "Anotar" }).click();
 
@@ -376,13 +378,13 @@ test.describe("4.7 tempo real", () => {
     })).json();
 
     await entrar(page, ana);
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
     await expect(page.getByRole("heading", { name: "Disputada" })).toBeVisible();
 
     const outra = await browser.newContext();
     const pageB = await outra.newPage();
     await entrar(pageB, beto);
-    await pageB.goto(`/metas/${meta}`);
+    await pageB.goto(`/jornadas/${meta}`);
     await expect(pageB.getByRole("heading", { name: "Disputada" })).toBeVisible();
 
     // Os dois escrevem quase ao mesmo tempo, cada um o seu título.
@@ -412,7 +414,7 @@ test.describe("4.7 tempo real", () => {
     const meta = await (await comoAna.rpc("add_goal", { p_title: "Cozinha", p_target_amount_cents: 1000000 })).json();
 
     await entrar(page, beto);
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
     await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
 
     // B cai. A escreve enquanto ele está fora.

@@ -81,10 +81,10 @@ export function TelaAportes({
   const hoje = new Date().toISOString().slice(0, 10);
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-8 p-6">
+    <main className="mx-auto flex max-w-sm flex-col gap-5 p-5 lg:max-w-2xl lg:p-10">
       <div>
-        <h1 className="text-2xl font-bold">Aportes</h1>
-        <p className="mt-1 text-stone-600">
+        <h1 className="text-[27px] font-bold tracking-[-0.04em]">Aportes</h1>
+        <p className="mt-1 text-suave-forte">
           Quem colocou quanto, e como vocês combinaram de dividir.
         </p>
       </div>
@@ -92,23 +92,23 @@ export function TelaAportes({
       <Saldos saldo={saldo} nomes={nomes} deQuemSaiuCents={deQuemSaiu} />
 
       {metas.length === 0 ? (
-        <p className="rounded-2xl bg-orange-50 p-4 text-sm text-orange-900">
-          Antes do primeiro aporte, criem uma meta em{" "}
-          <Link href="/metas" className="underline">
-            metas de vocês
+        <p className="rounded-cartao bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-corpo">
+          Antes do primeiro aporte, criem uma jornada em{" "}
+          <Link href="/jornadas" className="underline">
+            jornadas de vocês
           </Link>
           .
         </p>
       ) : (
         <form action={salvarAporte} className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold">Coloquei um dinheiro</h2>
+          <h2 className="text-[17px] font-bold tracking-[-0.03em]">Coloquei um dinheiro</h2>
 
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Em qual meta</span>
+            <span className="text-sm font-medium">Em qual jornada</span>
             <select
               name="meta"
               required
-              className="rounded-xl border border-stone-300 px-3 py-2 text-base"
+              className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base"
             >
               {metas.map((meta) => (
                 <option key={meta.id} value={meta.id}>
@@ -135,8 +135,8 @@ export function TelaAportes({
 
       <form action={salvarDivisao} className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Como vocês dividem</h2>
-          <p className="text-sm text-stone-600">
+          <h2 className="text-[17px] font-bold tracking-[-0.03em]">Como vocês dividem</h2>
+          <p className="text-sm text-suave-forte">
             Isto muda só a conta de quanto cabia a cada um. Não mexe em nada que
             já foi colocado.
           </p>
@@ -148,7 +148,10 @@ export function TelaAportes({
             return (
               <label
                 key={modo.valor}
-                className={`flex items-start gap-3 ${podeUsar ? "" : "opacity-60"}`}
+                // Sem opacity: a opção indisponível é justamente a que precisa
+                // ser LIDA, porque o texto dela explica o que fazer para
+                // liberá-la. Quem sinaliza o estado é o rádio desabilitado.
+                className="flex items-start gap-3"
               >
                 <input
                   type="radio"
@@ -159,8 +162,8 @@ export function TelaAportes({
                   className="mt-1 size-4"
                 />
                 <span>
-                  <span className="block text-sm font-medium">{modo.rotulo}</span>
-                  <span className="block text-sm text-stone-600">
+                  <span className="block text-[13.5px] font-semibold">{modo.rotulo}</span>
+                  <span className="mt-0.5 block font-corpo text-[12px] leading-relaxed text-suave-forte">
                     {podeUsar ? modo.comoFunciona : modo.oQueFalta}
                   </span>
                 </span>
@@ -174,7 +177,7 @@ export function TelaAportes({
           <select
             name="faixa"
             defaultValue={minhaFaixa ?? ""}
-            className="rounded-xl border border-stone-300 px-3 py-2 text-base"
+            className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base"
           >
             <option value="">Prefiro não dizer</option>
             {FAIXAS.map(([valor, rotulo]) => (
@@ -183,7 +186,7 @@ export function TelaAportes({
               </option>
             ))}
           </select>
-          <span className="text-sm text-stone-600">
+          <span className="text-sm text-suave-forte">
             Só a faixa, nunca o valor exato — e só a sua dupla enxerga.
           </span>
         </label>
@@ -203,14 +206,14 @@ export function TelaAportes({
 
       {ultimos.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">Os últimos</h2>
+          <h2 className="text-[17px] font-bold tracking-[-0.03em]">Os últimos</h2>
           <ul className="flex flex-col gap-1 text-sm">
             {ultimos.map((aporte) => (
               <li key={aporte.id} className="flex justify-between gap-2">
                 <span>
                   {aporte.quem} · {dia(aporte.quando)}
                 </span>
-                <span className="font-medium">{formatBRL(aporte.valorCents)}</span>
+                <span className="font-semibold tabular-nums">{formatBRL(aporte.valorCents)}</span>
               </li>
             ))}
           </ul>
@@ -222,8 +225,8 @@ export function TelaAportes({
         <Link href="/" className="underline">
           Voltar
         </Link>
-        <Link href="/metas" className="underline">
-          As metas de vocês
+        <Link href="/jornadas" className="underline">
+          As jornadas de vocês
         </Link>
       </div>
     </main>
@@ -247,20 +250,25 @@ function Saldos({
   const emDia = saldo.linhas.every((linha) => linha.diferencaCents === 0);
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl bg-orange-50 p-4">
-      <h2 className="text-lg font-semibold text-orange-900">Quanto vocês já juntaram</h2>
-      <p className="text-2xl font-bold text-orange-900">
+    <section className="flex flex-col gap-3 rounded-cartao bg-tinta p-4 text-papel">
+      {/* h2 e total como filhos diretos da section: o e2e ancora em
+          heading.locator("..") e um invólucro aqui tira as linhas do saldo de
+          dentro do pai que ele mede. */}
+      <h2 className="font-corpo text-[10.5px] font-medium text-noite-suave">
+        Quanto vocês já juntaram
+      </h2>
+      <p className="-mt-2 text-[30px] font-extrabold tracking-[-0.04em] tabular-nums text-limao">
         {formatBRL(saldo.totalRateadoCents + deQuemSaiuCents)}
       </p>
 
-      <ul className="flex flex-col gap-2 text-sm text-orange-900">
+      <ul className="flex flex-col gap-2 font-corpo text-[11.5px]">
         {saldo.linhas.map((linha) => (
           <li key={linha.userId} className="flex justify-between gap-2">
-            <span>{nomes[linha.userId] ?? "Sua dupla"}</span>
-            <span>
+            <span className="text-noite-suave">{nomes[linha.userId] ?? "Sua dupla"}</span>
+            <span className="font-semibold tabular-nums text-papel">
               {formatBRL(linha.aportadoCents)}
               {saldo.aplicavel ? (
-                <span className="text-orange-800">
+                <span className="font-normal text-noite-suave">
                   {" "}
                   · cabia {formatBRL(linha.devidoCents)}
                 </span>
@@ -269,14 +277,14 @@ function Saldos({
           </li>
         ))}
         {deQuemSaiuCents > 0 ? (
-          <li className="flex justify-between gap-2 text-orange-800">
+          <li className="flex justify-between gap-2 text-noite-suave">
             <span>De quem já saiu do plano</span>
-            <span>{formatBRL(deQuemSaiuCents)}</span>
+            <span className="tabular-nums">{formatBRL(deQuemSaiuCents)}</span>
           </li>
         ) : null}
       </ul>
 
-      <p className="text-sm text-orange-900">
+      <p className="border-t border-papel/15 pt-3 font-corpo text-[11.5px] leading-relaxed text-noite-corpo">
         {!saldo.aplicavel
           ? "Escolham ali embaixo como querem dividir, e eu faço essa conta."
           : emDia

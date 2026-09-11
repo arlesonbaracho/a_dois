@@ -42,7 +42,7 @@ export function FormPerfil({ perfil }: { perfil: Perfil | null }) {
         <Enviar>Salvar</Enviar>
       </form>
 
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-suave-forte">
         O apelido é um nome que você escolhe, não o seu e-mail. Ele fica visível
         para quem souber digitá-lo — então evite usar algo que te identifique
         fora daqui.

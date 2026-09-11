@@ -24,41 +24,38 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoPedido, {});
 
   return (
-    <form action={acao} className="flex flex-col gap-3 rounded-2xl bg-orange-50 p-4">
+    <form action={acao} className="flex flex-col gap-3 rounded-cartao bg-tinta p-4 text-papel">
       <input type="hidden" name="id" value={pedido.invite_id} />
 
-      <p className="font-semibold">Alguém pediu para entrar no plano de vocês</p>
+      {/* Irmãos, não aninhados: o e2e mede o pai deste <p> para conferir que o
+          e-mail sai mascarado, e um invólucro o deixaria de fora. */}
+      <span className="-mb-2 font-corpo text-[10.5px] text-noite-suave">pedido pendente</span>
+      <p className="text-[16px] font-bold tracking-[-0.03em]">
+        Alguém pediu para entrar no plano de vocês
+      </p>
 
-      <dl className="flex flex-col gap-1 text-sm">
-        <div className="flex gap-2">
-          <dt className="text-stone-600">Nome</dt>
-          <dd>{pedido.display_name ?? "não informou"}</dd>
-        </div>
-        {pedido.nickname ? (
-          <div className="flex gap-2">
-            <dt className="text-stone-600">Apelido</dt>
-            <dd>{pedido.nickname}</dd>
+      {/* Rótulo apagado, valor aceso: é a leitura que o design pede, e é a que
+          deixa o e-mail mascarado saltar — ele é a informação que decide. */}
+      <dl className="flex flex-col gap-1.5 font-corpo text-[11.5px]">
+        {[
+          ["Nome", pedido.display_name ?? "não informou"],
+          ...(pedido.nickname ? [["Apelido", pedido.nickname]] : []),
+          ["E-mail", pedido.email_mascarado],
+          ["Conta criada há", `${pedido.conta_criada_ha_dias} dia(s)`],
+          ["Chegou", NOME_DO_CANAL[pedido.channel]],
+        ].map(([rotulo, valor]) => (
+          <div key={rotulo} className="flex justify-between gap-3">
+            <dt className="text-noite-suave">{rotulo}</dt>
+            <dd className="font-semibold text-papel">{valor}</dd>
           </div>
-        ) : null}
-        <div className="flex gap-2">
-          <dt className="text-stone-600">E-mail</dt>
-          <dd>{pedido.email_mascarado}</dd>
-        </div>
-        <div className="flex gap-2">
-          <dt className="text-stone-600">Conta criada há</dt>
-          <dd>{pedido.conta_criada_ha_dias} dia(s)</dd>
-        </div>
-        <div className="flex gap-2">
-          <dt className="text-stone-600">Chegou</dt>
-          <dd>{NOME_DO_CANAL[pedido.channel]}</dd>
-        </div>
+        ))}
       </dl>
 
-      <p className="text-sm">
-        Confirmando, essa pessoa passa a ver <strong>todo o histórico financeiro
-        do plano</strong> — metas, valores e aportes, inclusive o que vocês
-        registraram antes de ela entrar. Só confirme se reconhece quem está do
-        outro lado.
+      <p className="font-corpo text-[11.5px] leading-relaxed text-noite-corpo">
+        Confirmando, essa pessoa passa a ver <strong className="text-papel">todo o
+        histórico financeiro do plano</strong> — jornadas, valores e aportes,
+        inclusive o que vocês registraram antes de ela entrar. Só confirme se
+        reconhece quem está do outro lado.
       </p>
 
       <Recado erro={estado.erro} aviso={estado.aviso} />
@@ -68,14 +65,24 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
           type="submit"
           name="acao"
           value="confirmar"
-          className="rounded-xl bg-orange-700 px-4 py-2 text-sm font-semibold text-orange-50"
+          className="flex-1 rounded-full bg-limao px-4 py-3 text-[13px] font-bold text-tinta"
         >
           Confirmar
         </button>
-        <button type="submit" name="acao" value="recusar" className="rounded-xl px-4 py-2 text-sm">
+        <button
+          type="submit"
+          name="acao"
+          value="recusar"
+          className="flex-1 rounded-full border border-papel/25 px-4 py-3 text-[13px] font-semibold text-noite-corpo"
+        >
           Não é quem eu convidei
         </button>
-        <button type="submit" name="acao" value="revogar" className="rounded-xl px-4 py-2 text-sm">
+        <button
+          type="submit"
+          name="acao"
+          value="revogar"
+          className="w-full rounded-full px-4 py-2 font-corpo text-[11.5px] text-noite-suave underline"
+        >
           Cancelar o convite
         </button>
       </div>
@@ -95,7 +102,7 @@ function FormCriar() {
           name="canal"
           value={canal}
           onChange={(e) => setCanal(e.target.value as CanalConvite)}
-          className="rounded-xl border border-stone-300 px-3 py-2 text-base"
+          className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base"
         >
           <option value="link">Um link que eu mesmo mando</option>
           <option value="email">Pelo e-mail da pessoa</option>
@@ -116,7 +123,7 @@ function FormCriar() {
         />
       ) : null}
 
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-suave-forte">
         {canal === "link"
           ? "O link vale 24 horas, e serve para quem estiver com ele."
           : "O convite vale 72 horas e só funciona para essa pessoa — mas quem manda o link é você, não a gente."}{" "}
@@ -133,7 +140,7 @@ function FormCriar() {
             readOnly
             value={estado.link}
             onFocus={(e) => e.currentTarget.select()}
-            className="rounded-xl border border-stone-300 px-3 py-2 font-mono text-xs"
+            className="rounded-bloco border border-borda px-3 py-2 font-mono text-xs"
           />
         </label>
       ) : null}
@@ -147,7 +154,7 @@ function ConviteAtivo({ convite }: { convite: ConviteAberto }) {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoPedido, {});
 
   return (
-    <form action={acao} className="flex flex-col gap-2 border-t border-stone-200 pt-3">
+    <form action={acao} className="flex flex-col gap-2 border-t border-divisa pt-3">
       <input type="hidden" name="id" value={convite.invite_id} />
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm">
@@ -158,7 +165,7 @@ function ConviteAtivo({ convite }: { convite: ConviteAberto }) {
           Cancelar
         </button>
       </div>
-      <span className="text-xs text-stone-600">
+      <span className="text-xs text-suave-forte">
         vale até {new Date(convite.expires_at).toLocaleString("pt-BR")}
       </span>
       <Recado erro={estado.erro} aviso={estado.aviso} />
@@ -177,14 +184,14 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoSair, {});
 
   return (
-    <form action={acao} className="flex flex-col gap-3 border-t border-stone-200 pt-6">
+    <form action={acao} className="flex flex-col gap-3 border-t border-divisa pt-6">
       <h2 className="text-sm font-semibold">Sair do plano</h2>
 
       {sozinho ? (
         <>
           <p className="text-sm">
             Você está sozinho aqui, então sair <strong>apaga o plano inteiro</strong>:
-            metas, itens, aportes e histórico de preço. Não dá para desfazer, e a
+            jornadas, itens, aportes e histórico de preço. Não dá para desfazer, e a
             gente não guarda cópia.
           </p>
           <Interruptor
@@ -204,7 +211,7 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
 
       <Recado erro={estado.erro} aviso={estado.aviso} />
 
-      <button type="submit" className="self-start rounded-xl px-4 py-2 text-sm underline">
+      <button type="submit" className="self-start rounded-bloco px-4 py-2 text-sm underline">
         {sozinho ? "Sair e apagar o plano" : "Sair do plano"}
       </button>
     </form>
@@ -223,10 +230,10 @@ export function TelaParceiro({
   const planoCheio = membros >= 2;
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-6 p-6">
+    <main className="mx-auto flex max-w-sm flex-col gap-4 p-5 lg:max-w-2xl lg:p-10">
       <div>
-        <h1 className="text-2xl font-bold">Quem divide o plano</h1>
-        <p className="mt-1 text-stone-600">
+        <h1 className="text-[27px] font-bold tracking-[-0.04em]">Quem divide o plano</h1>
+        <p className="mt-1 text-suave-forte">
           Convidar é só o começo: ninguém entra sem você confirmar.
         </p>
       </div>
@@ -236,7 +243,7 @@ export function TelaParceiro({
       ))}
 
       {planoCheio ? (
-        <p className="rounded-2xl bg-orange-50 p-4 text-sm">
+        <p className="rounded-cartao bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-corpo">
           O plano já é de duas pessoas. Nada mais a convidar por aqui.
         </p>
       ) : (

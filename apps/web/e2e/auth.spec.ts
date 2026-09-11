@@ -30,21 +30,21 @@ test.describe("autenticação", () => {
     await entrar(page, await criarConta(request, "entrando"));
 
     await expect(page).toHaveURL("/");
-    await expect(page.getByRole("heading", { name: "A DOIS" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nossa jornada" })).toBeVisible();
   });
 
   // O middleware protege por negação padrão: rota que ele não conhece como
   // pública exige sessão. E guarda para onde a pessoa ia.
   test("rota protegida manda para o login e devolve depois", async ({ page, request }) => {
-    await page.goto("/metas");
-    await expect(page).toHaveURL(/\/login\?proxima=%2Fmetas/);
+    await page.goto("/jornadas");
+    await expect(page).toHaveURL(/\/login\?proxima=%2Fjornadas/);
 
     const conta = await criarConta(request, "voltando");
     await page.getByLabel("E-mail").fill(conta.email);
     await page.getByLabel("Senha").fill(conta.senha);
     await page.getByRole("button", { name: "Entrar" }).click();
 
-    await expect(page).toHaveURL("/metas");
+    await expect(page).toHaveURL("/jornadas");
   });
 
   // "//site-falso" é caminho para o navegador e outro domínio para o usuário.
@@ -87,11 +87,14 @@ test.describe("autenticação", () => {
   test("sair derruba a sessão de verdade", async ({ page, request }) => {
     await entrar(page, await criarConta(request, "saindo"));
 
+    // Sair mora no perfil desde o visual novo: a home não tem mais lugar para
+    // ele, e é para o perfil que o disco de iniciais do cabeçalho leva.
+    await page.goto("/perfil");
     await page.getByRole("button", { name: "Sair" }).click();
     await expect(page).toHaveURL(/\/login/);
 
     // Voltar para uma rota protegida não pode reaproveitar nada.
-    await page.goto("/metas");
+    await page.goto("/jornadas");
     await expect(page).toHaveURL(/\/login/);
   });
 });

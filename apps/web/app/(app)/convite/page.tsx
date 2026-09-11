@@ -23,7 +23,7 @@ export default async function Convite({ searchParams }: PageProps<"/convite">) {
   if (!token) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 p-6">
-        <h1 className="text-2xl font-bold">Convite não encontrado</h1>
+        <h1 className="text-[27px] font-bold tracking-[-0.04em]">Convite não encontrado</h1>
         <p>Esse link não tem um convite dentro. Peça outro para quem te chamou.</p>
         <Link href="/" className="text-sm underline">
           Voltar

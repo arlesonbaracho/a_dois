@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ClienteSupabase } from "@/components/cliente-supabase";
+import { Dock } from "@/components/dock";
 import { RealtimeDoCasal } from "@/components/realtime";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
@@ -20,7 +21,10 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
   return (
     <ClienteSupabase accessToken={session.access_token}>
       <RealtimeDoCasal />
-      {children}
+      {/* O respiro embaixo (e à esquerda no desktop) é o espaço do dock, que é
+          fixo: sem isto ele cobriria a última linha de toda tela. */}
+      <div className="pb-28 lg:pb-0 lg:pl-24">{children}</div>
+      <Dock />
     </ClienteSupabase>
   );
 }

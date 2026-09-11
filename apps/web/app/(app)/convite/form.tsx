@@ -15,7 +15,7 @@ export function FormConvite({ token, nome }: { token: string; nome: string }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold">Alguém quer dividir um plano com você</h1>
+        <h1 className="text-[27px] font-bold tracking-[-0.04em]">Alguém quer dividir um plano com você</h1>
         <p className="mt-2">
           Este convite ainda <strong>não dá acesso a nada</strong>. Ao pedir para
           entrar, a pessoa que te convidou vê que foi você que apareceu e decide
@@ -46,7 +46,7 @@ export function FormConvite({ token, nome }: { token: string; nome: string }) {
 export function Esperando() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 p-6">
-      <h1 className="text-2xl font-bold">Pedido enviado</h1>
+      <h1 className="text-[27px] font-bold tracking-[-0.04em]">Pedido enviado</h1>
       <p>
         Agora é com a outra pessoa: ela precisa confirmar que foi você mesmo que
         apareceu. Enquanto isso você continua sem ver o plano dela — e ela,

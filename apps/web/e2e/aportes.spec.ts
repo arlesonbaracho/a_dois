@@ -88,7 +88,7 @@ test.describe("aportes e divisão", () => {
     );
     expect(aporte.amount_cents).toBe(125050);
 
-    await page.goto(`/metas/${meta}`);
+    await page.goto(`/jornadas/${meta}`);
     await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
   });
 

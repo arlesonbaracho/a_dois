@@ -1,64 +1,118 @@
-import Link from "next/link";
-
-import { aportes, pedidosPendentes, usuarioAtual } from "@repo/api";
-import { APP_NAME, formatBRL, sumCents } from "@repo/core";
+import {
+  aportes,
+  membrosDoCasal,
+  metas,
+  pedidosPendentes,
+} from "@repo/api";
+import {
+  centavosNoMes,
+  coresDoCasal,
+  iniciaisDoCasal,
+  mesPorExtenso,
+  ordemEstavel,
+  progressoPercentual,
+  sumCents,
+} from "@repo/core";
 
 import { criarClienteServidor } from "@/lib/supabase/server";
 
-import { acaoSair } from "../(auth)/actions";
-import { Casal } from "./casal";
+import { Inicio } from "./inicio";
 
-// Home ainda provisória: a tela de metas entra no prompt 7. O número aqui,
-// porém, já é o de verdade — vem de contributions.
 export default async function Home() {
   const supabase = await criarClienteServidor();
-  const usuario = await usuarioAtual(supabase);
-  const [pedidos, listaAportes] = await Promise.all([
-    pedidosPendentes(supabase),
+
+  const [membros, listaJornadas, listaAportes, pedidos] = await Promise.all([
+    membrosDoCasal(supabase),
+    metas(supabase),
     aportes(supabase),
+    pedidosPendentes(supabase),
   ]);
 
+  const cores = coresDoCasal(
+    membros.map((membro) => ({ userId: membro.user_id, papel: membro.role })),
+  );
+
+  // Uma passada só pelos aportes: o total de cada jornada e o de cada pessoa
+  // dentro dela saem daqui. Uma consulta por linha da lista seria o caminho
+  // óbvio e o errado.
+  const porJornada = new Map<string, Map<string, number>>();
+  for (const aporte of listaAportes) {
+    const dentro = porJornada.get(aporte.goal_id) ?? new Map<string, number>();
+    const chave = aporte.user_id ?? "fora";
+    dentro.set(chave, (dentro.get(chave) ?? 0) + aporte.amount_cents);
+    porJornada.set(aporte.goal_id, dentro);
+  }
+
+  const agora = new Date();
+
+  const jornadas = listaJornadas.map((jornada) => {
+    const dentro = porJornada.get(jornada.id) ?? new Map<string, number>();
+    const aportadoCents = sumCents([...dentro.values()]);
+
+    // A ordem das fatias é a ordem estável dos membros, sempre — senão a barra
+    // trocaria de cor conforme quem aportou primeiro.
+    const fatias = ordemEstavel(
+      membros.map((membro) => ({ userId: membro.user_id, papel: membro.role })),
+    )
+      .map((membro) => ({
+        chave: membro.userId,
+        cents: dentro.get(membro.userId) ?? 0,
+        cor: cores.get(membro.userId) ?? ("fora" as const),
+      }))
+      .concat(
+        dentro.has("fora")
+          ? [{ chave: "fora", cents: dentro.get("fora") ?? 0, cor: "fora" as const }]
+          : [],
+      )
+      .filter((fatia) => fatia.cents > 0);
+
+    return {
+      id: jornada.id,
+      titulo: jornada.title,
+      categoria: jornada.category,
+      aportadoCents,
+      alvoCents: jornada.target_amount_cents,
+      percentual: progressoPercentual(aportadoCents, jornada.target_amount_cents),
+      fatias,
+    };
+  });
+
+  const nomes = ordemEstavel(
+    membros.map((membro) => ({
+      userId: membro.user_id,
+      papel: membro.role,
+      nome: membro.display_name,
+    })),
+  ).map((membro) => membro.nome);
+
+  const doMesPorPessoa = ordemEstavel(
+    membros.map((membro) => ({ userId: membro.user_id, papel: membro.role })),
+  ).map((membro) => ({
+    chave: membro.userId,
+    cents: centavosNoMes(
+      listaAportes
+        .filter((aporte) => aporte.user_id === membro.userId)
+        .map((aporte) => ({ quandoISO: aporte.contributed_at, cents: aporte.amount_cents })),
+      agora,
+    ),
+  }));
+
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-4 p-6">
-      <h1 className="text-2xl font-bold">{APP_NAME}</h1>
-      <p>Você entrou como {usuario?.email}.</p>
-      <Casal />
-      <p>
-        Quanto vocês já juntaram:{" "}
-        {formatBRL(sumCents(listaAportes.map((aporte) => aporte.amount_cents)))}
-      </p>
-
-      {/* O aviso de pedido pendente. Sem valor nenhum no texto, como manda a
-          regra 10 — e aqui nem faria sentido ter. */}
-      {pedidos.length > 0 ? (
-        <Link
-          href="/parceiro"
-          className="rounded-2xl bg-orange-50 p-4 text-sm font-semibold text-orange-900"
-        >
-          Alguém pediu para entrar no plano de vocês. Toque para ver quem é.
-        </Link>
-      ) : null}
-
-      <div className="flex gap-4 text-sm">
-        <Link href="/metas" className="underline">
-          Metas
-        </Link>
-        <Link href="/parceiro" className="underline">
-          Quem divide o plano
-        </Link>
-        <Link href="/aportes" className="underline">
-          Aportes
-        </Link>
-        <Link href="/perfil" className="underline">
-          Seu perfil
-        </Link>
-      </div>
-
-      <form action={acaoSair}>
-        <button type="submit" className="text-sm underline">
-          Sair
-        </button>
-      </form>
-    </main>
+    <Inicio
+      nomes={nomes}
+      iniciais={iniciaisDoCasal(nomes)}
+      mes={mesPorExtenso(agora)}
+      totalCents={sumCents(listaAportes.map((aporte) => aporte.amount_cents))}
+      doMesCents={centavosNoMes(
+        listaAportes.map((aporte) => ({
+          quandoISO: aporte.contributed_at,
+          cents: aporte.amount_cents,
+        })),
+        agora,
+      )}
+      doMesPorPessoa={doMesPorPessoa}
+      jornadas={jornadas}
+      temPedido={pedidos.length > 0}
+    />
   );
 }

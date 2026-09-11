@@ -43,7 +43,7 @@ const CONSENTIMENTOS: {
     coluna: "consent_income_band_at",
     rotulo: "Usar minha faixa de renda no cálculo",
     descricao:
-      "Deixa o modo “pela renda de cada um” dividir as metas na proporção das faixas de vocês. Desligando, o modo fica indisponível e a divisão volta para meio a meio ou valor combinado — nada mais muda, e nada é apagado.",
+      "Deixa o modo “pela renda de cada um” dividir as jornadas na proporção das faixas de vocês. Desligando, o modo fica indisponível e a divisão volta para meio a meio ou valor combinado — nada mais muda, e nada é apagado.",
   },
 ];
 
@@ -116,20 +116,20 @@ export function Privacidade({ userId }: { userId: string }) {
   const podeExcluir = palavra === PALAVRA_DE_EXCLUSAO;
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col gap-10 p-6 pt-0">
+    <div className="mx-auto flex max-w-sm flex-col gap-8 p-5 pt-0 lg:max-w-2xl lg:p-10 lg:pt-0">
       <Recado erro={erro} aviso={aviso} />
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Levar seus dados</h2>
-        <p className="text-sm text-stone-600">
+        <h2 className="text-[17px] font-bold tracking-[-0.03em]">Levar seus dados</h2>
+        <p className="text-sm text-suave-forte">
           Baixa um arquivo com tudo que a gente guarda: seu perfil, suas escolhas
-          de privacidade, e o plano de vocês inteiro — metas, itens, aportes e os
+          de privacidade, e o plano de vocês inteiro — jornadas, itens, aportes e os
           preços que a gente consultou. Como o plano é de duas pessoas, o arquivo
           leva junto o nome e os aportes de quem divide ele com você;{" "}
           <strong>o e-mail dessa pessoa sai escondido</strong>, e o token dos
           convites nunca sai.
         </p>
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-suave-forte">
           O JSON serve para outro aplicativo ler. O CSV abre no Excel.
         </p>
         <div className="flex gap-3">
@@ -137,7 +137,7 @@ export function Privacidade({ userId }: { userId: string }) {
             type="button"
             onClick={() => void exportar("json")}
             disabled={baixando !== null}
-            className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold disabled:opacity-60"
+            className="rounded-bloco border border-borda px-4 py-2 text-sm font-semibold disabled:opacity-60"
           >
             {baixando === "json" ? "Montando…" : "Baixar JSON"}
           </button>
@@ -145,7 +145,7 @@ export function Privacidade({ userId }: { userId: string }) {
             type="button"
             onClick={() => void exportar("csv")}
             disabled={baixando !== null}
-            className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-semibold disabled:opacity-60"
+            className="rounded-bloco border border-borda px-4 py-2 text-sm font-semibold disabled:opacity-60"
           >
             {baixando === "csv" ? "Montando…" : "Baixar CSV"}
           </button>
@@ -154,8 +154,8 @@ export function Privacidade({ userId }: { userId: string }) {
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold">O que você deixa a gente fazer</h2>
-          <p className="text-sm text-stone-600">
+          <h2 className="text-[17px] font-bold tracking-[-0.03em]">O que você deixa a gente fazer</h2>
+          <p className="text-sm text-suave-forte">
             Cada um destes é independente. Desligar um não desliga os outros, e
             desligar qualquer um não tira nenhuma função do app.
           </p>
@@ -178,7 +178,7 @@ export function Privacidade({ userId }: { userId: string }) {
                 rotulo={item.rotulo}
                 descricao={item.descricao}
               />
-              <p className="pl-7 text-xs text-stone-500">
+              <p className="pl-7 text-xs text-suave">
                 {carregandoPerfil
                   ? "Carregando…"
                   : desde
@@ -191,9 +191,9 @@ export function Privacidade({ userId }: { userId: string }) {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold text-red-900">Apagar minha conta</h2>
+        <h2 className="text-[17px] font-bold tracking-[-0.03em] text-alerta">Apagar minha conta</h2>
 
-        <div className="flex flex-col gap-2 rounded-2xl bg-red-50 p-4 text-sm text-red-900">
+        <div className="flex flex-col gap-2 rounded-cartao bg-alerta-suave p-4 font-corpo text-[12.5px] leading-relaxed text-alerta">
           <p className="font-semibold">O que some, e não volta:</p>
           <ul className="list-disc pl-5">
             <li>seu login, seu e-mail e sua senha</li>
@@ -206,7 +206,7 @@ export function Privacidade({ userId }: { userId: string }) {
               o dinheiro que você já colocou, com o valor intacto, mas sem o seu
               nome — vira “ex-membro”
             </li>
-            <li>as metas, os itens e o histórico do plano, para quem fica</li>
+            <li>as jornadas, os itens e o histórico do plano, para quem fica</li>
           </ul>
           <p>
             Se você for a única pessoa do plano, ele é apagado inteiro junto com a
@@ -228,14 +228,14 @@ export function Privacidade({ userId }: { userId: string }) {
           checked={confirmoPlano}
           onChange={(evento) => setConfirmoPlano(evento.target.checked)}
           rotulo="Se eu for a única pessoa, apague o plano também"
-          descricao="Só precisa marcar se você estiver sozinha no plano. Apaga metas, itens, aportes e histórico de preço."
+          descricao="Só precisa marcar se você estiver sozinha no plano. Apaga jornadas, itens, aportes e histórico de preço."
         />
 
         <button
           type="button"
           onClick={() => void excluir()}
           disabled={!podeExcluir}
-          className="self-start rounded-xl bg-red-800 px-4 py-2 font-semibold text-red-50 disabled:opacity-40"
+          className="self-start rounded-full bg-alerta px-5 py-3 text-[13px] font-semibold text-white disabled:opacity-40"
         >
           Apagar minha conta
         </button>
