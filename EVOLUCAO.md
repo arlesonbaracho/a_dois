@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-10 (a auditoria fechada: achados 4, 6 e 7)
+**Última atualização:** 2026-09-11 (plano de deploy levantado)
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** `couple_members_update` — um parceiro ainda edita a linha do outro, faixa de renda incluída
+**Próximo passo:** subir. `relatorios/deploy-2026-09-11.md` tem o runbook; falta conta do Supabase (região `sa-east-1`) e da Vercel
 
 ---
 
@@ -66,6 +66,25 @@ tabela errada.
 
 
 ---
+
+## Deploy
+
+Nunca subiu. O código está pronto — nenhuma linha precisa mudar — e o que falta é
+conta e configuração. O runbook, a análise de risco e o teste de fumaça estão em
+`relatorios/deploy-2026-09-11.md`.
+
+Os quatro que derrubam o lançamento, todos em silêncio:
+
+- [ ] Projeto criado em **`sa-east-1`**. Região não muda depois.
+- [ ] **`pg_cron` habilitado ANTES do `db push`** — senão ele morre na 4ª migration e
+      deixa o banco pela metade, com 3 aplicadas e 8 não.
+- [ ] **Site URL e Redirect URLs** no painel. Sem isso o link de confirmação manda a
+      pessoa para `localhost:3000` e ninguém cria conta.
+- [ ] **SMTP próprio**, com SPF, DKIM e DMARC. O remetente compartilhado do Supabase não
+      aguenta onboarding.
+
+E uma armadilha: **não rodar `supabase config push`**. O `config.toml` descreve o
+ambiente local, e ele sobrescreveria o painel com `site_url = "http://localhost:3000"`.
 
 ## Falta (backlog)
 
