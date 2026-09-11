@@ -1,13 +1,91 @@
 @import "tailwindcss";
 
-/* Ainda não existe paleta nem modo escuro: o app se compromete com o claro até
-   o design system entrar. Sem isto, navegador em modo escuro pinta o fundo de
-   preto e as telas de auth ficam texto escuro sobre fundo escuro. */
+/* Tokens do design "Jornada": papel creme, tinta quase preta, limão como
+   acento. Ficam aqui, e não espalhados nas telas, porque é o que permite
+   trocar a paleta inteira num arquivo só.
+
+   Vive com a dívida registrada: o NativeWind estável ainda espera Tailwind 3,
+   então na fase 2 este bloco é reescrito — as telas, não. */
+@theme {
+  --color-papel: #f7f0e1;
+  --color-tinta: #16170f;
+  --color-limao: #d8f26b;
+  --color-limao-tinta: #4a5a15;
+
+  /* O design traz #8A8C7C e #6E7566. Medidos sobre o papel creme dão 3.02:1
+     e 4.21:1 — os dois abaixo do piso de 4.5:1 para texto pequeno, e é neles
+     que estão preço, data e toda a explicação. Escurecidos o suficiente para
+     passar (4.99 e 7.29), mantendo a mesma família sálvia do design. */
+  --color-suave: #63695d;
+  --color-suave-forte: #4c5345;
+  --color-corpo: #3f4239;
+
+  --color-areia: #efeadd;
+  --color-borda: #e3ddcc;
+  --color-divisa: #f0ebdd;
+
+  /* Sobre o cartão escuro (#16170F), onde o texto suave precisa clarear. */
+  --color-noite-suave: #a7ac95;
+  --color-noite-corpo: #c9cdb8;
+
+  /* Quem colocou o dinheiro. A ordem é estável: papel `dono` leva a primeira. */
+  --color-pessoa-1: #14b88c;
+  --color-pessoa-2: #f3b63f;
+  --color-pessoa-fora: #c6c3b4;
+
+  /* O design não traz cor de erro; esta vem da mesma família das outras. */
+  --color-alerta: #a8322e;
+  --color-alerta-suave: #f7e4e1;
+
+  --font-display: var(--fonte-display), ui-sans-serif, system-ui, sans-serif;
+  --font-corpo: var(--fonte-corpo), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-polaroide: 6px;
+  --radius-bloco: 18px;
+  --radius-cartao: 22px;
+
+  --shadow-polaroide: 0 10px 20px rgb(22 23 15 / 0.1);
+  --shadow-peca: 0 8px 18px rgb(22 23 15 / 0.08);
+}
+
+/* O app se compromete com o claro: o design é creme, e não existe paleta
+   escura desenhada. Sem isto, navegador em modo escuro pinta o fundo de preto
+   e as telas de auth ficam texto escuro sobre fundo escuro. */
 :root {
   color-scheme: light;
 }
 
 body {
-  background-color: #fff;
-  color: #1c1917; /* stone-900 */
+  background-color: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* As superfícies que o navegador desenha por conta própria. Sem isto elas
+   ficam com o azul de sistema no meio de uma paleta creme e limão — é o
+   detalhe mais barato que separa uma tela montada de uma desenhada. */
+::selection {
+  background-color: var(--color-limao);
+  color: var(--color-tinta);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-tinta);
+  outline-offset: 3px;
+}
+
+a {
+  text-underline-offset: 0.18em;
+}
+
+input,
+textarea,
+select {
+  caret-color: var(--color-tinta);
+}
+
+* {
+  scrollbar-color: var(--color-borda) transparent;
+  scrollbar-width: thin;
 }
