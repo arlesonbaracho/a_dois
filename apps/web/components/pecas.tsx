@@ -18,19 +18,30 @@ import { Progresso, type Fatia } from "./progresso";
  * álbum": item comprado para de ser rascunho e assenta em 0°.
  */
 const INCLINACOES = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2"] as const;
+// Linha larga precisa de giro menor: a 690px, 2° cisalham 24px e a linha
+// encosta na de baixo. O gesto de endireitar continua legível em 0.4°.
+const INCLINACOES_SUTIS = [
+  "-rotate-[0.4deg]",
+  "rotate-[0.25deg]",
+  "-rotate-[0.25deg]",
+  "rotate-[0.4deg]",
+] as const;
 
 export function Polaroide({
   indice = 0,
   endireitada = false,
+  sutil = false,
   className = "",
   children,
 }: {
   indice?: number;
   endireitada?: boolean;
+  sutil?: boolean;
   className?: string;
   children: ReactNode;
 }) {
-  const giro = endireitada ? "rotate-0" : INCLINACOES[indice % INCLINACOES.length];
+  const escala = sutil ? INCLINACOES_SUTIS : INCLINACOES;
+  const giro = endireitada ? "rotate-0" : escala[indice % escala.length];
   return (
     <div
       className={`rounded-polaroide bg-white p-2 pb-3 shadow-polaroide transition-transform duration-500 ${giro} ${className}`}
@@ -41,18 +52,53 @@ export function Polaroide({
 }
 
 /**
- * O retângulo hachurado que faz as vezes de foto.
+ * A chapa: o plano de imagem da polaroide.
  *
- * Não é enfeite à espera de imagem: enquanto não houver Storage, é ele que
- * segura a composição da polaroide. A hachura é CSS, não imagem — nada a
- * baixar, e nenhuma URL de terceiro entrando na tela.
+ * A hachura anterior lia como imagem quebrada, e a etiqueta `[ categoria ]`
+ * lia como token de debug — os dois foram embora. No lugar, um material
+ * autoral por categoria: duotone com horizonte e grão fino, tudo em CSS.
+ *
+ * Não é fotografia, e não pretende ser: a foto de verdade depende do Storage,
+ * que é migration e está no backlog. O que esta peça precisa fazer até lá é
+ * parecer um objeto, e não uma falha de carregamento.
  */
-export function Chapa({ rotulo, className = "" }: { rotulo: string; className?: string }) {
+const MATERIAL: Record<string, { de: string; para: string; forma: string }> = {
+  casa: { de: "#8C9A8E", para: "#5F6E62", forma: "circle at 72% 118%" },
+  viagem: { de: "#9BB4C4", para: "#6C8699", forma: "circle at 28% 120%" },
+  reserva: { de: "#B9AE95", para: "#8A7F68", forma: "circle at 50% 125%" },
+  casamento: { de: "#C1A17E", para: "#93765A", forma: "circle at 60% 120%" },
+  bebe: { de: "#C2B3C4", para: "#8E7E92", forma: "circle at 40% 118%" },
+  geral: { de: "#A2A492", para: "#75786A", forma: "circle at 55% 120%" },
+};
+
+// Grão: um ruído SVG em data URI. Fica no arquivo, não na rede — nenhuma
+// requisição a terceiro, que é a mesma razão das fontes serem self-hosted.
+const GRAO =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23r)' opacity='.22'/%3E%3C/svg%3E\")";
+
+export function Chapa({ categoria, className = "" }: { categoria: string; className?: string }) {
+  const m = MATERIAL[categoria.trim().toLowerCase()] ?? MATERIAL.geral;
   return (
     <div
-      className={`grid place-items-center rounded-[3px] bg-[repeating-linear-gradient(135deg,#7E8E86_0_11px,#72827A_11px_22px)] ${className}`}
+      className={`relative overflow-hidden rounded-[3px] ${className}`}
+      style={{
+        backgroundImage: `radial-gradient(${m.forma}, ${m.de} 0%, ${m.para} 68%)`,
+      }}
     >
-      <span className="font-corpo text-[10px] text-white/85">{rotulo}</span>
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 mix-blend-overlay"
+        style={{ backgroundImage: GRAO }}
+      />
+      {/* O brilho oblíquo que uma foto impressa tem sob luz de sala. */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(118deg, rgb(255 255 255 / 0.16) 0%, transparent 38%, transparent 76%, rgb(22 23 15 / 0.13) 100%)",
+        }}
+      />
     </div>
   );
 }
@@ -60,7 +106,7 @@ export function Chapa({ rotulo, className = "" }: { rotulo: string; className?: 
 /** A pílula preta com o total em limão. */
 export function PilulaTotal({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-full bg-tinta px-4 py-2 text-center font-corpo text-[11px] font-bold text-limao">
+    <p className="rounded-full bg-tinta px-4 py-2.5 text-center font-corpo text-[11px] font-bold text-limao lg:py-3 lg:text-[13px]">
       {children}
     </p>
   );
@@ -170,7 +216,7 @@ export function CartaoJornada({
   return (
     <Link href={`/jornadas/${id}`} className="mb-3 block break-inside-avoid">
       <Polaroide indice={indice}>
-        <Chapa rotulo={`[ ${categoria} ]`} className="h-24" />
+        <Chapa categoria={categoria} className="h-24" />
         <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em]">{titulo}</b>
         <div className="mt-1.5">
           <Progresso

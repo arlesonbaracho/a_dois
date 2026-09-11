@@ -60,7 +60,7 @@ export function Pwa() {
   };
 
   return (
-    <div className="fixed inset-x-4 bottom-28 z-30 mx-auto max-w-sm rounded-cartao bg-tinta p-4 text-papel shadow-polaroide lg:bottom-4 lg:left-28 lg:right-auto">
+    <div className="fixed inset-x-4 bottom-28 z-30 mx-auto max-w-sm rounded-cartao bg-white p-4 text-tinta shadow-polaroide lg:bottom-4 lg:left-28 lg:right-auto">
       <p className="font-corpo text-[12.5px] leading-relaxed">
         Quer o {APP_NAME} na tela de início? Fica mais perto na hora de lançar um
         aporte.
@@ -68,7 +68,7 @@ export function Pwa() {
       <div className="mt-3 flex gap-2">
         <button
           type="button"
-          className="rounded-full bg-limao px-4 py-2.5 text-[12.5px] font-semibold text-tinta"
+          className="rounded-full bg-tinta px-4 py-2.5 text-[12.5px] font-semibold text-white"
           onClick={() => {
             void evento.prompt();
             setEvento(null);
@@ -78,7 +78,7 @@ export function Pwa() {
         </button>
         <button
           type="button"
-          className="rounded-full border border-papel/25 px-4 py-2.5 text-[12.5px] font-semibold text-noite-corpo"
+          className="rounded-full border border-borda px-4 py-2.5 text-[12.5px] font-semibold text-suave-forte"
           onClick={dispensar}
         >
           Agora não

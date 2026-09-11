@@ -106,6 +106,11 @@ export function Lista() {
         </p>
       </header>
 
+      {/* Desktop: álbum à esquerda, "nova jornada" à direita. Antes o
+          formulário ficava colado na esquerda e a metade direita da tela
+          ficava vazia. */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-x-10">
+      <div className="flex flex-col gap-4 lg:col-start-1">
       {isError ? (
         <Recado erro="Não consegui carregar as jornadas agora." />
       ) : isPending ? (
@@ -117,7 +122,7 @@ export function Lista() {
       ) : (
         <>
           <PilulaTotal>{formatBRL(total)} juntos</PilulaTotal>
-          <div className="gap-3 columns-2 lg:columns-3">
+          <div className="gap-3 columns-2 lg:columns-2">
             {jornadas.map((jornada, indice) => {
               const dentro = porJornada.get(jornada.id) ?? new Map<string, number>();
               const aportado = sumCents([...dentro.values()]);
@@ -139,7 +144,9 @@ export function Lista() {
         </>
       )}
 
-      <Bloco className="mt-1 lg:max-w-md">
+      </div>
+
+      <Bloco className="mt-1 lg:sticky lg:top-10 lg:col-start-2 lg:row-start-1 lg:mt-0">
         <h2 className="text-[17px] font-bold tracking-[-0.03em]">Nova jornada</h2>
         <form onSubmit={criarJornada} className="mt-3 flex flex-col gap-3.5">
           <Campo rotulo="O que vocês querem" name="titulo" maxLength={120} required />
@@ -171,6 +178,7 @@ export function Lista() {
           <Enviar pendente={criar.isPending}>Criar jornada</Enviar>
         </form>
       </Bloco>
+      </div>
     </main>
   );
 }

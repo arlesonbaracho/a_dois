@@ -60,6 +60,11 @@ body {
   color: var(--color-tinta);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+
+  /* O mundo se chama "papel"; uma chapa de cor lisa não é papel. O grão é um
+     ruído SVG embutido — nada a baixar, e nenhuma requisição a terceiro. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)' opacity='.035'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 /* As superfícies que o navegador desenha por conta própria. Sem isto elas
@@ -88,4 +93,38 @@ select {
 * {
   scrollbar-color: var(--color-borda) transparent;
   scrollbar-width: thin;
+}
+
+/* O triângulo do <details> e a seta do <select> são as duas últimas peças que
+   o navegador ainda desenhava no estilo dele no meio desta paleta. */
+summary {
+  list-style: none;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.55rem;
+  border-right: 1.75px solid var(--color-suave);
+  border-bottom: 1.75px solid var(--color-suave);
+  transform: rotate(-45deg) translate(1px, -1px);
+  transition: transform 180ms ease-out;
+}
+
+details[open] > summary::before {
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+select {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%234c5345' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
 }

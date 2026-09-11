@@ -250,25 +250,28 @@ function Saldos({
   const emDia = saldo.linhas.every((linha) => linha.diferencaCents === 0);
 
   return (
-    <section className="flex flex-col gap-3 rounded-cartao bg-tinta p-4 text-papel">
-      {/* h2 e total como filhos diretos da section: o e2e ancora em
-          heading.locator("..") e um invólucro aqui tira as linhas do saldo de
-          dentro do pai que ele mede. */}
-      <h2 className="font-corpo text-[10.5px] font-medium text-noite-suave">
-        Quanto vocês já juntaram
-      </h2>
-      <p className="-mt-2 text-[30px] font-extrabold tracking-[-0.04em] tabular-nums text-limao">
+    // Cartão claro: o #16170F é reservado ao pedido do parceiro, que é o único
+    // momento do app que concede acesso a dado financeiro de outra pessoa. Um
+    // segundo cartão escuro aqui faria o primeiro parar de significar.
+    //
+    // E o número deixa de ser herói: quem lidera é a frase do rodapé, que é o
+    // que a pessoa veio saber. O total é referência, não troféu.
+    <section className="flex flex-col gap-3 rounded-cartao bg-white p-4">
+      {/* h2, total, lista e frase como filhos diretos: o e2e ancora em
+          heading.locator("..") e um invólucro tiraria as linhas do pai. */}
+      <h2 className="text-[15px] font-bold tracking-[-0.03em]">Quanto vocês já juntaram</h2>
+      <p className="-mt-2 text-[22px] font-bold tracking-[-0.03em] tabular-nums">
         {formatBRL(saldo.totalRateadoCents + deQuemSaiuCents)}
       </p>
 
-      <ul className="flex flex-col gap-2 font-corpo text-[11.5px]">
+      <ul className="flex flex-col gap-2 border-t border-divisa pt-3 font-corpo text-[11.5px]">
         {saldo.linhas.map((linha) => (
           <li key={linha.userId} className="flex justify-between gap-2">
-            <span className="text-noite-suave">{nomes[linha.userId] ?? "Sua dupla"}</span>
-            <span className="font-semibold tabular-nums text-papel">
+            <span className="text-suave">{nomes[linha.userId] ?? "Sua dupla"}</span>
+            <span className="font-semibold tabular-nums text-tinta">
               {formatBRL(linha.aportadoCents)}
               {saldo.aplicavel ? (
-                <span className="font-normal text-noite-suave">
+                <span className="font-normal text-suave">
                   {" "}
                   · cabia {formatBRL(linha.devidoCents)}
                 </span>
@@ -277,14 +280,14 @@ function Saldos({
           </li>
         ))}
         {deQuemSaiuCents > 0 ? (
-          <li className="flex justify-between gap-2 text-noite-suave">
+          <li className="flex justify-between gap-2 text-suave">
             <span>De quem já saiu do plano</span>
             <span className="tabular-nums">{formatBRL(deQuemSaiuCents)}</span>
           </li>
         ) : null}
       </ul>
 
-      <p className="border-t border-papel/15 pt-3 font-corpo text-[11.5px] leading-relaxed text-noite-corpo">
+      <p className="border-t border-divisa pt-3 font-corpo text-[12.5px] font-medium leading-relaxed text-corpo">
         {!saldo.aplicavel
           ? "Escolham ali embaixo como querem dividir, e eu faço essa conta."
           : emDia

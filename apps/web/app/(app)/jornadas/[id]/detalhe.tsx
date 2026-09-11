@@ -199,14 +199,17 @@ export function Detalhe({ goalId }: { goalId: string }) {
           <IconeVoltar className="size-4" />
           <span className="sr-only">Voltar para as jornadas</span>
         </Link>
+        {/* Sem kicker: a linha pequena vai ABAIXO do título. Rótulo acima de
+            cabeçalho é proibido pelo piso de craft, e a categoria já aparece
+            no material da chapa. */}
         <div className="min-w-0 flex-1">
-          <p className="font-corpo text-[10.5px] text-suave">
-            {jornada.category}
-            {jornada.deadline_at ? <> · para {dia(jornada.deadline_at)}</> : null}
-          </p>
           <h1 className="truncate text-[19px] font-bold leading-tight tracking-[-0.03em] lg:text-3xl">
             {jornada.title}
           </h1>
+          <p className="mt-0.5 font-corpo text-[10.5px] text-suave">
+            {jornada.category}
+            {jornada.deadline_at ? <> · para {dia(jornada.deadline_at)}</> : null}
+          </p>
         </div>
         {itens && itens.length > 0 ? (
           <span className="flex-none rounded-full bg-tinta px-2.5 py-1.5 font-corpo text-[10.5px] font-bold text-limao">
@@ -218,7 +221,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
       <div className="flex gap-3">
         <div className="flex-1">
           <Polaroide indice={1}>
-            <Chapa rotulo={`[ ${jornada.category} ]`} className="h-20" />
+            <Chapa categoria={jornada.category} className="h-20" />
             <div className="mt-2">
               <Progresso
                 percentual={percentual}
@@ -262,7 +265,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 const comprado = item.status === "comprado";
                 return (
                   <li key={item.id}>
-                    <Polaroide indice={indice} endireitada={comprado} className="!p-2">
+                    <Polaroide indice={indice} endireitada={comprado} sutil className="!p-2">
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"

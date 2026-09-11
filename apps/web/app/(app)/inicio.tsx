@@ -60,7 +60,7 @@ export function Inicio({
     filtro === TUDO ? jornadas : jornadas.filter((jornada) => jornada.categoria === filtro);
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-5xl lg:p-10">
+    <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-4xl lg:p-10">
       <header className="flex items-center justify-between gap-3">
         <div>
           <p className="font-corpo text-[11.5px] text-suave">
@@ -112,11 +112,22 @@ export function Inicio({
         {jornadas.length > 0 ? (
           <CartaoLimao rotulo="este mês" valorCents={doMesCents}>
             {doMesCents > 0 ? (
-              <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-tinta/15">
+              // As mesmas cores de pessoa das polaroides, e não tinta/branco:
+              // a barra bicolor só quer dizer alguma coisa se verde for a
+              // mesma pessoa em toda tela. E com role/aria, senão a divisão do
+              // mês simplesmente não existe para quem usa leitor de tela.
+              <div
+                role="progressbar"
+                aria-valuenow={Math.round(((doMesPorPessoa[0]?.cents ?? 0) / doMesCents) * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Quanto cada um colocou este mês"
+                className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-tinta/15"
+              >
                 {doMesPorPessoa.map((pessoa, indice) => (
                   <i
                     key={pessoa.chave}
-                    className={`block h-full ${indice === 0 ? "bg-tinta" : "bg-white"}`}
+                    className={`block h-full ${indice === 0 ? "bg-pessoa-1" : "bg-pessoa-2"}`}
                     style={{ width: `${(pessoa.cents / doMesCents) * 100}%` }}
                   />
                 ))}
