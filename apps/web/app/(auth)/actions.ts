@@ -82,8 +82,15 @@ export async function acaoPedirNovaSenha(
   const aviso = "Se esse e-mail estiver cadastrado, o link já está a caminho.";
   if (!email.success) return { aviso };
 
+  // O "?type=recovery" é para o template PADRÃO da Supabase, que não carrega
+  // tipo nenhum no link — ele só repassa o redirect_to. Sem esse marcador a
+  // rota de confirmação não sabe que é troca de senha e manda para a home, com
+  // a sessão de recuperação no bolso e nenhuma tela para usá-la.
+  //
+  // Valor fixo, e não caminho vindo da URL: é o mesmo cuidado que
+  // destinoSeguro() toma no login, resolvido aqui por não haver o que escolher.
   const supabase = await criarClienteServidor();
-  await pedirNovaSenha(supabase, email.data, `${await origem()}/auth/confirm`);
+  await pedirNovaSenha(supabase, email.data, `${await origem()}/auth/confirm?type=recovery`);
   return { aviso };
 }
 

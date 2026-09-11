@@ -49,7 +49,9 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | Achado 7 (Médio) fechado: `useSalvarItem` e `useSalvarConsentimento` com estado otimista completo — `onMutate`, rollback no `onError` e `cancelQueries` contra o refetch em voo. O e2e voltou de `click()` para `check()` | `1065f2d` |
 | 2026-09-10 | O teste de apelido longo passava **em vão**: `maxLength=20` cortava antes de enviar, então o banco nunca era perguntado. Virou sonda direta a `set_profile` | `2678bac` |
 | 2026-09-10 | Corrida no teste do convite (a tela de quem convidou era lida antes do claim aterrissar) e prazo do Playwright de 60s para 90s — os testes de dois contextos estouravam como "Request context disposed", que não diz nada sobre a causa | `325eb28` |
-| 2026-09-10 | **A auditoria tinha dado "reconexão" como aprovada, e estava errada.** O `postgres_changes` não reenvia evento perdido, e o `refetchOnReconnect` padrão respeita o `staleTime` — queda curta deixava a tela do parceiro mentindo. `refetchOnReconnect: "always"`, e o teste passa três de três | `(este commit)` |
+| 2026-09-10 | **A auditoria tinha dado "reconexão" como aprovada, e estava errada.** O `postgres_changes` não reenvia evento perdido, e o `refetchOnReconnect` padrão respeita o `staleTime` — queda curta deixava a tela do parceiro mentindo. `refetchOnReconnect: "always"`, e o teste passa três de três | `6c39538` |
+| 2026-09-11 | **No ar.** Supabase em `sa-east-1` (`qysekkewsrwtebpiowim`), 11 migrations aplicadas, 9 tabelas com RLS, cron do expurgo ativo. Web em `a-dois-web.vercel.app` | `6d0e3c0` |
+| 2026-09-11 | `/auth/confirm` passa a aceitar `?code=` além de `?token_hash=`, e a recuperação de senha carrega `?type=recovery` no `redirect_to`. É o que faz o cadastro funcionar em produção sem SMTP próprio, porque o painel do Supabase só libera editar template de e-mail para quem tem remetente configurado | `(este commit)` |
 
 ---
 
@@ -69,22 +71,26 @@ tabela errada.
 
 ## Deploy
 
-Nunca subiu. O código está pronto — nenhuma linha precisa mudar — e o que falta é
-conta e configuração. O runbook, a análise de risco e o teste de fumaça estão em
-`relatorios/deploy-2026-09-11.md`.
+**No ar desde 2026-09-11**, em `https://a-dois-web.vercel.app`. O runbook, a
+análise de risco e o teste de fumaça estão em `relatorios/deploy-2026-09-11.md`.
 
-Os quatro que derrubam o lançamento, todos em silêncio:
+- [x] Projeto em **`sa-east-1`** (`qysekkewsrwtebpiowim`), Postgres 17.6.
+- [x] **`pg_cron` antes do `db push`** — as 11 migrations entraram inteiras.
+- [x] **Vercel**: Root Directory `apps/web`, e as duas `NEXT_PUBLIC_*` em Production.
+- [x] **Site URL e Redirect URLs** apontando para o domínio `.vercel.app`.
+- [ ] **Redirect URL de recuperação**: falta acrescentar
+      `https://a-dois-web.vercel.app/auth/confirm?type=recovery`.
+- [ ] **Teste de fumaça**, os 8 itens. Nenhum rodou ainda.
+- [ ] **SMTP próprio**, com SPF, DKIM e DMARC. Segue de pé, e agora vale dobrado —
+      ver a decisão sobre template de e-mail abaixo.
 
-- [ ] Projeto criado em **`sa-east-1`**. Região não muda depois.
-- [ ] **`pg_cron` habilitado ANTES do `db push`** — senão ele morre na 4ª migration e
-      deixa o banco pela metade, com 3 aplicadas e 8 não.
-- [ ] **Site URL e Redirect URLs** no painel. Sem isso o link de confirmação manda a
-      pessoa para `localhost:3000` e ninguém cria conta.
-- [ ] **SMTP próprio**, com SPF, DKIM e DMARC. O remetente compartilhado do Supabase não
-      aguenta onboarding.
+Duas armadilhas que custaram tempo e valem ficar escritas:
 
-E uma armadilha: **não rodar `supabase config push`**. O `config.toml` descreve o
-ambiente local, e ele sobrescreveria o painel com `site_url = "http://localhost:3000"`.
+- **Não rodar `supabase config push`**. O `config.toml` descreve o ambiente local, e
+  ele sobrescreveria o painel com `site_url = "http://localhost:3000"`.
+- Variável de ambiente na Vercel nasce no escopo da **página em que você está**. As
+  duas foram criadas em `/settings/environments/development`, e todo build de
+  produção morreu em `Falta NEXT_PUBLIC_SUPABASE_URL` sem dizer por quê.
 
 ## Falta (backlog)
 
@@ -243,6 +249,9 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-10 | O e-mail do stack local morre no **Mailpit**, em <http://127.0.0.1:54324> | `[local_smtp] enabled = true` no `config.toml` captura tudo e não entrega a ninguém. Não é defeito: é o desenvolvimento funcionando. Caixa de entrada de verdade só depois de SMTP configurado no painel do projeto hospedado — e aí sem SPF + DKIM + DMARC no domínio o Gmail manda para spam |
 | 2026-09-10 | Teto de valor da meta é **constraint**; prazo vencido é **condição em `add_goal`** | Não é inconsistência. O teto vale nos dois caminhos de escrita, e editar meta não passa por `add_goal`. Já o prazo não pode valer no update: meta vencida é estado legítimo, e constraint tornaria impossível trocar o título de uma meta que venceu — defeito pior que o consertado |
 | 2026-09-10 | `refetchOnReconnect: "always"`, e não o `true` padrão | O `true` só refaz consulta velha, e com `staleTime` de 30s uma queda de dez segundos não refaz nada. Como o Realtime não reenvia o que passou, reconectar é o único instante em que se SABE que pode ter faltado evento — e é o instante em que se relê sempre |
+| 2026-09-11 | `/auth/confirm` aceita os DOIS formatos de link (`?token_hash=` e `?code=`), em vez de trocar de um para o outro | O painel do Supabase só libera editar template de e-mail para projeto com SMTP próprio, então produção recebe o template padrão, que passa por `/auth/v1/verify` e volta com `?code=`. Manter o ramo do `token_hash` significa que, no dia em que o SMTP entrar, colar os templates no painel devolve o caminho bom sem novo commit |
+| 2026-09-11 | Não contratamos SMTP para destravar os templates | Medido: o tier gratuito do Resend sem domínio próprio só entrega para o e-mail do dono da conta, e isso quebraria o item 4 do teste de fumaça (segunda conta). O remetente compartilhado do Supabase, que já está ligado, entrega para qualquer endereço — pior em volume, melhor em alcance |
+| 2026-09-11 | O tipo do fluxo viaja como `?type=recovery` no `redirect_to`, valor fixo | Sondado contra o stack local: parâmetro nosso sobrevive ao redirect do `/auth/v1/verify`. Fixo e não caminho vindo da URL, senão seria o redirect aberto que `destinoSeguro()` fecha no login, entrando por outra porta |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -306,6 +315,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `leave_couple` | `auth.sessions` é de `supabase_auth_admin`. Local o `postgres` apaga; se o projeto hospedado recusar, o passo cai calado e só o `left_at` protege — que já é o corte real, mas a sessão sobreviveria até o token vencer | Média |
 | `goals_target_amount_cents_teto` | A constraint é validada contra as linhas existentes. Local não dói, porque `db reset` sobe do zero — mas um `db push` para banco que já tenha meta acima de R$ 100 milhões vai falhar na hora, e a mensagem não diz qual linha | Baixa |
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
+| `/auth/confirm` × PKCE | Enquanto produção usar o template padrão, confirmar cadastro só funciona **no mesmo navegador** que se cadastrou: o `code` só vale junto do cookie `code_verifier`. Quem se cadastra no computador e abre o e-mail no celular não confirma, e a tela só diz "link inválido". Acaba no dia em que o SMTP entrar e os templates próprios subirem | **Alta** |
+| `/auth/confirm` × `?code=` | O caminho feliz do `?code=` não tem teste de suíte — o stack local usa os templates próprios, e trocá-los quebraria os outros 37 testes. Só a recusa (código inventado não vira sessão) está coberta; o sucesso foi provado por sonda manual e pelo teste de fumaça | Média |
 
 ---
 

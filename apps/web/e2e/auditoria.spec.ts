@@ -51,6 +51,16 @@ test.describe("4.1 cadastro", () => {
     await expect(page).toHaveURL(/^(?!.*\/login).*$/);
   });
 
+  // O outro caminho de /auth/confirm: produção recebe o template PADRÃO da
+  // Supabase enquanto não houver SMTP próprio, e ele chega com ?code= em vez de
+  // ?token_hash=. O caminho feliz do code não dá para exercitar aqui — o stack
+  // local usa os templates nossos, e trocá-los quebraria os outros testes. O
+  // que dá para provar, e é a metade que importa, é que ele falha fechado.
+  test("código inventado não vira sessão", async ({ page }) => {
+    await page.goto(`/auth/confirm?code=${crypto.randomUUID()}`);
+    await expect(page).toHaveURL(/\/login\?erro=link/);
+  });
+
   test("cadastro cria couples e couple_members na mesma transação", async ({ request }) => {
     const conta = await criarConta(request, "transacao");
     const cliente = await comoPessoa(request, conta);
