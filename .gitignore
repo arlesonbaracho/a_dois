@@ -26,3 +26,7 @@ next-env.d.ts
 # adianta: ele reescreve na próxima vez.
 /apps/web/AGENTS.md
 /apps/web/CLAUDE.md
+
+# Impeccable: o contrato de direção (.impeccable/surfaces/) é versionado; as
+# capturas de revisão são prova de uma rodada, não fonte.
+/apps/web/.impeccable/review/

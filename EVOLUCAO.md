@@ -2,9 +2,9 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-11 (plano de deploy levantado)
+**Última atualização:** 2026-09-11 (visual novo, marca "Jornada")
 **Fase atual:** Fase 1 — web-first
-**Próximo passo:** subir. `relatorios/deploy-2026-09-11.md` tem o runbook; falta conta do Supabase (região `sa-east-1`) e da Vercel
+**Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
 ---
 
@@ -52,6 +52,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-10 | **A auditoria tinha dado "reconexão" como aprovada, e estava errada.** O `postgres_changes` não reenvia evento perdido, e o `refetchOnReconnect` padrão respeita o `staleTime` — queda curta deixava a tela do parceiro mentindo. `refetchOnReconnect: "always"`, e o teste passa três de três | `6c39538` |
 | 2026-09-11 | **No ar.** Supabase em `sa-east-1` (`qysekkewsrwtebpiowim`), 11 migrations aplicadas, 9 tabelas com RLS, cron do expurgo ativo. Web em `a-dois-web.vercel.app` | `6d0e3c0` |
 | 2026-09-11 | `/auth/confirm` passa a aceitar `?code=` além de `?token_hash=`, e a recuperação de senha carrega `?type=recovery` no `redirect_to`. É o que faz o cadastro funcionar em produção sem SMTP próprio, porque o painel do Supabase só libera editar template de e-mail para quem tem remetente configurado | `(este commit)` |
+| 2026-09-11 | **Visual novo, e o produto vira "Jornada".** Paleta e tipografia do design em tokens `@theme` do Tailwind 4; Outfit e Manrope self-hosted por `next/font`; 7 ícones desenhados em SVG; peças novas (polaroide, pílula do total, cartão limão, chip, dock); barra de progresso bicolor por pessoa; cartão "este mês". As 15 telas repintadas, `/metas` virou `/jornadas`, e `APP_NAME` virou "Jornada". `packages/core/src/album.ts` com as regras novas (cor estável por pessoa, total do mês, parcela mensal), 18 testes. Conferido nos dois tamanhos, com contraste medido | `(este commit)` |
 
 ---
 
@@ -110,6 +111,11 @@ Sabemos que precisa existir, mas ainda não entrou na fila.
 - [ ] Avatar de verdade, via Storage, com a URL presa ao nosso bucket
 - [ ] Mesclar dois planos quando quem entra já tem movimentação
 - [ ] E-mail de convite de verdade (hoje o canal `email` gera o link, mas quem manda é quem convidou)
+- [ ] Foto de capa da jornada, via Storage, com a URL presa ao nosso bucket (o design mostra polaroide com foto; hoje é hachura em CSS)
+- [ ] "Recado no álbum": o bilhete que o design mostra na home. Tabela nova, logo RLS e as 4 policies
+- [ ] QR do convite — **gerado no cliente**. Uma API tipo `api.qrserver.com/?data=<link>` mandaria o token do convite para um servidor estranho
+- [ ] Compartilhar convite por WhatsApp — decidir antes se vale entregar o token ao histórico da conversa
+- [ ] Tela "Nova jornada" em dois passos, como no design
 
 ### Fase 2 — Expo
 - [ ] Criar `apps/mobile` com Expo + Expo Router
@@ -252,6 +258,17 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-11 | `/auth/confirm` aceita os DOIS formatos de link (`?token_hash=` e `?code=`), em vez de trocar de um para o outro | O painel do Supabase só libera editar template de e-mail para projeto com SMTP próprio, então produção recebe o template padrão, que passa por `/auth/v1/verify` e volta com `?code=`. Manter o ramo do `token_hash` significa que, no dia em que o SMTP entrar, colar os templates no painel devolve o caminho bom sem novo commit |
 | 2026-09-11 | Não contratamos SMTP para destravar os templates | Medido: o tier gratuito do Resend sem domínio próprio só entrega para o e-mail do dono da conta, e isso quebraria o item 4 do teste de fumaça (segunda conta). O remetente compartilhado do Supabase, que já está ligado, entrega para qualquer endereço — pior em volume, melhor em alcance |
 | 2026-09-11 | O tipo do fluxo viaja como `?type=recovery` no `redirect_to`, valor fixo | Sondado contra o stack local: parâmetro nosso sobrevive ao redirect do `/auth/v1/verify`. Fixo e não caminho vindo da URL, senão seria o redirect aberto que `destinoSeguro()` fecha no login, entrando por outra porta |
+| 2026-09-11 | O mundo visual foi **fixado pelo brief**, e nenhum sorteio de direção rodou | O autor do produto entregou o design pronto, com hex, fontes, raios e quatro telas. O playbook do Impeccable manda o pin vencer o roll — inventar uma direção por cima seria trocar a decisão dele pela minha |
+| 2026-09-11 | Outfit e "fundo creme" aceitos apesar de o skill listar os dois como padrão de IA a evitar | A regra do próprio skill é que o brief vence a advertência de padrão saturado. Ficam registrados como escolha consciente, não como descuido |
+| 2026-09-11 | Fontes por `next/font`, e **não** por `<link>` para o Google | O `<link>` manda o IP de cada visita para o Google — transferência para terceiro num projeto que pôs o banco em `sa-east-1` justamente para não abrir esse capítulo. O `next/font` baixa no build e serve da nossa origem: zero requisição externa em runtime, e menos código |
+| 2026-09-11 | Os 7 ícones são SVG nosso, e não `lucide-react` | O design usa glifo Unicode (`◎ ▤ ✓ ‹`), que muda de peso conforme a fonte do sistema e no Android vira emoji colorido. Sete desenhos num arquivo custam menos que uma dependência — e dependência nova exige sua autorização |
+| 2026-09-11 | Os dois tons apagados do design foram **escurecidos**: `#8A8C7C`→`#63695D` e `#6E7566`→`#4C5345` | Medidos sobre o papel creme davam 3.02:1 e 4.21:1, abaixo do piso de 4.5:1 — e é neles que estão preço, data e toda explicação. Passam agora com 4.99 e 7.29, na mesma família sálvia. Acessibilidade não entra na conta do "o brief vence" |
+| 2026-09-11 | A cor de cada pessoa sai de `ordemEstavel` em `packages/core`, não da tela | Se cada componente ordenasse do seu jeito, a mesma pessoa seria verde na home e âmbar na jornada, e a barra bicolor deixaria de querer dizer alguma coisa. Desempate: papel `dono` primeiro, depois `user_id`, que não muda |
+| 2026-09-11 | A tela de detalhe tem **exatamente uma** `role="progressbar"` | O e2e usa `getByRole("progressbar")` sem `.first()`: uma segunda barra não é escolha estética, é teste quebrado por strict mode |
+| 2026-09-11 | Categoria continua campo de texto, e não os chips do design | O e2e faz `.fill()` nela, e chip fechado tiraria a categoria livre que o banco aceita. Os chips do design entraram onde ele de fato os usa: filtrar o álbum na home |
+| 2026-09-11 | "Sair" e o e-mail da conta saíram da home e foram para o perfil | O design não tem nenhum dos dois na home, e o perfil é para onde o disco de iniciais do cabeçalho leva. Foram dois testes atualizados — mudança de produto, não conserto de teste |
+| 2026-09-11 | No detalhe, "por mês" no lugar de "já juntaram" | "Já juntaram" repetia palavra por palavra o que a barra diz logo acima, e virava segundo casamento em `getByText`. "Por mês, a dois" é o que o design pede ali, e some quando não há prazo — inventar horizonte seria mentir com número redondo |
+| 2026-09-11 | O desktop foi derivado por mim; o design só desenhou o celular | Você pediu responsivo de verdade. A derivação é literal ao tema: o mesmo álbum, aberto sobre a mesa em vez de na mão — dock vira trilho à esquerda, total e "este mês" sobem para uma coluna à direita |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -317,6 +334,12 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `convite.sql` | Os dois claims simultâneos são testados em sequência, não em paralelo: `psql` roda numa conexão só e não há `dblink` nem `pg_background`. O predicado do update é o mesmo caminho, mas a concorrência de verdade não foi exercida | Baixa |
 | `/auth/confirm` × PKCE | Enquanto produção usar o template padrão, confirmar cadastro só funciona **no mesmo navegador** que se cadastrou: o `code` só vale junto do cookie `code_verifier`. Quem se cadastra no computador e abre o e-mail no celular não confirma, e a tela só diz "link inválido". Acaba no dia em que o SMTP entrar e os templates próprios subirem | **Alta** |
 | `/auth/confirm` × `?code=` | O caminho feliz do `?code=` não tem teste de suíte — o stack local usa os templates próprios, e trocá-los quebraria os outros 37 testes. Só a recusa (código inventado não vira sessão) está coberta; o sucesso foi provado por sonda manual e pelo teste de fumaça | Média |
+| identificadores × produto | Produto e rota dizem "jornada"; o código ainda diz `useMetas`, `criarMeta`, `DadosMeta`, `Meta`. Um `s/Meta/Jornada/` cego quebra `Metadata` e `MetadataRoute`, então o rename exige lista explícita de identificadores | Média |
+| `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
+| cadastro × nome | Decidido em 2026-09-11 que o cadastro vai pedir o nome (o design mostra "oi, Lucas e Ana" e iniciais). **Não feito**: `set_profile` exige sessão, e com confirmação de e-mail ligada não existe sessão logo após o cadastro — o caminho é `raw_user_meta_data` lido pelo gatilho `handle_new_user`, ou seja, migration. Hoje a tela cai em "oi, vocês" e num ícone neutro | Média |
+| desktop com pouca jornada | Com três jornadas o desktop deixa boa parte da tela em creme. É coerente com a tese do álbum sobre a mesa, mas com uma jornada só fica visivelmente vazio | Baixa |
+| `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
+| tela "Nova jornada" | O design tem uma tela própria em dois passos (chips de categoria, slider de valor, prazo em pílulas, checklist de começo). Não foi construída: o formulário dentro de `/jornadas` cumpre a função com os mesmos campos | Baixa |
 
 ---
 
