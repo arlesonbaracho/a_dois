@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-query";
 
 import { aportes, registrarAporte, type Aporte } from "./contributions";
-import { meuCasal } from "./couple";
+import { membrosDoCasal, meuCasal, type MembroDoCasal } from "./couple";
 import { salvarConsentimento, type TipoConsentimento } from "./privacy";
 import { meuPerfil, type Perfil } from "./profiles";
 import {
@@ -41,6 +41,7 @@ import { useSupabase } from "./provider";
  */
 export const chaves = {
   casal: ["casal"] as const,
+  membros: ["membros"] as const,
   perfil: (userId: string) => ["perfil", userId] as const,
   metas: ["metas"] as const,
   // Raízes distintas de propósito. O invalidateQueries casa por PREFIXO: com
@@ -64,6 +65,19 @@ export const chaves = {
 export function useCasal() {
   const client = useSupabase();
   return useQuery({ queryKey: chaves.casal, queryFn: () => meuCasal(client) });
+}
+
+/**
+ * Quem está no casal. Existe para a barra bicolor: sem os membros, a tela de
+ * cliente não tem como saber quem é verde e quem é âmbar, e a cor de cada
+ * pessoa mudaria de tela para tela.
+ *
+ * Fora do Realtime de propósito: `couple_members` não é publicada, e entrar e
+ * sair do casal são eventos raros que já recarregam a navegação inteira.
+ */
+export function useMembros(): UseQueryResult<MembroDoCasal[]> {
+  const client = useSupabase();
+  return useQuery({ queryKey: chaves.membros, queryFn: () => membrosDoCasal(client) });
 }
 
 export function useMeuPerfil(userId: string | undefined) {

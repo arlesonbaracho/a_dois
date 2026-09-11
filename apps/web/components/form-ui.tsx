@@ -27,8 +27,10 @@ export function Cartao({
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold">{titulo}</h1>
-        <p className="mt-1 text-stone-600">{subtitulo}</p>
+        <h1 className="text-3xl font-bold tracking-[-0.035em]">{titulo}</h1>
+        <p className="mt-1.5 font-corpo text-[13.5px] leading-relaxed text-suave-forte">
+          {subtitulo}
+        </p>
       </div>
       {children}
     </main>
@@ -40,12 +42,35 @@ export function Campo({
   ...props
 }: { rotulo: string } & ComponentProps<"input">) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium">{rotulo}</span>
+    <label className="flex flex-col gap-1.5">
+      <span className="font-corpo text-[11.5px] font-semibold text-suave-forte">
+        {rotulo}
+      </span>
       <input
         {...props}
-        className="rounded-xl border border-stone-300 px-3 py-2 text-base"
+        className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base text-tinta placeholder:text-suave"
       />
+    </label>
+  );
+}
+
+/** Select com a mesma casca do Campo, para os dois não destoarem. */
+export function Escolha({
+  rotulo,
+  children,
+  ...props
+}: { rotulo: string } & ComponentProps<"select">) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="font-corpo text-[11.5px] font-semibold text-suave-forte">
+        {rotulo}
+      </span>
+      <select
+        {...props}
+        className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base text-tinta"
+      >
+        {children}
+      </select>
     </label>
   );
 }
@@ -57,10 +82,12 @@ export function Interruptor({
 }: { rotulo: string; descricao: string } & ComponentProps<"input">) {
   return (
     <label className="flex items-start gap-3">
-      <input {...props} type="checkbox" className="mt-1 size-4" />
+      <input {...props} type="checkbox" className="mt-0.5 size-4 accent-tinta" />
       <span>
-        <span className="block text-sm font-medium">{rotulo}</span>
-        <span className="block text-sm text-stone-600">{descricao}</span>
+        <span className="block text-[13.5px] font-semibold">{rotulo}</span>
+        <span className="mt-0.5 block font-corpo text-[12px] leading-relaxed text-suave-forte">
+          {descricao}
+        </span>
       </span>
     </label>
   );
@@ -68,9 +95,9 @@ export function Interruptor({
 
 /**
  * `pendente` existe porque nem todo formulário do app é Server Action: os de
- * metas e itens enviam por mutation do TanStack Query, e ali o useFormStatus
- * não tem o que observar. Quem sabe se está ocupado passa; quem não passa cai
- * no useFormStatus, como antes.
+ * jornadas e itens enviam por mutation do TanStack Query, e ali o
+ * useFormStatus não tem o que observar. Quem sabe se está ocupado passa; quem
+ * não passa cai no useFormStatus, como antes.
  */
 export function Enviar({ children, pendente }: { children: ReactNode; pendente?: boolean }) {
   const { pending } = useFormStatus();
@@ -79,9 +106,24 @@ export function Enviar({ children, pendente }: { children: ReactNode; pendente?:
     <button
       type="submit"
       disabled={ocupado}
-      className="rounded-xl bg-orange-700 px-4 py-2 font-semibold text-orange-50 disabled:opacity-60"
+      className="rounded-full bg-tinta px-5 py-3.5 text-[13.5px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {ocupado ? "Um instante…" : children}
+    </button>
+  );
+}
+
+/** Botão secundário: mesma pílula, sem o peso da tinta. */
+export function Secundario({
+  children,
+  ...props
+}: { children: ReactNode } & ComponentProps<"button">) {
+  return (
+    <button
+      {...props}
+      className="rounded-full border border-borda bg-transparent px-4 py-2.5 text-[12.5px] font-semibold text-tinta transition-colors hover:bg-white disabled:opacity-50"
+    >
+      {children}
     </button>
   );
 }
@@ -91,8 +133,8 @@ export function Recado({ erro, aviso }: EstadoForm) {
   return (
     <p
       role="status"
-      className={`rounded-xl px-3 py-2 text-sm ${
-        erro ? "bg-red-50 text-red-900" : "bg-orange-50 text-orange-900"
+      className={`rounded-bloco px-3.5 py-2.5 font-corpo text-[12.5px] leading-relaxed ${
+        erro ? "bg-alerta-suave text-alerta" : "bg-areia text-corpo"
       }`}
     >
       {erro ?? aviso}
