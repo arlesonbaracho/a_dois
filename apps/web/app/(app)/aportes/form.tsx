@@ -159,7 +159,7 @@ export function TelaAportes({
                   value={modo.valor}
                   defaultChecked={minhaRegra === modo.valor}
                   disabled={!podeUsar}
-                  className="mt-1 size-4"
+                  className="mt-0.5 size-4 accent-tinta"
                 />
                 <span>
                   <span className="block text-[13.5px] font-semibold">{modo.rotulo}</span>

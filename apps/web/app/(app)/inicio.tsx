@@ -21,6 +21,13 @@ type Jornada = {
 
 const TUDO = "Tudo";
 
+// Classe estática: o Tailwind lê classe por varredura de texto.
+const DISCO: Record<Fatia["cor"], string> = {
+  "pessoa-1": "bg-pessoa-1",
+  "pessoa-2": "bg-pessoa-2",
+  fora: "bg-pessoa-fora",
+};
+
 /** "oi, Lucas e Ana" — e "oi, vocês" quando ninguém preencheu o nome. */
 function saudacao(nomes: (string | null)[]): string {
   const ditos = nomes.filter((nome): nome is string => Boolean(nome?.trim()));
@@ -35,6 +42,7 @@ export function Inicio({
   totalCents,
   doMesCents,
   doMesPorPessoa,
+  porPessoa,
   jornadas,
   temPedido,
 }: {
@@ -44,6 +52,7 @@ export function Inicio({
   totalCents: number;
   doMesCents: number;
   doMesPorPessoa: { chave: string; cents: number }[];
+  porPessoa: { chave: string; nome: string | null; cents: number; cor: Fatia["cor"] }[];
   jornadas: Jornada[];
   temPedido: boolean;
 }) {
@@ -60,7 +69,7 @@ export function Inicio({
     filtro === TUDO ? jornadas : jornadas.filter((jornada) => jornada.categoria === filtro);
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-4xl lg:p-10">
+    <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-5xl lg:p-10">
       <header className="flex items-center justify-between gap-3">
         <div>
           <p className="font-corpo text-[11.5px] text-suave">
@@ -135,6 +144,31 @@ export function Inicio({
             ) : null}
           </CartaoLimao>
         ) : null}
+
+        {/* Quem colocou quanto, no plano inteiro. Não é preenchimento: é a
+            pergunta que o casal faz depois de "quanto já temos", e é o que
+            sustenta a coluna da direita no desktop. */}
+        {porPessoa.some((pessoa) => pessoa.cents > 0) ? (
+          <div className="rounded-cartao bg-white p-4">
+            <h2 className="text-[13.5px] font-bold tracking-[-0.02em]">Quem colocou</h2>
+            <ul className="mt-2.5 flex flex-col gap-2.5">
+              {porPessoa.map((pessoa) => (
+                <li key={pessoa.chave} className="flex items-center gap-2.5">
+                  <span
+                    className={`size-2.5 flex-none rounded-full ${DISCO[pessoa.cor]}`}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 flex-1 truncate font-corpo text-[11.5px] text-suave">
+                    {pessoa.nome ?? "Sua dupla"}
+                  </span>
+                  <b className="flex-none text-[12.5px] font-bold tabular-nums">
+                    {formatBRL(pessoa.cents)}
+                  </b>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </aside>
 
       <div className="flex flex-col gap-3.5 lg:col-start-1 lg:row-start-2">
@@ -164,7 +198,7 @@ export function Inicio({
           </Link>
         </div>
       ) : (
-        <div className="gap-3 [column-fill:balance] columns-2">
+        <div className="gap-3 [column-fill:balance] columns-2 lg:columns-3">
           {visiveis.map((jornada, indice) => (
             <CartaoJornada key={jornada.id} indice={indice} {...jornada} />
           ))}

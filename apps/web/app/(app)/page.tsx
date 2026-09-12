@@ -97,8 +97,30 @@ export default async function Home() {
     ),
   }));
 
+  // Quanto cada pessoa colocou no plano inteiro. Vai para a coluna da direita
+  // no desktop, que antes terminava um terço da tela acima do álbum.
+  const totalPorPessoa = new Map<string, number>();
+  for (const aporte of listaAportes) {
+    const chave = aporte.user_id ?? "fora";
+    totalPorPessoa.set(chave, (totalPorPessoa.get(chave) ?? 0) + aporte.amount_cents);
+  }
+
+  const porPessoa = ordemEstavel(
+    membros.map((membro) => ({
+      userId: membro.user_id,
+      papel: membro.role,
+      nome: membro.display_name,
+    })),
+  ).map((membro) => ({
+    chave: membro.userId,
+    nome: membro.nome,
+    cents: totalPorPessoa.get(membro.userId) ?? 0,
+    cor: cores.get(membro.userId) ?? ("fora" as const),
+  }));
+
   return (
     <Inicio
+      porPessoa={porPessoa}
       nomes={nomes}
       iniciais={iniciaisDoCasal(nomes)}
       mes={mesPorExtenso(agora)}
