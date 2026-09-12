@@ -37,4 +37,12 @@ from (
 where m.couple_id = c.id;
 
 
-alter table public.couple_members drop column split_rule;
+-- A coluna velha NÃO sai aqui. Sai em `regra_do_casal_contrai`, depois que o
+-- web que a lê tiver saído do ar.
+--
+-- Esta migration precisa ser inofensiva para a versão do app que já está
+-- publicada, e é isso que o expand/contract compra: enquanto as duas colunas
+-- existem, o web antigo lê `couple_members.split_rule` e o novo lê
+-- `couples.split_rule`, e os dois funcionam contra o mesmo banco. Sem isso, o
+-- `db push` e o deploy teriam que acontecer na mesma janela — operação
+-- irreversível sob pressão de tempo, que é como se erra.

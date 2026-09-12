@@ -1,0 +1,24 @@
+-- A contração do expand/contract: agora sim a coluna velha sai.
+--
+-- `regra_do_casal` acrescentou `couples.split_rule` e preencheu, mas deixou
+-- `couple_members.split_rule` no lugar de propósito. Enquanto as duas
+-- existiram, a versão publicada do app (que lê a de `couple_members`) e a
+-- nova (que lê a de `couples`) funcionaram contra o mesmo banco.
+--
+-- Esta é a ÚNICA instrução destrutiva do lote, e é por isso que ela mora
+-- sozinha num arquivo: separada assim, o `db push` das outras quatro é
+-- inteiramente reversível, e o deploy do web deixa de precisar acontecer na
+-- mesma janela.
+--
+-- **Só rode isto depois que o web novo estiver no ar.** Aplicada cedo, ela
+-- não derruba a tela antiga — faz pior: `regraDoCasal` cai no `?? "igual"` e
+-- todo casal passa a aparecer dividindo meio a meio, inclusive quem escolheu
+-- outra coisa. Silencioso.
+--
+-- Como saber que já dá: abrir /aportes em produção e trocar a regra de
+-- divisão. Se salvar sem erro, o web no ar é o novo — ele escreve em
+-- `couples`. Se der erro, ainda é o antigo.
+--
+-- Sem pressa nenhuma: coluna morta não atrapalha ninguém.
+
+alter table public.couple_members drop column split_rule;

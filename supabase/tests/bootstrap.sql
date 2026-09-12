@@ -15,14 +15,27 @@ create role service_role nologin noinherit bypassrls;
 create schema if not exists auth;
 grant usage on schema auth to anon, authenticated, service_role;
 
--- Espelho pobre de auth.users: o teste só precisa do id, que é o alvo das FKs.
+-- Espelho pobre de auth.users: só as colunas que os testes e as triggers
+-- realmente tocam. `created_at` alimenta a idade da conta no cartão de
+-- pedido, e `raw_user_meta_data` é por onde o nome do cadastro chega até a
+-- trigger `handle_new_user`.
 create table auth.users (
   id uuid primary key,
-  email text
+  email text,
+  created_at timestamptz not null default now(),
+  raw_user_meta_data jsonb
 );
 
 -- Mesma definição do Supabase: o "sub" do JWT, que o PostgREST deixa no GUC
 -- request.jwt.claims a cada requisição.
+-- `leave_couple` e `delete_account` apagam a sessão de quem sai. Sem esta
+-- tabela, as duas levantam "relation does not exist" e o teste morre por
+-- falta de stub, não por regra quebrada.
+create table auth.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users (id) on delete cascade
+);
+
 create or replace function auth.uid()
 returns uuid
 language sql

@@ -92,33 +92,34 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 
 | Onde | Quantas | Última |
 |---|---|---|
-| Repositório (`supabase/migrations/`) | **15** | `20260912042341_minha_linha_so_minha` |
+| Repositório (`supabase/migrations/`) | **16** | `20260912150948_regra_do_casal_contrai` |
 | Produção (`qysekkewsrwtebpiowim`) | **11** | `20260910231420_meta_com_limites` |
 
-**Quatro migrations de diferença, e o web da capa já está no ar sem a dela.**
-Quem abrir uma jornada e tocar em "Pôr uma foto" em produção recebe "Não
-consegui usar essa foto" — o bucket `capas` e a coluna `cover_path` não
-existem lá. As quatro pendentes:
+**Cinco de diferença, e o web da capa já está no ar sem a dela.** Quem tocar
+em "Pôr uma foto" em produção recebe "Não consegui usar essa foto" — o bucket
+`capas` e a coluna `cover_path` não existem lá. É a **única** coisa quebrada:
+o caminho de leitura está intacto, porque sem a coluna `cover_path` é
+`undefined`, a lista de capas sai vazia e nada é assinado.
+
+O runbook está em `relatorios/subir-pendentes-2026-09-12.md`, e o ensaio que
+o valida em `scripts/ensaio-producao.sh`.
+
+**As quatro que sobem juntas — todas aditivas, todas reversíveis:**
 
 - `20260912022112_capa_da_jornada` — bucket, coluna e as 4 policies de Storage
 - `20260912040653_nome_no_cadastro` — trigger lendo `raw_user_meta_data`
-- `20260912041204_regra_do_casal` — `split_rule` sobe para `couples`
+- `20260912041204_regra_do_casal` — `couples.split_rule` + backfill
 - `20260912042341_minha_linha_so_minha` — `couple_members_update` apertado
 
-Ordem obrigatória: **`supabase db push` primeiro, deploy do web depois** — e
-as duas na mesma janela, por causa da terceira, que APAGA
-`couple_members.split_rule`. O que o web antigo faz entre uma e outra, medido
-e não suposto:
+**A quinta fica para depois do deploy**, e é a única que apaga alguma coisa:
+`20260912150948_regra_do_casal_contrai` remove `couple_members.split_rule`.
 
-- não quebra a tela: `split_rule` vira `undefined` e `regraDoCasal` cai no
-  `?? "igual"`. Ou seja, **todo casal aparece dividindo meio a meio**, mesmo
-  quem escolheu outra coisa. Silencioso, que é o pior tipo;
-- e salvar a divisão passa a falhar, porque o `PATCH` manda uma coluna que
-  não existe mais.
-
-A da capa é o contrário: o caminho de LEITURA já está seguro (sem a coluna,
-`cover_path` é `undefined`, a lista de capas sai vazia e nada é assinado).
-Só o envio falha, com "Não consegui usar essa foto".
+Foi ela que deixou de forçar uma janela coordenada. Enquanto as duas colunas
+convivem, o web publicado lê `couple_members.split_rule` e o novo lê
+`couples.split_rule`, e os dois funcionam contra o mesmo banco — `db push` e
+deploy deixam de precisar acontecer juntos. Aplicada cedo, ela não derruba a
+tela antiga: faz pior, `regraDoCasal` cai no `?? "igual"` e **todo casal
+aparece dividindo meio a meio**, silenciosamente.
 
 - [x] Projeto em **`sa-east-1`** (`qysekkewsrwtebpiowim`), Postgres 17.6.
 - [x] **`pg_cron` antes do `db push`** — as 11 migrations entraram inteiras.
