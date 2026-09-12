@@ -105,4 +105,17 @@ test.describe("autenticação", () => {
     await page.goto("/jornadas");
     await expect(page).toHaveURL(/\/login/);
   });
+
+  // O nome dito no cadastro viaja no raw_user_meta_data e é a trigger
+  // on_auth_user_created que o grava — set_profile não serviria, porque exige
+  // sessão e não há sessão logo depois do cadastro.
+  test("o nome dito no cadastro aparece na saudação", async ({ page, request }) => {
+    await entrar(page, await criarConta(request, "comnome", "Lia"));
+    await expect(page.getByText("oi, Lia")).toBeVisible();
+  });
+
+  test("sem nome, a saudação continua falando com os dois", async ({ page, request }) => {
+    await entrar(page, await criarConta(request, "semnome"));
+    await expect(page.getByText("oi, vocês")).toBeVisible();
+  });
 });

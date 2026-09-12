@@ -43,13 +43,24 @@ function cabecalhosDeServico(): Record<string, string> {
  * Único de propósito: é o que deixa os testes rodarem em paralelo sem um
  * pisar no outro, e sem precisar limpar o banco entre eles.
  */
-export async function criarConta(request: APIRequestContext, apelido = "pessoa"): Promise<Conta> {
+export async function criarConta(
+  request: APIRequestContext,
+  apelido = "pessoa",
+  nome?: string,
+): Promise<Conta> {
   const { API_URL } = chaves();
   const email = `${apelido}-${randomUUID()}@teste.invalid`;
 
   const resposta = await request.post(`${API_URL}/auth/v1/admin/users`, {
     headers: cabecalhosDeServico(),
-    data: { email, password: SENHA, email_confirm: true },
+    data: {
+      email,
+      password: SENHA,
+      email_confirm: true,
+      // Vira raw_user_meta_data, que é exatamente o que o signUp da tela
+      // manda — a mesma trigger lê os dois caminhos.
+      ...(nome ? { user_metadata: { display_name: nome } } : {}),
+    },
   });
   expect(resposta.ok(), await resposta.text()).toBeTruthy();
 
@@ -136,6 +147,8 @@ export async function comoPessoa(request: APIRequestContext, conta: Conta) {
     "Content-Type": "application/json",
   };
 
+  // Sem assertiva de status de propósito: metade das chamadas daqui ESPERA
+  // recusa (teto de valor, RLS, append-only), e a resposta é o que elas medem.
   return {
     rpc: (nome: string, args: Record<string, unknown>) =>
       request.post(`${chaves().API_URL}/rest/v1/rpc/${nome}`, { headers, data: args }),

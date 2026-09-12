@@ -60,12 +60,17 @@ export async function acaoCadastrar(_anterior: EstadoForm, form: FormData): Prom
     };
   }
 
+  // Opcional, e sem schema: quem não quiser dizer não diz, e a home continua
+  // em "oi, vocês". O corte de verdade é na trigger, que é quem grava.
+  const nome = String(form.get("nome") ?? "").trim();
+
   const supabase = await criarClienteServidor();
   const falha = await cadastrar(
     supabase,
     dados.data.email,
     dados.data.senha,
     `${await origem()}/auth/confirm`,
+    nome || undefined,
   );
   if (falha === "senha_fraca") return { erro: ERRO_SENHA_CURTA };
   if (falha) return { erro: ERRO_GENERICO };

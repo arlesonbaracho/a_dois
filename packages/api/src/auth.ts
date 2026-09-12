@@ -46,11 +46,22 @@ export async function cadastrar(
   email: string,
   senha: string,
   redirecionarPara: string,
+  nome?: string,
 ): Promise<FalhaAuth | null> {
   const { error } = await client.auth.signUp({
     email,
     password: senha,
-    options: { emailRedirectTo: redirecionarPara },
+    options: {
+      emailRedirectTo: redirecionarPara,
+      // Viaja no raw_user_meta_data e é lido pela trigger on_auth_user_created,
+      // que é o único ponto rodando na mesma transação do cadastro. set_profile
+      // não serviria: ela exige sessão, e com confirmação de e-mail ligada não
+      // existe sessão logo depois do cadastro.
+      //
+      // A trigger apara e corta antes de gravar, e é lá que a checagem vale:
+      // isto aqui é o cliente, e o cliente não é fronteira de confiança.
+      data: nome ? { display_name: nome } : undefined,
+    },
   });
   if (!error) return null;
   if (error.code === "user_already_exists") return null;
