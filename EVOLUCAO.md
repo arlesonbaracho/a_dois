@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-12 (primeiros passos na home)
+**Última atualização:** 2026-09-12 (nome no cadastro, regra do casal, linha de cada um)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -57,6 +57,9 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-11 | **Capa da jornada via Storage.** Bucket `capas` privado, com teto de 2 MiB e `image/jpeg` na linha do bucket — os dois limites valem no servidor, aplicados pela API do Storage. `goals.cover_path` guarda caminho e nunca URL: a constraint compara o caminho contra o `couple_id` e o `id` da própria linha, então endereço de terceiro não entra na tabela. Quatro policies em `storage.objects` contra `is_couple_member`, e `casal_do_caminho` devolvendo null (não exceção) para caminho torto. `supabase/tests/capa.sql` com ~30 asserções, provado quebrando cada policy e a constraint uma a uma | `2c242cc` |
 | 2026-09-11 | **A foto na polaroide.** A `Chapa` recebe a capa e o gradiente vira o estado de espera e de ausência — sem estado e sem efeito, porque o navegador pinta o fundo antes de baixar a imagem. Envio pelo detalhe, com o arquivo reduzido a 1280px e reencodado em JPEG no navegador, o que TIRA O EXIF e a coordenada de GPS junto. Home assina no servidor, lista e detalhe por hook. Um e2e atravessa a costura inteira e confere que a URL é do nosso bucket e assinada | `157407c` |
 | 2026-09-12 | **Primeiros passos na home.** Lista de três passos obrigatórios (chamar o parceiro, criar a primeira jornada, anotar o primeiro aporte) mais a faixa de renda como opcional, no cartão escuro. Derivada inteira de dados que a home já carregava — nenhum estado de onboarding guardado, nenhuma tabela, nenhuma tela nova; uma consulta a mais (`convitesAtivos`). O passo do parceiro tem três estados, e o do meio (`esperando`) é o que impede a lista de cobrar convite de quem já mandou. Some sozinha quando os três fecham. `marcarPrimeiraMeta()` ganhou chamador e deixou de ser código morto | `(este commit)` |
+| 2026-09-12 | **Nome no cadastro.** O nome viaja no `raw_user_meta_data` do `signUp` e a trigger `on_auth_user_created` grava nas duas tabelas que o mostram: `profiles` (campo Nome do cartão de pedido) e `couple_members` (saudação da home). Cortado em 80 dentro da trigger — sem isso o `check` da coluna estouraria na mesma transação do cadastro e derrubaria o próprio signup. `create_couple_for(uuid)` foi apagada em favor da de dois argumentos, senão as duas viravam sobrecarga ambígua | `affb53c` |
+| 2026-09-12 | **A regra de divisão passa a ser do casal.** `split_rule` sobe de `couple_members` para `couples`, com backfill fazendo uma vez em SQL a escolha que `regraDoCasal` fazia a cada render. A função some, e com ela `Participante.papel` e `Participante.regra`. `salvarMinhaDivisao` vira duas escritas em duas tabelas | `cc692c5` |
+| 2026-09-12 | **Cada um edita só a própria linha de vínculo.** `couple_members_update` ganha `user_id = auth.uid()` no `with check`; o `using` segue o casal inteiro, porque ler a linha do par é legítimo. Teste dentro do MESMO casal, com a varredura sem WHERE incluída | `5c41f6b` |
 
 ---
 
@@ -64,19 +67,15 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-**1. Nome no cadastro.** Migration (`raw_user_meta_data` lido pelo gatilho
-`handle_new_user`), decidido em 2026-09-11. Ver Dívidas.
-
-**2. Varrer a capa órfã.** Apagar jornada ou plano não apaga o arquivo do
+**1. Varrer a capa órfã.** Apagar jornada ou plano não apaga o arquivo do
 bucket: o `protect_delete` do Storage barra delete por SQL de propósito, para
 a API não ficar com blob sem dono. Ver Dívidas.
 
 Fora isso, a fila dos prompts acabou e a da auditoria também: os sete achados
 estão fechados. O resto está em **Falta (backlog)** e em **Dívidas**.
 
-A próxima que eu pegaria é `couple_members_update`, por ser dado pessoal com
-conserto de uma linha, seguida de `couple_members.split_rule`, que mora na
-tabela errada.
+A próxima que eu pegaria é `contributions_update`, que é a mesma classe de
+buraco que `couple_members_update` acabou de fechar, e custa uma cláusula.
 
 
 ---
@@ -289,6 +288,11 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-12 | Onboarding é **lista derivada**, não gate obrigatório nem tour guiado | Gate trava em coisa que a pessoa não termina agora (o convite depende do parceiro aparecer e de ela confirmar, dias depois), contradiz o casal solo que o `handle_new_user` cria, e reprovaria `auth.spec.ts:32` e `auditoria.spec.ts:134`/`:151`, que afirmam `toHaveURL("/")` logo após o login |
 | 2026-09-12 | Nenhum estado de onboarding guardado | Cada passo é pergunta que os dados já respondem; uma coluna "tutorial concluído" seria uma segunda verdade para manter alinhada, e mentiria quando alguém apagasse a última jornada |
 | 2026-09-12 | Permissão não vira passo do onboarding | O produto vende minimização como argumento; empurrar alguém a LIGAR métricas e marketing na primeira tela contradiz isso. O bloco só diz onde se desliga |
+| 2026-09-12 | O nome do cadastro entra pela trigger, não por `set_profile` | `set_profile` exige sessão, e com confirmação de e-mail ligada não há sessão logo depois do cadastro. `raw_user_meta_data` é o único dado que chega na mesma transação |
+| 2026-09-12 | A trigger CORTA o nome em 80 em vez de recusar | O metadata vem de quem se cadastra e a coluna tem check de 80; recusar dentro da trigger derrubaria o próprio cadastro, que é DoS de uma linha. Cortar não perde ninguém |
+| 2026-09-12 | `split_rule` sai de `couple_members` e vai para `couples` | Substitui a decisão de 2026-09-10: com uma coluna por casal não há o que desempatar, e `regraDoCasal` deixa de existir |
+| 2026-09-12 | `salvarRegraDoCasal` busca o casal em vez de recebê-lo | PostgREST recusa update sem WHERE (`21000`), e couple_id vindo do cliente é a regra 3 do CLAUDE.md. Buscar por `meuCasal` resolve os dois |
+| 2026-09-12 | O e2e espera a resposta da Server Action, não o recado na tela | O recado do salvamento anterior continua visível enquanto o novo não volta: esperar por ele passa na hora e não espera nada |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -320,14 +324,11 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/public/icon-*.png` | Ícones placeholder: dois anéis entrelaçados feitos por script. Serve para instalar, não para lançar | Baixa |
 | `handle_new_user` | Todo cadastro ganha um casal, inclusive o abandonado antes de confirmar o e-mail. O caso do convidado foi resolvido: `confirm_invite` apaga o casal solo e vazio de quem entra. Sobra só o lixo do cadastro abandonado | Baixa |
 | `components/cliente-supabase.tsx` | O access token fica em memória e só é trocado quando o servidor renderiza de novo. Numa aba aberta além de `jwt_expiry` (1h) sem navegar, o cliente do browser passa a usar token vencido até a próxima navegação. Só vai doer quando houver tela de longa permanência com Realtime (prompt 7) | Média |
-| cadastro | Não pedimos nome. `couple_members.display_name` fica nulo, e o prompt 6 vai precisar dele para mostrar quem é quem | Baixa |
 | `apps/web/app/globals.css` | Tema claro na marra, sem tokens e sem modo escuro | Baixa |
 | `checar_limite` | Contagem sem trava: uma rajada simultânea pode passar de um do limite. Marcado com `ponytail:` no código; o conserto é advisory lock por chave | Baixa |
 | `confirm_invite` | Quem já tem plano com movimentação não consegue entrar em outro, e não existe caminho para mesclar os dois. Hoje a saída é apagar o próprio plano à mão | Média |
 | `pg_cron` | O expurgo depende da extensão estar habilitada. Local funciona; no projeto hospedado precisa ser ligada antes da migration rodar | Média |
-| `couple_members.split_rule` | A regra de divisão é coluna por pessoa, e você pediu "três modos por casal". As duas linhas podem discordar, e `regraDoCasal` desempata pelo papel `dono` — regra de negócio que só existe para consertar o modelo. O certo é a coluna morar em `couples` | Média |
 | `apps/web/app/(app)/aportes/form.tsx` | Um botão Salvar escreve três fatos independentes (regra, faixa de renda, valor fixo). Se o formulário estiver desatualizado quando alguém envia, salvar a REGRA apaga a FAIXA. Não é alcançável clicando (o botão desabilita durante o envio, e o caminho de gente foi conferido no navegador), mas é forma frágil para dado pessoal — deviam ser três escritas separadas | Média |
-| `couple_members_update` | Um parceiro continua podendo editar a linha do outro, inclusive a faixa de renda dela. Já era assim; os aportes não pioraram nem melhoraram isso. O conserto é `user_id = auth.uid()` no `with check`, e mexe em asserção do `rls_isolamento.sql` | Média |
 | `contributions_update` | Insert agora é só pela função, mas o update continua aberto ao casal: dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Fecha a mesma dívida antiga por outro caminho | Baixa |
 | `supabase/functions/_shared/ssrf-guard.ts` | O guard resolve o DNS e o `fetch` resolve de novo: existe janela de DNS rebinding entre as duas. Fechar exigiria conectar no IP fixado, que o `fetch` não oferece. Marcado com `ponytail:` no código | Média |
 | `supabase/functions/_shared/open-graph.ts` | `precoParaCentavos` é a MESMA regra de `centavosDeTexto`, que agora mora em `packages/core/src/money.ts` e é a canônica. O Deno não importa do workspace npm sem passo de bundle, então a cópia continua — e agora com a obrigação de andar junto | Média |
@@ -355,8 +356,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `/auth/confirm` × `?code=` | O caminho feliz do `?code=` não tem teste de suíte — o stack local usa os templates próprios, e trocá-los quebraria os outros 37 testes. Só a recusa (código inventado não vira sessão) está coberta; o sucesso foi provado por sonda manual e pelo teste de fumaça | Média |
 | identificadores × produto | Produto e rota dizem "jornada"; o código ainda diz `useMetas`, `criarMeta`, `DadosMeta`, `Meta`. Um `s/Meta/Jornada/` cego quebra `Metadata` e `MetadataRoute`, então o rename exige lista explícita de identificadores | Média |
 | `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
-| cadastro × nome | Decidido em 2026-09-11 que o cadastro vai pedir o nome (o design mostra "oi, Lucas e Ana" e iniciais). **Não feito**: `set_profile` exige sessão, e com confirmação de e-mail ligada não existe sessão logo após o cadastro — o caminho é `raw_user_meta_data` lido pelo gatilho `handle_new_user`, ou seja, migration. Hoje a tela cai em "oi, vocês" e num ícone neutro | Média |
 | desktop com pouca jornada | Com três jornadas o desktop deixa boa parte da tela em creme. É coerente com a tese do álbum sobre a mesa, mas com uma jornada só fica visivelmente vazio | Baixa |
+| `contributions_update` | Mesma classe do `couple_members_update` que acabou de fechar: o update segue aberto ao casal, então dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Custa uma cláusula no `with check` | Baixa |
 | capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
