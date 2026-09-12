@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import type { Perfil } from "@repo/api";
 
 import { Campo, Cartao, Enviar, Interruptor, Recado, type EstadoForm } from "@/components/form-ui";
+import { Explica } from "@/components/pecas";
 
 import { acaoSalvarPerfil } from "./actions";
 
@@ -42,11 +43,11 @@ export function FormPerfil({ perfil }: { perfil: Perfil | null }) {
         <Enviar>Salvar</Enviar>
       </form>
 
-      <p className="text-sm text-suave-forte">
+      <Explica>
         O apelido é um nome que você escolhe, não o seu e-mail. Ele fica visível
         para quem souber digitá-lo — então evite usar algo que te identifique
         fora daqui.
-      </p>
+      </Explica>
     </Cartao>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
+import { Campo, Cartao, Enviar, Recado, Saida, type EstadoForm } from "@/components/form-ui";
 
 import { acaoPedirNovaSenha } from "../actions";
 
@@ -18,8 +18,8 @@ export default function RecuperarSenha() {
         <Enviar>Mandar o link</Enviar>
       </form>
 
-      <Link href="/login" className="text-sm underline">
-        Voltar para o login
+      <Link href="/login" className="self-start">
+        <Saida>Voltar para o login</Saida>
       </Link>
     </Cartao>
   );

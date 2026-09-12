@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { formatBRL, type Passo } from "@repo/core";
+import { formatBRL, type Passo, rotuloDaCategoria } from "@repo/core";
 
 import { IconePessoa } from "@/components/icones";
-import { CartaoJornada, CartaoLimao, Chip, PilulaTotal } from "@/components/pecas";
+import {
+  CartaoJornada,
+  CartaoLimao,
+  Chip,
+  PilulaTotal,
+  PontoDePessoa,
+} from "@/components/pecas";
 import { PrimeirosPassos } from "@/components/primeiros-passos";
 import type { Fatia } from "@/components/progresso";
 
@@ -22,13 +28,6 @@ type Jornada = {
 };
 
 const TUDO = "Tudo";
-
-// Classe estática: o Tailwind lê classe por varredura de texto.
-const DISCO: Record<Fatia["cor"], string> = {
-  "pessoa-1": "bg-pessoa-1",
-  "pessoa-2": "bg-pessoa-2",
-  fora: "bg-pessoa-fora",
-};
 
 /** "oi, Lucas e Ana" — e "oi, vocês" quando ninguém preencheu o nome. */
 function saudacao(nomes: (string | null)[]): string {
@@ -108,10 +107,13 @@ export function Inicio({
             ativo={filtro === TUDO}
             onClick={() => setFiltro(TUDO)}
           />
+          {/* O rótulo é de gente, a chave continua sendo o valor do banco: a
+              faixa mostrava "bebe" e "geral" em minúscula e sem acento, que é
+              coluna vazando para a tela. */}
           {[...contagem].map(([categoria, quantos]) => (
             <Chip
               key={categoria}
-              rotulo={categoria}
+              rotulo={rotuloDaCategoria(categoria)}
               quantos={quantos}
               ativo={filtro === categoria}
               onClick={() => setFiltro(categoria)}
@@ -163,10 +165,7 @@ export function Inicio({
             <ul className="mt-2.5 flex flex-col gap-2.5">
               {porPessoa.map((pessoa) => (
                 <li key={pessoa.chave} className="flex items-center gap-2.5">
-                  <span
-                    className={`size-2.5 flex-none rounded-full ${DISCO[pessoa.cor]}`}
-                    aria-hidden="true"
-                  />
+                  <PontoDePessoa cor={pessoa.cor} />
                   <span className="min-w-0 flex-1 truncate font-corpo text-[11.5px] text-suave">
                     {pessoa.nome ?? "Sua dupla"}
                   </span>
@@ -184,7 +183,7 @@ export function Inicio({
       {temPedido ? (
         <Link
           href="/parceiro"
-          className="rounded-cartao bg-tinta p-4 text-[14px] font-semibold text-limao"
+          className="rounded-cartao bg-tinta p-4 text-[14px] font-semibold text-limao transition active:scale-[0.99]"
         >
           Alguém pediu para entrar no plano de vocês. Toque para ver quem é.
         </Link>
@@ -206,13 +205,13 @@ export function Inicio({
           </p>
           <Link
             href="/jornadas"
-            className="rounded-full bg-tinta px-5 py-3 text-[13.5px] font-semibold text-white"
+            className="rounded-full bg-tinta px-5 py-3 text-[13.5px] font-semibold text-white transition hover:opacity-90 active:scale-[0.97]"
           >
             Criar a primeira
           </Link>
         </div>
       ) : (
-        <div className="gap-3 [column-fill:balance] columns-2 lg:columns-3">
+        <div className="gap-3 [column-fill:balance] columns-2 lg:columns-3 lg:gap-4">
           {visiveis.map((jornada, indice) => (
             <CartaoJornada key={jornada.id} indice={indice} {...jornada} />
           ))}

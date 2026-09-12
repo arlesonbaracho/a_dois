@@ -27,12 +27,24 @@ import {
   ordemEstavel,
   parcelaMensalCents,
   progressoPercentual,
+  rotuloDaCategoria,
   sumCents,
 } from "@repo/core";
 
-import { Campo, Enviar, Escolha, Recado } from "@/components/form-ui";
+import { EsqueletoJornada } from "@/components/esqueleto";
+import { Campo, Enviar, Escolha, Perigo, Recado } from "@/components/form-ui";
 import { IconeVoltar } from "@/components/icones";
-import { Bloco, Chapa, Chip, CartaoLimao, Polaroide } from "@/components/pecas";
+import {
+  Bloco,
+  Chapa,
+  Chip,
+  CartaoLimao,
+  DiscoDePessoa,
+  Explica,
+  LinhaAporte,
+  Polaroide,
+  Secao,
+} from "@/components/pecas";
 import { Progresso, type Fatia } from "@/components/progresso";
 import { prepararCapa } from "@/lib/capa";
 import { paraCampoData, paraCentavos, paraInstante } from "@/lib/dinheiro";
@@ -42,13 +54,6 @@ import { PRIORIDADES } from "../lista";
 const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 const ABAS = ["Itens", "Aportes", "Quem colocou"] as const;
 type Aba = (typeof ABAS)[number];
-
-/** A cor do disco de cada pessoa, em classe estática (o Tailwind varre texto). */
-const DISCO: Record<string, string> = {
-  "pessoa-1": "bg-pessoa-1",
-  "pessoa-2": "bg-pessoa-2",
-  fora: "bg-pessoa-fora",
-};
 
 export function Detalhe({ goalId }: { goalId: string }) {
   const router = useRouter();
@@ -77,7 +82,13 @@ export function Detalhe({ goalId }: { goalId: string }) {
   const [agora] = useState(() => new Date());
 
   if (isError) return <Aviso texto="Não consegui carregar essa jornada agora." />;
-  if (isPending) return <Aviso texto="Carregando…" />;
+  if (isPending) {
+    return (
+      <main className="mx-auto max-w-sm p-5 lg:max-w-3xl lg:p-10">
+        <EsqueletoJornada />
+      </main>
+    );
+  }
   if (!jornada) return <Aviso texto="Essa jornada não existe mais." />;
 
   const aportadoCents = sumCents((aportes ?? []).map((a) => a.amount_cents));
@@ -243,11 +254,11 @@ export function Detalhe({ goalId }: { goalId: string }) {
             cabeçalho é proibido pelo piso de craft, e a categoria já aparece
             no material da chapa. */}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[19px] font-bold leading-tight tracking-[-0.03em] lg:text-3xl">
+          <h1 className="truncate text-[22px] font-bold leading-tight tracking-[-0.03em] lg:text-3xl">
             {jornada.title}
           </h1>
           <p className="mt-0.5 font-corpo text-[10.5px] text-suave">
-            {jornada.category}
+            {rotuloDaCategoria(jornada.category)}
             {jornada.deadline_at ? <> · para {dia(jornada.deadline_at)}</> : null}
           </p>
         </div>
@@ -402,10 +413,10 @@ export function Detalhe({ goalId }: { goalId: string }) {
               })}
             </ul>
           ) : (
-            <p className="font-corpo text-[12.5px] leading-relaxed text-suave-forte">
+            <Explica>
               Nada anotado ainda. Vale listar o que vocês querem comprar com esse
               dinheiro.
-            </p>
+            </Explica>
           )}
 
           <Bloco>
@@ -440,31 +451,17 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 ? (nomePor.get(aporte.user_id) ?? "Sua dupla")
                 : "Ex-membro";
               return (
-                <div
+                <LinhaAporte
                   key={aporte.id}
-                  className="flex items-center gap-3 rounded-bloco bg-white p-3"
-                >
-                  <span
-                    className={`grid size-8 flex-none place-items-center rounded-full text-[12px] font-bold text-white ${DISCO[cor]}`}
-                  >
-                    {iniciaisDoCasal([nome]) || "·"}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <b className="block truncate text-[13px] font-semibold">{nome}</b>
-                    <i className="block font-corpo text-[10.5px] not-italic text-suave">
-                      {dia(aporte.contributed_at)}
-                    </i>
-                  </span>
-                  <b className="flex-none text-[13px] font-bold tabular-nums">
-                    {formatBRL(aporte.amount_cents)}
-                  </b>
-                </div>
+                  nome={nome}
+                  legenda={dia(aporte.contributed_at)}
+                  cor={cor}
+                  valorCents={aporte.amount_cents}
+                />
               );
             })
           ) : (
-            <p className="font-corpo text-[12.5px] text-suave-forte">
-              Ninguém colocou dinheiro nesta jornada ainda.
-            </p>
+            <Explica>Ninguém colocou dinheiro nesta jornada ainda.</Explica>
           )}
         </section>
       ) : null}
@@ -472,10 +469,10 @@ export function Detalhe({ goalId }: { goalId: string }) {
       {aba === "Quem colocou" ? (
         <Bloco>
           {fatias.length === 0 ? (
-            <p className="font-corpo text-[12.5px] text-suave-forte">
+            <Explica>
               Quando vocês começarem a colocar dinheiro aqui, esta parte mostra
               quanto foi de cada um.
-            </p>
+            </Explica>
           ) : (
             <div className="flex flex-col gap-3">
               {fatias.map((fatia) => {
@@ -486,11 +483,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 const parte = aportadoCents > 0 ? Math.round((fatia.cents / aportadoCents) * 100) : 0;
                 return (
                   <div key={fatia.chave} className="flex items-center gap-3">
-                    <span
-                      className={`grid size-8 flex-none place-items-center rounded-full text-[12px] font-bold text-white ${DISCO[fatia.cor]}`}
-                    >
-                      {iniciaisDoCasal([nome]) || "·"}
-                    </span>
+                    <DiscoDePessoa iniciais={iniciaisDoCasal([nome])} cor={fatia.cor} />
                     <span className="min-w-0 flex-1">
                       <b className="block truncate text-[13px] font-semibold">{nome}</b>
                       <i className="block font-corpo text-[10.5px] not-italic text-suave">
@@ -509,9 +502,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
       ) : null}
 
       <Bloco>
-        <h2 className="text-[15px] font-bold tracking-[-0.03em]">
-          Coloquei um dinheiro aqui
-        </h2>
+        <Secao>Coloquei um dinheiro aqui</Secao>
         <form onSubmit={adicionarAporte} className="mt-3 flex flex-col gap-3.5">
           <Campo
             rotulo="Quanto (R$)"
@@ -571,14 +562,9 @@ export function Detalhe({ goalId }: { goalId: string }) {
 
       <div className="flex flex-col gap-2">
         <Recado aviso={avisoApagar} />
-        <button
-          type="button"
-          onClick={() => void tentarApagar()}
-          disabled={apagarJornada.isPending}
-          className="self-start font-corpo text-[12px] text-alerta underline disabled:opacity-60"
-        >
+        <Perigo onClick={() => void tentarApagar()} disabled={apagarJornada.isPending}>
           {avisoApagar ? "Apagar mesmo assim" : "Apagar esta jornada"}
-        </button>
+        </Perigo>
       </div>
     </main>
   );
@@ -587,7 +573,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
 function Aviso({ texto }: { texto: string }) {
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-4 p-5">
-      <p className="font-corpo text-[13px] text-suave-forte">{texto}</p>
+      <Explica>{texto}</Explica>
       <Link href="/jornadas" className="text-[12.5px] font-semibold underline">
         Voltar para as jornadas
       </Link>

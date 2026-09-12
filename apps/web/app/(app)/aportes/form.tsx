@@ -3,14 +3,27 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { formatBRL, fromCents, type RegraDivisao, type Saldo } from "@repo/core";
+import {
+  type CorDePessoa,
+  formatBRL,
+  fromCents,
+  type RegraDivisao,
+  type Saldo,
+} from "@repo/core";
 
-import { Campo, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
+import { Campo, Enviar, Escolha, Recado, type EstadoForm } from "@/components/form-ui";
+import { Explica, LinhaAporte, PontoDePessoa, Secao } from "@/components/pecas";
 
 import { acaoRegistrarAporte, acaoSalvarDivisao } from "./actions";
 
 type Meta = { id: string; titulo: string; alvoCents: number };
-type Aporte = { id: string; quem: string; valorCents: number; quando: string };
+type Aporte = {
+  id: string;
+  quem: string;
+  cor: CorDePessoa;
+  valorCents: number;
+  quando: string;
+};
 
 const FAIXAS: [string, string][] = [
   ["ate_2_sm", "Até 2 salários mínimos"],
@@ -52,6 +65,7 @@ export function TelaAportes({
   ultimos,
   saldo,
   nomes,
+  cores,
   totalDoPlanoCents,
   disponivel,
   minhaRegra,
@@ -62,6 +76,7 @@ export function TelaAportes({
   ultimos: Aporte[];
   saldo: Saldo;
   nomes: Record<string, string>;
+  cores: Record<string, CorDePessoa>;
   totalDoPlanoCents: number;
   disponivel: Record<RegraDivisao, boolean>;
   minhaRegra: RegraDivisao;
@@ -83,40 +98,37 @@ export function TelaAportes({
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-5 p-5 lg:max-w-2xl lg:p-10">
       <div>
-        <h1 className="text-[27px] font-bold tracking-[-0.04em]">Aportes</h1>
-        <p className="mt-1 text-suave-forte">
+        <h1 className="text-[27px] font-bold tracking-[-0.04em] lg:text-4xl">Aportes</h1>
+        <Explica className="mt-1">
           Quem colocou quanto, e como vocês combinaram de dividir.
-        </p>
+        </Explica>
       </div>
 
-      <Saldos saldo={saldo} nomes={nomes} deQuemSaiuCents={deQuemSaiu} />
+      <Saldos saldo={saldo} nomes={nomes} cores={cores} deQuemSaiuCents={deQuemSaiu} />
 
       {metas.length === 0 ? (
         <p className="rounded-cartao bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-corpo">
           Antes do primeiro aporte, criem uma jornada em{" "}
-          <Link href="/jornadas" className="underline">
+          <Link href="/jornadas" className="font-semibold underline">
             jornadas de vocês
           </Link>
           .
         </p>
       ) : (
         <form action={salvarAporte} className="flex flex-col gap-4">
-          <h2 className="text-[17px] font-bold tracking-[-0.03em]">Coloquei um dinheiro</h2>
+          <Secao>Coloquei um dinheiro</Secao>
 
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Em qual jornada</span>
-            <select
-              name="meta"
-              required
-              className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base"
-            >
-              {metas.map((meta) => (
-                <option key={meta.id} value={meta.id}>
-                  {meta.titulo}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* Era um <label> com <select> montado à mão bem ao lado de campos
+              que vêm de form-ui — e dava para ver: o rótulo "Em qual jornada"
+              saía 14px em Outfit e o "Quanto (R$)" logo abaixo saía 11.5px em
+              Manrope, no mesmo formulário. */}
+          <Escolha rotulo="Em qual jornada" name="meta" required>
+            {metas.map((meta) => (
+              <option key={meta.id} value={meta.id}>
+                {meta.titulo}
+              </option>
+            ))}
+          </Escolha>
 
           <Campo
             rotulo="Quanto (R$)"
@@ -135,11 +147,11 @@ export function TelaAportes({
 
       <form action={salvarDivisao} className="flex flex-col gap-4">
         <div>
-          <h2 className="text-[17px] font-bold tracking-[-0.03em]">Como vocês dividem</h2>
-          <p className="text-sm text-suave-forte">
+          <Secao>Como vocês dividem</Secao>
+          <Explica className="mt-1">
             Isto muda só a conta de quanto cabia a cada um. Não mexe em nada que
             já foi colocado.
-          </p>
+          </Explica>
         </div>
 
         <fieldset className="flex flex-col gap-3">
@@ -172,12 +184,11 @@ export function TelaAportes({
           })}
         </fieldset>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Sua faixa de renda (opcional)</span>
-          <select
+        <div className="flex flex-col gap-1.5">
+          <Escolha
+            rotulo="Sua faixa de renda (opcional)"
             name="faixa"
             defaultValue={minhaFaixa ?? ""}
-            className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base"
           >
             <option value="">Prefiro não dizer</option>
             {FAIXAS.map(([valor, rotulo]) => (
@@ -185,11 +196,9 @@ export function TelaAportes({
                 {rotulo}
               </option>
             ))}
-          </select>
-          <span className="text-sm text-suave-forte">
-            Só a faixa, nunca o valor exato — e só a sua dupla enxerga.
-          </span>
-        </label>
+          </Escolha>
+          <Explica>Só a faixa, nunca o valor exato — e só a sua dupla enxerga.</Explica>
+        </div>
 
         <Campo
           rotulo="Quanto você combina de colocar (R$, opcional)"
@@ -206,29 +215,24 @@ export function TelaAportes({
 
       {ultimos.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="text-[17px] font-bold tracking-[-0.03em]">Os últimos</h2>
-          <ul className="flex flex-col gap-1 text-sm">
+          <Secao>Os últimos</Secao>
+          {/* A mesma linha da aba "Aportes" da jornada. Era duas colunas de
+              texto pelado aqui e bloco branco com disco colorido lá — o mesmo
+              fato desenhado duas vezes, e por isso desenhado diferente. */}
+          <ul className="flex flex-col gap-2">
             {ultimos.map((aporte) => (
-              <li key={aporte.id} className="flex justify-between gap-2">
-                <span>
-                  {aporte.quem} · {dia(aporte.quando)}
-                </span>
-                <span className="font-semibold tabular-nums">{formatBRL(aporte.valorCents)}</span>
+              <li key={aporte.id}>
+                <LinhaAporte
+                  nome={aporte.quem}
+                  legenda={dia(aporte.quando)}
+                  cor={aporte.cor}
+                  valorCents={aporte.valorCents}
+                />
               </li>
             ))}
           </ul>
         </section>
       ) : null}
-
-
-      <div className="flex gap-4 text-sm">
-        <Link href="/" className="underline">
-          Voltar
-        </Link>
-        <Link href="/jornadas" className="underline">
-          As jornadas de vocês
-        </Link>
-      </div>
     </main>
   );
 }
@@ -236,10 +240,12 @@ export function TelaAportes({
 function Saldos({
   saldo,
   nomes,
+  cores,
   deQuemSaiuCents,
 }: {
   saldo: Saldo;
   nomes: Record<string, string>;
+  cores: Record<string, CorDePessoa>;
   deQuemSaiuCents: number;
 }) {
   if (saldo.linhas.length === 0) return null;
@@ -259,15 +265,18 @@ function Saldos({
     <section className="flex flex-col gap-3 rounded-cartao bg-white p-4">
       {/* h2, total, lista e frase como filhos diretos: o e2e ancora em
           heading.locator("..") e um invólucro tiraria as linhas do pai. */}
-      <h2 className="text-[15px] font-bold tracking-[-0.03em]">Quanto vocês já juntaram</h2>
-      <p className="-mt-2 text-[22px] font-bold tracking-[-0.03em] tabular-nums">
+      <h2 className="text-[17px] font-bold tracking-[-0.03em]">Quanto vocês já juntaram</h2>
+      <p className="-mt-2 text-[27px] font-extrabold tracking-[-0.04em] tabular-nums">
         {formatBRL(saldo.totalRateadoCents + deQuemSaiuCents)}
       </p>
 
       <ul className="flex flex-col gap-2 border-t border-divisa pt-3 font-corpo text-[11.5px]">
         {saldo.linhas.map((linha) => (
-          <li key={linha.userId} className="flex justify-between gap-2">
-            <span className="text-suave">{nomes[linha.userId] ?? "Sua dupla"}</span>
+          <li key={linha.userId} className="flex items-center justify-between gap-2">
+            <span className="flex min-w-0 items-center gap-2">
+              <PontoDePessoa cor={cores[linha.userId] ?? "fora"} />
+              <span className="truncate text-suave">{nomes[linha.userId] ?? "Sua dupla"}</span>
+            </span>
             <span className="font-semibold tabular-nums text-tinta">
               {formatBRL(linha.aportadoCents)}
               {saldo.aplicavel ? (

@@ -19,7 +19,8 @@ import {
 } from "@repo/core";
 
 import { Campo, Enviar, Escolha, Recado } from "@/components/form-ui";
-import { Bloco, CartaoJornada, PilulaTotal } from "@/components/pecas";
+import { EsqueletoAlbum } from "@/components/esqueleto";
+import { Bloco, CartaoJornada, Explica, PilulaTotal, Secao } from "@/components/pecas";
 import type { Fatia } from "@/components/progresso";
 import { marcarPrimeiraMeta } from "@/components/pwa";
 import { paraCentavos, paraInstante } from "@/lib/dinheiro";
@@ -109,9 +110,9 @@ export function Lista() {
         <h1 className="text-[27px] font-bold tracking-[-0.04em] lg:text-4xl">
           Jornadas de vocês
         </h1>
-        <p className="mt-1 font-corpo text-[12.5px] text-suave-forte">
+        <Explica className="mt-1">
           O que vocês estão juntando dinheiro para conseguir.
-        </p>
+        </Explica>
       </header>
 
       {/* Desktop: álbum à esquerda, "nova jornada" à direita. Antes o
@@ -122,11 +123,20 @@ export function Lista() {
       {isError ? (
         <Recado erro="Não consegui carregar as jornadas agora." />
       ) : isPending ? (
-        <p className="font-corpo text-[13px] text-suave">Carregando…</p>
+        <EsqueletoAlbum quantos={4} />
       ) : jornadas.length === 0 ? (
-        <p className="max-w-[26ch] text-[20px] font-bold leading-tight tracking-[-0.03em]">
-          Ainda não tem jornada nenhuma. Comecem por uma.
-        </p>
+        /* O vazio é uma página em branco do álbum, não um recado de erro: a
+           frase grande diz o que falta, e a linha abaixo aponta para o
+           formulário que já está na tela. */
+        <div className="flex flex-col items-start gap-3 py-2">
+          <p className="max-w-[26ch] text-[22px] font-bold leading-tight tracking-[-0.03em]">
+            Ainda não tem jornada nenhuma. Comecem por uma.
+          </p>
+          <Explica className="max-w-[42ch]">
+            Pode ser a viagem, a entrada do apê, ou só um fundo do sossego. Dá
+            para mudar o nome e o valor depois — o que importa é começar.
+          </Explica>
+        </div>
       ) : (
         <>
           <PilulaTotal>{formatBRL(total)} juntos</PilulaTotal>
@@ -156,7 +166,7 @@ export function Lista() {
       </div>
 
       <Bloco className="mt-1 lg:sticky lg:top-10 lg:col-start-2 lg:row-start-1 lg:mt-0">
-        <h2 className="text-[17px] font-bold tracking-[-0.03em]">Nova jornada</h2>
+        <Secao>Nova jornada</Secao>
         <form onSubmit={criarJornada} className="mt-3 flex flex-col gap-3.5">
           <Campo rotulo="O que vocês querem" name="titulo" maxLength={120} required />
           <Campo

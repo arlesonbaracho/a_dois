@@ -1,10 +1,11 @@
 // Server component puro, sem JS de cliente: offline os chunks do Next não
-// carregam, então esta tela precisa se sustentar só com o HTML.
+// carregam, então esta tela precisa se sustentar só com o HTML — e por isso
+// ela não usa nenhuma peça que dependa de "use client".
 export default function Offline() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-3 p-8 text-center">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col items-center justify-center gap-3 p-8 text-center">
       <h1 className="text-[27px] font-bold tracking-[-0.04em]">Sem conexão</h1>
-      <p className="max-w-xs text-balance">
+      <p className="max-w-[30ch] font-corpo text-[12.5px] leading-relaxed text-suave-forte">
         O plano de vocês mora na nuvem, então precisamos de internet para
         carregar. Assim que a conexão voltar, é só recarregar a página.
       </p>

@@ -3,8 +3,18 @@
 import { useActionState, useState } from "react";
 
 import type { CanalConvite, ConviteAberto, PedidoPendente } from "@repo/api";
+import { iniciaisDoCasal, type CorDePessoa } from "@repo/core";
 
-import { Campo, Enviar, Interruptor, Recado, type EstadoForm } from "@/components/form-ui";
+import {
+  Campo,
+  Enviar,
+  Escolha,
+  Interruptor,
+  Perigo,
+  Recado,
+  type EstadoForm,
+} from "@/components/form-ui";
+import { DiscoDePessoa, Explica, Secao } from "@/components/pecas";
 
 import { acaoCriarConvite, acaoPedido, acaoSair, type EstadoConvite } from "./actions";
 
@@ -96,19 +106,16 @@ function FormCriar() {
 
   return (
     <form action={acao} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Como você quer convidar</span>
-        <select
-          name="canal"
-          value={canal}
-          onChange={(e) => setCanal(e.target.value as CanalConvite)}
-          className="rounded-bloco border border-borda bg-white px-3.5 py-2.5 text-base"
-        >
-          <option value="link">Um link que eu mesmo mando</option>
-          <option value="email">Pelo e-mail da pessoa</option>
-          <option value="nickname">Pelo apelido dela aqui no app</option>
-        </select>
-      </label>
+      <Escolha
+        rotulo="Como você quer convidar"
+        name="canal"
+        value={canal}
+        onChange={(e) => setCanal(e.target.value as CanalConvite)}
+      >
+        <option value="link">Um link que eu mesmo mando</option>
+        <option value="email">Pelo e-mail da pessoa</option>
+        <option value="nickname">Pelo apelido dela aqui no app</option>
+      </Escolha>
 
       {canal === "email" ? (
         <Campo rotulo="E-mail da pessoa" name="email" type="email" required />
@@ -123,26 +130,23 @@ function FormCriar() {
         />
       ) : null}
 
-      <p className="text-sm text-suave-forte">
+      <Explica>
         {canal === "link"
           ? "O link vale 24 horas, e serve para quem estiver com ele."
           : "O convite vale 72 horas e só funciona para essa pessoa — mas quem manda o link é você, não a gente."}{" "}
         Em qualquer um dos casos, quem receber ainda vai depender da sua
         confirmação para ver alguma coisa.
-      </p>
+      </Explica>
 
       <Recado erro={estado.erro} aviso={estado.aviso} />
 
       {estado.link ? (
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Link do convite</span>
-          <input
-            readOnly
-            value={estado.link}
-            onFocus={(e) => e.currentTarget.select()}
-            className="rounded-bloco border border-borda px-3 py-2 font-mono text-xs"
-          />
-        </label>
+        <Campo
+          rotulo="Link do convite"
+          readOnly
+          value={estado.link}
+          onFocus={(e) => e.currentTarget.select()}
+        />
       ) : null}
 
       <Enviar>Criar convite</Enviar>
@@ -157,15 +161,20 @@ function ConviteAtivo({ convite }: { convite: ConviteAberto }) {
     <form action={acao} className="flex flex-col gap-2 border-t border-divisa pt-3">
       <input type="hidden" name="id" value={convite.invite_id} />
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm">
+        <span className="text-[13.5px] font-semibold tracking-[-0.02em]">
           {NOME_DO_CANAL[convite.channel]}
           {convite.email_mascarado ? ` — ${convite.email_mascarado}` : ""}
         </span>
-        <button type="submit" name="acao" value="revogar" className="text-sm underline">
+        <button
+          type="submit"
+          name="acao"
+          value="revogar"
+          className="font-corpo text-[11.5px] text-suave underline transition-colors hover:text-tinta"
+        >
           Cancelar
         </button>
       </div>
-      <span className="text-xs text-suave-forte">
+      <span className="font-corpo text-[11px] text-suave">
         vale até {new Date(convite.expires_at).toLocaleString("pt-BR")}
       </span>
       <Recado erro={estado.erro} aviso={estado.aviso} />
@@ -185,11 +194,11 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
 
   return (
     <form action={acao} className="flex flex-col gap-3 border-t border-divisa pt-6">
-      <h2 className="text-sm font-semibold">Sair do plano</h2>
+      <Secao>Sair do plano</Secao>
 
       {sozinho ? (
         <>
-          <p className="text-sm">
+          <p className="font-corpo text-[12.5px] leading-relaxed text-corpo">
             Você está sozinho aqui, então sair <strong>apaga o plano inteiro</strong>:
             jornadas, itens, aportes e histórico de preço. Não dá para desfazer, e a
             gente não guarda cópia.
@@ -202,7 +211,7 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
           />
         </>
       ) : (
-        <p className="text-sm">
+        <p className="font-corpo text-[12.5px] leading-relaxed text-corpo">
           Seus aportes continuam no plano, com os valores intactos, mas passam a
           aparecer como <strong>ex-membro</strong>. Seu nome e sua faixa de renda
           somem daqui, e sua sessão cai na hora.
@@ -211,36 +220,59 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
 
       <Recado erro={estado.erro} aviso={estado.aviso} />
 
-      <button type="submit" className="self-start rounded-bloco px-4 py-2 text-sm underline">
-        {sozinho ? "Sair e apagar o plano" : "Sair do plano"}
-      </button>
+      <Perigo type="submit">{sozinho ? "Sair e apagar o plano" : "Sair do plano"}</Perigo>
     </form>
   );
 }
+
+type Membro = { chave: string; nome: string; papel: string; cor: CorDePessoa };
 
 export function TelaParceiro({
   pedidos,
   ativos,
   membros,
+  dupla,
 }: {
   pedidos: PedidoPendente[];
   ativos: ConviteAberto[];
   membros: number;
+  dupla: Membro[];
 }) {
   const planoCheio = membros >= 2;
 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-4 p-5 lg:max-w-2xl lg:p-10">
       <div>
-        <h1 className="text-[27px] font-bold tracking-[-0.04em]">Quem divide o plano</h1>
-        <p className="mt-1 text-suave-forte">
+        <h1 className="text-[27px] font-bold tracking-[-0.04em] lg:text-4xl">
+          Quem divide o plano
+        </h1>
+        <Explica className="mt-1">
           Convidar é só o começo: ninguém entra sem você confirmar.
-        </p>
+        </Explica>
       </div>
 
       {pedidos.map((pedido) => (
         <CartaoPedido key={pedido.invite_id} pedido={pedido} />
       ))}
+
+      {/* Quem já está dentro, com a cor que a pessoa tem no resto do app. A
+          tela se chamava "Quem divide o plano" e não dizia quem era. */}
+      <ul className="flex flex-col gap-2">
+        {dupla.map((membro) => (
+          <li
+            key={membro.chave}
+            className="flex items-center gap-3 rounded-bloco bg-white p-3"
+          >
+            <DiscoDePessoa iniciais={iniciaisDoCasal([membro.nome])} cor={membro.cor} />
+            <span className="min-w-0 flex-1">
+              <b className="block truncate text-[13px] font-semibold">{membro.nome}</b>
+              <i className="block font-corpo text-[10.5px] not-italic text-suave">
+                {membro.papel}
+              </i>
+            </span>
+          </li>
+        ))}
+      </ul>
 
       {planoCheio ? (
         <p className="rounded-cartao bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-corpo">
@@ -252,7 +284,7 @@ export function TelaParceiro({
 
       {ativos.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">Convites em aberto</h2>
+          <Secao>Convites em aberto</Secao>
           {ativos.map((convite) => (
             <ConviteAtivo key={convite.invite_id} convite={convite} />
           ))}

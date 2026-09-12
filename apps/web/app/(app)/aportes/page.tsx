@@ -1,5 +1,12 @@
 import { aportes, membrosDoCasal, metas, meuCasal, perfisDoCasal, usuarioAtual } from "@repo/api";
-import { type Participante, pesosDaRegra, saldoDoCasal, sumCents } from "@repo/core";
+import {
+  type CorDePessoa,
+  coresDoCasal,
+  type Participante,
+  pesosDaRegra,
+  saldoDoCasal,
+  sumCents,
+} from "@repo/core";
 
 import { criarClienteServidor } from "@/lib/supabase/server";
 
@@ -55,6 +62,15 @@ export default async function Aportes() {
 
   const eu = membros.find((membro) => membro.user_id === usuario?.id);
 
+  // A mesma cor que a pessoa tem na home e na jornada. Vem de coresDoCasal, e
+  // nunca do índice do array da tela: verde tem que ser a MESMA pessoa em todo
+  // lugar, senão nenhuma barra bicolor do app quer dizer nada.
+  const cores = coresDoCasal(
+    membros.map((membro) => ({ userId: membro.user_id, papel: membro.role })),
+  );
+  const corDe = (userId: string | null): CorDePessoa =>
+    userId ? (cores.get(userId) ?? "fora") : "fora";
+
   const nomes: Record<string, string> = {};
   for (const membro of membros) {
     nomes[membro.user_id] =
@@ -73,11 +89,13 @@ export default async function Aportes() {
       ultimos={listaAportes.slice(0, 8).map((aporte) => ({
         id: aporte.id,
         quem: aporte.user_id ? (nomes[aporte.user_id] ?? "Ex-membro") : "Ex-membro",
+        cor: corDe(aporte.user_id),
         valorCents: aporte.amount_cents,
         quando: aporte.contributed_at,
       }))}
       saldo={saldo}
       nomes={nomes}
+      cores={Object.fromEntries(membros.map((m) => [m.user_id, corDe(m.user_id)]))}
       totalDoPlanoCents={totalDoPlanoCents}
       disponivel={disponivel}
       minhaRegra={regra}

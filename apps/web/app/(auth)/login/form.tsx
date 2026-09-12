@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
+import { Campo, Cartao, Enviar, Recado, Saida, type EstadoForm } from "@/components/form-ui";
 
 import { acaoEntrar } from "../actions";
 
@@ -46,12 +46,12 @@ export function FormLogin({
         <Enviar>Entrar</Enviar>
       </form>
 
-      <div className="flex flex-col gap-2 text-sm">
-        <Link href="/recuperar-senha" className="underline">
-          Esqueci minha senha
+      <div className="flex flex-col items-start gap-2">
+        <Link href="/recuperar-senha">
+          <Saida>Esqueci minha senha</Saida>
         </Link>
-        <Link href="/cadastro" className="underline">
-          Ainda não temos conta
+        <Link href="/cadastro">
+          <Saida>Ainda não temos conta</Saida>
         </Link>
       </div>
     </Cartao>

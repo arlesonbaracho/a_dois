@@ -5,7 +5,7 @@ import { useActionState } from "react";
 
 import { SENHA_MINIMA } from "@repo/core";
 
-import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
+import { Campo, Cartao, Enviar, Recado, Saida, type EstadoForm } from "@/components/form-ui";
 
 import { acaoCadastrar } from "../actions";
 
@@ -40,8 +40,8 @@ export default function Cadastro() {
         <Enviar>Criar conta</Enviar>
       </form>
 
-      <Link href="/login" className="text-sm underline">
-        Já tenho conta
+      <Link href="/login" className="self-start">
+        <Saida>Já tenho conta</Saida>
       </Link>
     </Cartao>
   );

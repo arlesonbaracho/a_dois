@@ -13,7 +13,8 @@ import {
 } from "@repo/api";
 import { paraCsv } from "@repo/core";
 
-import { Campo, Interruptor, Recado } from "@/components/form-ui";
+import { Campo, Interruptor, Recado, Secundario } from "@/components/form-ui";
+import { Explica, Secao } from "@/components/pecas";
 import { baixar, nomeDoArquivo } from "@/lib/baixar";
 
 import { acaoExcluirConta } from "./actions";
@@ -120,45 +121,43 @@ export function Privacidade({ userId }: { userId: string }) {
       <Recado erro={erro} aviso={aviso} />
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-[17px] font-bold tracking-[-0.03em]">Levar seus dados</h2>
-        <p className="text-sm text-suave-forte">
+        <Secao>Levar seus dados</Secao>
+        <Explica>
           Baixa um arquivo com tudo que a gente guarda: seu perfil, suas escolhas
           de privacidade, e o plano de vocês inteiro — jornadas, itens, aportes e os
           preços que a gente consultou. Como o plano é de duas pessoas, o arquivo
           leva junto o nome e os aportes de quem divide ele com você;{" "}
           <strong>o e-mail dessa pessoa sai escondido</strong>, e o token dos
           convites nunca sai.
-        </p>
-        <p className="text-sm text-suave-forte">
-          O JSON serve para outro aplicativo ler. O CSV abre no Excel.
-        </p>
+        </Explica>
+        <Explica>O JSON serve para outro aplicativo ler. O CSV abre no Excel.</Explica>
         <div className="flex gap-3">
-          <button
+          {/* Pílula, como todo controle do app: estes dois eram os únicos
+              botões com canto de 18px, e destoavam de qualquer outra tela. */}
+          <Secundario
             type="button"
             onClick={() => void exportar("json")}
             disabled={baixando !== null}
-            className="rounded-bloco border border-borda px-4 py-2 text-sm font-semibold disabled:opacity-60"
           >
             {baixando === "json" ? "Montando…" : "Baixar JSON"}
-          </button>
-          <button
+          </Secundario>
+          <Secundario
             type="button"
             onClick={() => void exportar("csv")}
             disabled={baixando !== null}
-            className="rounded-bloco border border-borda px-4 py-2 text-sm font-semibold disabled:opacity-60"
           >
             {baixando === "csv" ? "Montando…" : "Baixar CSV"}
-          </button>
+          </Secundario>
         </div>
       </section>
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-[17px] font-bold tracking-[-0.03em]">O que você deixa a gente fazer</h2>
-          <p className="text-sm text-suave-forte">
+          <Secao>O que você deixa a gente fazer</Secao>
+          <Explica className="mt-1">
             Cada um destes é independente. Desligar um não desliga os outros, e
             desligar qualquer um não tira nenhuma função do app.
-          </p>
+          </Explica>
         </div>
 
         {CONSENTIMENTOS.map((item) => {
@@ -178,7 +177,7 @@ export function Privacidade({ userId }: { userId: string }) {
                 rotulo={item.rotulo}
                 descricao={item.descricao}
               />
-              <p className="pl-7 text-xs text-suave">
+              <p className="pl-7 font-corpo text-[11px] text-suave">
                 {carregandoPerfil
                   ? "Carregando…"
                   : desde
@@ -191,7 +190,7 @@ export function Privacidade({ userId }: { userId: string }) {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-[17px] font-bold tracking-[-0.03em] text-alerta">Apagar minha conta</h2>
+        <Secao className="text-alerta">Apagar minha conta</Secao>
 
         <div className="flex flex-col gap-2 rounded-cartao bg-alerta-suave p-4 font-corpo text-[12.5px] leading-relaxed text-alerta">
           <p className="font-semibold">O que some, e não volta:</p>
@@ -235,7 +234,7 @@ export function Privacidade({ userId }: { userId: string }) {
           type="button"
           onClick={() => void excluir()}
           disabled={!podeExcluir}
-          className="self-start rounded-full bg-alerta px-5 py-3 text-[13px] font-semibold text-white disabled:opacity-40"
+          className="self-start rounded-full bg-alerta px-5 py-3 text-[13px] font-semibold text-white transition hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
         >
           Apagar minha conta
         </button>
