@@ -48,7 +48,13 @@ export function Progresso({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="Quanto vocês já juntaram desta jornada"
-        className="flex h-1.5 w-full overflow-hidden rounded-full bg-areia"
+        className={`flex h-1.5 w-full overflow-hidden rounded-full bg-areia ${
+          // Sem nada dentro, a barra lisa lê como defeito. A listra diz "ainda
+          // não começou", que é estado legítimo e comum numa jornada nova.
+          aportadoCents === 0
+            ? "bg-[repeating-linear-gradient(115deg,var(--color-areia)_0_5px,var(--color-borda)_5px_10px)]"
+            : ""
+        }`}
       >
         {fatias && fatias.length > 0 ? (
           fatias.map((fatia) => (

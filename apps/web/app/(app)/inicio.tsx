@@ -148,8 +148,12 @@ export function Inicio({
         {/* Quem colocou quanto, no plano inteiro. Não é preenchimento: é a
             pergunta que o casal faz depois de "quanto já temos", e é o que
             sustenta a coluna da direita no desktop. */}
+        {/* Só no desktop. No celular esta peça empilhava uma terceira caixa de
+            dinheiro antes da primeira polaroide, e o álbum — que é a tese da
+            tela — sumia abaixo dos números. Quem quiser o detalhe no celular
+            tem a mesma conta, inteira, em /aportes. */}
         {porPessoa.some((pessoa) => pessoa.cents > 0) ? (
-          <div className="rounded-cartao bg-white p-4">
+          <div className="hidden rounded-cartao bg-white p-4 lg:block">
             <h2 className="text-[13.5px] font-bold tracking-[-0.02em]">Quem colocou</h2>
             <ul className="mt-2.5 flex flex-col gap-2.5">
               {porPessoa.map((pessoa) => (

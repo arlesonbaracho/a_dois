@@ -129,8 +129,9 @@ select {
   background-position: right 0.85rem center;
 }
 
-/* O Manrope fecha as palavras em 10–12px — "este mês" chegava a ligar. Um
-   respiro devolve a leitura sem mexer no tamanho. */
+/* O Manrope fecha as palavras em 10–12px a ponto de ligar ("o usodela",
+   "juntandodinheiro"). 0.05em aqui era 0.6px e sumia no arredondamento — o
+   valor precisa sobreviver à rasterização no tamanho onde o defeito mora. */
 .font-corpo {
-  word-spacing: 0.05em;
+  word-spacing: 0.12em;
 }
