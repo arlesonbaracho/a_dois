@@ -53,6 +53,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-11 | **No ar.** Supabase em `sa-east-1` (`qysekkewsrwtebpiowim`), 11 migrations aplicadas, 9 tabelas com RLS, cron do expurgo ativo. Web em `a-dois-web.vercel.app` | `6d0e3c0` |
 | 2026-09-11 | `/auth/confirm` passa a aceitar `?code=` além de `?token_hash=`, e a recuperação de senha carrega `?type=recovery` no `redirect_to`. É o que faz o cadastro funcionar em produção sem SMTP próprio, porque o painel do Supabase só libera editar template de e-mail para quem tem remetente configurado | `(este commit)` |
 | 2026-09-11 | **Visual novo, e o produto vira "Jornada".** Paleta e tipografia do design em tokens `@theme` do Tailwind 4; Outfit e Manrope self-hosted por `next/font`; 7 ícones desenhados em SVG; peças novas (polaroide, pílula do total, cartão limão, chip, dock); barra de progresso bicolor por pessoa; cartão "este mês". As 15 telas repintadas, `/metas` virou `/jornadas`, e `APP_NAME` virou "Jornada". `packages/core/src/album.ts` com as regras novas (cor estável por pessoa, total do mês, parcela mensal), 18 testes. Conferido nos dois tamanhos, com contraste medido | `(este commit)` |
+| 2026-09-11 | Três rodadas de revisão de acabamento sobre o visual novo. Fechados: o kicker banido pelo piso de craft, `role="progressbar"` na barra do mês (era regressão de acessibilidade minha), o cartão escuro devolvido ao uso exclusivo do pedido do parceiro, a barra do mês bicolor por pessoa, o giro escalado à largura (a 690px a linha de item cisalhava sobre a vizinha), os rádios da divisão fora do azul de sistema, o grão do papel, o espaçamento do Manrope pequeno, e a home no desktop recomposta em três colunas com "Quem colocou" ancorando a direita | `(este commit)` |
 
 ---
 
@@ -60,8 +61,20 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-A fila dos prompts acabou, e a da auditoria também: os sete achados estão
-fechados. O que falta está em **Falta (backlog)** e em **Dívidas**.
+**1. Capa da jornada via Storage.** É o que fecha a linha MATERIAL da revisão
+de acabamento: a tese do produto é "fotos tortas sobre papel", e hoje o plano
+de imagem da polaroide é material em CSS, não fotografia. Exige bucket,
+migration, RLS e as quatro policies — e a URL tem que ficar **presa ao nosso
+bucket**, nunca livre, pela mesma razão que `profiles.avatar_url` existe e
+nenhuma função grava nela: URL de terceiro faz o navegador de quem abre buscar
+um endereço escolhido por outra pessoa, entregando IP e horário. Decidido em
+2026-09-11 que entra em plan mode próprio.
+
+**2. Nome no cadastro.** Também migration (`raw_user_meta_data` lido pelo
+gatilho `handle_new_user`), e também decidido em 2026-09-11. Ver Dívidas.
+
+Fora isso, a fila dos prompts acabou e a da auditoria também: os sete achados
+estão fechados. O resto está em **Falta (backlog)** e em **Dívidas**.
 
 A próxima que eu pegaria é `couple_members_update`, por ser dado pessoal com
 conserto de uma linha, seguida de `couple_members.split_rule`, que mora na
@@ -340,6 +353,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | desktop com pouca jornada | Com três jornadas o desktop deixa boa parte da tela em creme. É coerente com a tese do álbum sobre a mesa, mas com uma jornada só fica visivelmente vazio | Baixa |
 | `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
 | tela "Nova jornada" | O design tem uma tela própria em dois passos (chips de categoria, slider de valor, prazo em pílulas, checklist de começo). Não foi construída: o formulário dentro de `/jornadas` cumpre a função com os mesmos campos | Baixa |
+| `components/pecas.tsx` (`Chapa`) | A revisão de acabamento marcou a linha MATERIAL como **contraditada**: a tese é "fotos tortas sobre papel" e o plano de imagem da polaroide é gradiente em CSS, não fotografia. Não é escolha — não existe gerador de imagem no ambiente, e a capa de verdade depende do Storage. Enquanto isso a chapa segura a composição e já não lê como imagem quebrada, mas a tese do álbum não fecha sem foto | **Alta** |
+| home no desktop | Com três jornadas, a parte de baixo de um viewport de 900px fica em creme. As duas colunas terminam juntas e o bloco lê como composição, mas com uma jornada só continua visivelmente vazio | Baixa |
 
 ---
 
