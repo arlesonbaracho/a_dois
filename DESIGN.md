@@ -62,6 +62,12 @@ typography:
     fontWeight: 600
     lineHeight: 1.4
     letterSpacing: "normal"
+  micro:
+    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "10.5px"
+    fontWeight: 400
+    lineHeight: 1.35
+    letterSpacing: "normal"
 rounded:
   chapa: "3px"
   polaroide: "6px"
@@ -296,8 +302,11 @@ diferença entre as duas é o que separa o que o app afirma do que o app convers
   polaroide, o rótulo de interruptor, o texto de botão.
 - **Body** (Manrope 400, 12.5px, leading `relaxed`): explicação, legenda,
   recado. Sempre com a classe `.font-corpo`.
-- **Label** (Manrope 600, 10.5–11.5px): rótulo de campo, saudação, contagem de
-  chip, os rótulos do cartão de tinta.
+- **Label** (Manrope 600, 11.5px): rótulo de campo, saudação.
+- **Micro** (Manrope 400/600, 10.5px): a categoria sob o título da polaroide, a
+  contagem do chip, a data de um aporte, os rótulos do cartão de tinta e a
+  etiqueta "comprado". É o menor degrau que existe — abaixo dele o Manrope
+  fecha as palavras e nem `word-spacing` salva.
 
 ### Named Rules
 

@@ -284,7 +284,7 @@ export function CartaoJornada({
         className="group-hover:-translate-y-1 group-focus-visible:-translate-y-1"
       >
         <Chapa categoria={categoria} capaUrl={capaUrl} className="h-24 lg:h-40" />
-        <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em] lg:text-[15px]">
+        <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em]">
           {titulo}
         </b>
         <span className="mt-px block font-corpo text-[10.5px] text-suave">

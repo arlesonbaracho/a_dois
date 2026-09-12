@@ -40,7 +40,7 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
       {/* Irmãos, não aninhados: o e2e mede o pai deste <p> para conferir que o
           e-mail sai mascarado, e um invólucro o deixaria de fora. */}
       <span className="-mb-2 font-corpo text-[10.5px] text-noite-suave">pedido pendente</span>
-      <p className="text-[16px] font-bold tracking-[-0.03em]">
+      <p className="text-[17px] font-bold tracking-[-0.03em]">
         Alguém pediu para entrar no plano de vocês
       </p>
 

@@ -389,7 +389,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                           </span>
                         </span>
                         {comprado ? (
-                          <span className="flex-none rounded-full bg-tinta px-2 py-1 font-corpo text-[10px] font-bold text-limao">
+                          <span className="flex-none rounded-full bg-tinta px-2 py-1 font-corpo text-[10.5px] font-bold text-limao">
                             comprado
                           </span>
                         ) : null}
