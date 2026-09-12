@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-12 (nome no cadastro, regra do casal, linha de cada um)
+**Última atualização:** 2026-09-12 (varredura de design: chapa desenhada, rampa tipográfica única, esqueletos, dois movimentos)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -61,6 +61,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-12 | **A regra de divisão passa a ser do casal.** `split_rule` sobe de `couple_members` para `couples`, com backfill fazendo uma vez em SQL a escolha que `regraDoCasal` fazia a cada render. A função some, e com ela `Participante.papel` e `Participante.regra`. `salvarMinhaDivisao` vira duas escritas em duas tabelas | `cc692c5` |
 | 2026-09-12 | **Cada um edita só a própria linha de vínculo.** `couple_members_update` ganha `user_id = auth.uid()` no `with check`; o `using` segue o casal inteiro, porque ler a linha do par é legítimo. Teste dentro do MESMO casal, com a varredura sem WHERE incluída | `5c41f6b` |
 | 2026-09-12 | **Produção em dia.** As quatro migrations aditivas aplicadas no hospedado e o web em `2578b5e`. O `drop column` foi isolado numa quinta migration retida, e foi isso que tirou a necessidade de janela coordenada: `db push` e deploy deixaram de precisar acontecer juntos. Provado antes por `scripts/subir-producao.sh` (ensaio contra o estado exato de produção, com dados) e conferido depois por `migration list --linked`. Fica provado também que `postgres` cria policy em `storage.objects` no hospedado — era o único ponto que não dava para verificar local | `—` |
+| 2026-09-12 | **Varredura de design em todo o app.** A chapa da polaroide ganha marca de categoria desenhada (mesmo grid de 24 e traço 1.75 dos ícones) e duotone mais quente — seis retângulos de gradiente dessaturado lado a lado liam como galeria de imagem que não carregou. `rotuloDaCategoria` em `packages/core` tira o valor cru do banco da tela ("bebe" virava chip). Peças novas: `Secao`, `Explica`, `Saida`, `Perigo`, `DiscoDePessoa`, `PontoDePessoa`, `LinhaAporte` e `esqueleto.tsx`. `Cartao` passa a carregar a marca | `5ba9371` |
+| 2026-09-12 | **As telas param de inventar tipografia.** `text-sm`/`text-xs`/`text-base` sumiram de `apps/web` — eram a escala do Tailwind, e como o `body` fixa a fonte de display entregavam conversa na voz de afirmação. Em /aportes dava para ver no mesmo formulário. Todo `<select>` vem de `Escolha`. Junto: /parceiro passa a dizer quem divide o plano, /aportes ganha as cores das pessoas e perde os links que duplicavam o dock, /jornadas e a jornada aberta abrem com esqueleto em vez de "Carregando…", a legenda da barra quebra num ponto só, e no desktop a chapa dobra de altura. 41 e2e, RLS e guardas verdes | `89f5bb2` |
 
 ---
 
@@ -322,6 +324,10 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-12 | `split_rule` sai de `couple_members` e vai para `couples` | Substitui a decisão de 2026-09-10: com uma coluna por casal não há o que desempatar, e `regraDoCasal` deixa de existir |
 | 2026-09-12 | `salvarRegraDoCasal` busca o casal em vez de recebê-lo | PostgREST recusa update sem WHERE (`21000`), e couple_id vindo do cliente é a regra 3 do CLAUDE.md. Buscar por `meuCasal` resolve os dois |
 | 2026-09-12 | O e2e espera a resposta da Server Action, não o recado na tela | O recado do salvamento anterior continua visível enquanto o novo não volta: esperar por ele passa na hora e não espera nada |
+| 2026-09-12 | A marca de categoria dentro da chapa, em vez de esperar a foto do Storage | O gradiente sozinho lia como imagem quebrada; a capa de verdade continua entrando por cima quando existe, e o desenho é o que fica quando não existe |
+| 2026-09-12 | Um degrau de 17px com nome (`Secao`) em vez de proibir tamanhos novos | O degrau já existia em quatro variantes; dar nome a ele é o que impede a quinta |
+| 2026-09-12 | `key={aportadoCents}` na barra de progresso | É o que faz a animação repetir quando o valor muda pelo Realtime; sem ele o gesto só rodaria na primeira montagem e o valor mudaria num salto |
+| 2026-09-12 | `prefers-reduced-motion` num bloco global em `globals.css`, não peça a peça | Uma declaração cobre toda animação e transição do app, inclusive as que ainda não existem |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -385,14 +391,17 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `/auth/confirm` × `?code=` | O caminho feliz do `?code=` não tem teste de suíte — o stack local usa os templates próprios, e trocá-los quebraria os outros 37 testes. Só a recusa (código inventado não vira sessão) está coberta; o sucesso foi provado por sonda manual e pelo teste de fumaça | Média |
 | identificadores × produto | Produto e rota dizem "jornada"; o código ainda diz `useMetas`, `criarMeta`, `DadosMeta`, `Meta`. Um `s/Meta/Jornada/` cego quebra `Metadata` e `MetadataRoute`, então o rename exige lista explícita de identificadores | Média |
 | `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
-| desktop com pouca jornada | Com três jornadas o desktop deixa boa parte da tela em creme. É coerente com a tese do álbum sobre a mesa, mas com uma jornada só fica visivelmente vazio | Baixa |
+| desktop com pouca jornada | A chapa dobrando de altura no `lg` resolveu o caso de seis jornadas — a composição ia até 45% da altura e agora enche a tela. Com uma ou duas jornadas continua visivelmente vazio, e aí o conserto é outro: a coluna da direita teria que descer para junto do álbum | Baixa |
 | `contributions_update` | Mesma classe do `couple_members_update` que acabou de fechar: o update segue aberto ao casal, então dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Custa uma cláusula no `with check` | Baixa |
 | capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
 | `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
 | tela "Nova jornada" | O design tem uma tela própria em dois passos (chips de categoria, slider de valor, prazo em pílulas, checklist de começo). Não foi construída: o formulário dentro de `/jornadas` cumpre a função com os mesmos campos | Baixa |
-| home no desktop | Com três jornadas, a parte de baixo de um viewport de 900px fica em creme. As duas colunas terminam juntas e o bloco lê como composição, mas com uma jornada só continua visivelmente vazio | Baixa |
+| dock no desktop | O trilho da esquerda é uma pílula de 2 discos mais o botão preto, flutuando sozinha numa faixa de 6rem de creme. Funciona e é o mesmo dock deitado, mas lê como peça solta, não como barra. Não tem conserto óbvio sem inventar elemento novo | Baixa |
+| `iniciaisDoCasal` × "Você" | A mesma pessoa aparece como "Ana" na jornada e como "Você" em /aportes, então o disco colorido mostra "A" numa tela e "V" na outra. O nome está certo nas duas (uma é lista compartilhada, a outra é a conta de cada um), mas o disco é a mesma peça e diverge. Ficou visível justamente porque as duas telas passaram a usar `LinhaAporte` | Baixa |
+| ordem do álbum | As jornadas saem em `created_at desc`, então a mais nova vem primeiro e a principal pode terminar por último. Não há ordenação por prioridade nem por quanto falta, e `goals.priority` é gravada e nunca lida na tela | Baixa |
+| chapa × foto | A marca de categoria tirou o ar de imagem quebrada, mas a tese ainda diz "fotos tortas sobre papel" e o que está lá é desenho. A capa de verdade já entra por cima quando existe; o que falta é o caminho que faz o casal pôr foto em todas — hoje é um clique por jornada, escondido no detalhe | Baixa |
 
 ---
 

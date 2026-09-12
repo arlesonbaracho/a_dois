@@ -32,6 +32,12 @@ typography:
     fontWeight: 700
     lineHeight: 1.15
     letterSpacing: "-0.03em"
+  secao:
+    fontFamily: "Outfit, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "17px"
+    fontWeight: 700
+    lineHeight: 1.2
+    letterSpacing: "-0.03em"
   title:
     fontFamily: "Outfit, ui-sans-serif, system-ui, sans-serif"
     fontSize: "13.5px"
@@ -169,7 +175,10 @@ porque não existe paleta escura desenhada.
 - Todo controle é pílula (raio 9999px).
 - Progresso é bicolor por pessoa, nunca preenchimento único.
 - Outfit carrega estrutura e número; Manrope carrega o que é dito em voz humana.
-- Ícones desenhados à mão em SVG, grid de 24, traço 1.75.
+- Ícones desenhados à mão em SVG, grid de 24, traço 1.75 — e a mesma mão
+  desenha a marca de categoria dentro da chapa.
+- Dois movimentos autorais e nenhum a mais: a barra que cresce e a polaroide
+  que endireita.
 
 ## Colors
 
@@ -192,6 +201,14 @@ para o que é dito em voz baixa, e um limão que só aparece quando importa.
   com ordem estável (papel `dono` primeiro, empate pelo `user_id`).
 - **Cinza de quem saiu** (`pessoa-fora`): aportes de ex-membro. O valor
   continua inteiro; só a identidade esfria.
+
+### Material da chapa
+Seis duotones, um por categoria, só dentro da polaroide — nunca como cor de
+interface. Os primeiros eram dessaturados a ponto de seis deles lado a lado
+lerem como galeria de imagem que não carregou; shipam mais quentes e mais
+separados entre si: sálvia (`casa`), azul de mar (`viagem`), mel (`reserva`),
+rosé (`casamento`), lilás (`bebe`) e a sálvia neutra da casa (`geral`). Cada um
+carrega a marca da categoria em `white/35` — ver **Chapa**.
 
 ### Tertiary
 - **Alerta** (`alerta`) sobre **alerta-suave** (`alerta-suave`): o único par
@@ -236,6 +253,12 @@ segundo cartão escuro em qualquer outro lugar faz o primeiro parar de sinalizar
 na home e âmbar na jornada, a barra bicolor deixa de querer dizer qualquer
 coisa.
 
+**A Regra do Rótulo de Gente.** Valor de coluna não vai para a tela. A faixa
+de chips mostrava `bebe` e `geral` — minúscula, sem acento — porque era o texto
+cru de `goals.category`, no meio de uma interface que escreve em português de
+gente. A tradução é `rotuloDaCategoria` em `packages/core`, e ela vale para o
+chip, para a legenda do cartão e para o cabeçalho da jornada.
+
 **A Regra do Limão Escasso.** O limão nunca é fundo de página nem texto sobre
 papel. Ele aparece em três lugares por tela, no máximo: o total, o cartão
 "este mês", e o que acabou de ser conquistado.
@@ -264,6 +287,11 @@ diferença entre as duas é o que separa o que o app afirma do que o app convers
 - **Number** (Outfit 800, 20px, tracking −0.04em, `tabular-nums`): o valor
   dentro do cartão limão. Todo número que muda usa `tabular-nums` — sem isso a
   linha dança a cada centavo.
+- **Seção** (Outfit 700, 17px, tracking −0.03em): o `<h2>` de bloco dentro de
+  uma tela — "Nova jornada", "Como vocês dividem", "Os últimos". Existia de
+  fato e sem nome, em quatro tamanhos diferentes (17, 16, 15 e o `text-sm` do
+  Tailwind, que nem é do sistema). Agora tem um nome e um componente,
+  `Secao`, e é por isso que a quinta variante não nasce.
 - **Title** (Outfit 600, 13.5px, tracking −0.02em): o nome da jornada na
   polaroide, o rótulo de interruptor, o texto de botão.
 - **Body** (Manrope 400, 12.5px, leading `relaxed`): explicação, legenda,
@@ -282,6 +310,14 @@ defeito mora.
 **A Regra das Duas Vozes.** Se o texto é dito por uma pessoa a outra, é
 Manrope. Se é estrutura, título ou número, é Outfit. Não existe terceira face,
 e nenhuma das duas é a fonte do sistema.
+
+**A Regra do Degrau com Nome.** `text-sm`, `text-xs` e `text-base` são a escala
+padrão do Tailwind, não a nossa — e como o `body` fixa a fonte de display, cada
+um deles pedia 14, 12 ou 16px em **Outfit** para frases que eram conversa.
+Chegaram a conviver no mesmo formulário: em /aportes o rótulo "Em qual jornada"
+saía 14px em Outfit e o "Quanto (R$)" logo abaixo saía 11.5px em Manrope. Todo
+degrau da rampa tem componente (`Secao`, `Explica`, `Campo`, `Escolha`,
+`Saida`); classe de tamanho solta numa tela é drift.
 
 ## Layout
 
@@ -364,8 +400,16 @@ botão de canto arredondado a 8px não pertence a este mundo.
 - **Conceder (só no cartão de tinta):** fundo limão com texto tinta, para a
   ação que cria vínculo. Ao lado dele, o recusar é contorno em `papel/25`, e o
   terciário é texto sublinhado em `noite-suave`.
+- **Perigo (`Perigo`):** contorno em `alerta/35` com texto `alerta`, para
+  apagar e sair. Contorno e não preenchimento: o preenchido em `alerta` fica
+  reservado à confirmação final em /perfil. Antes estas ações eram texto
+  sublinhado solto, indistinguível de link de rodapé.
 - **Foco:** todos herdam o anel global — 2px sólidos de tinta, offset 3px.
   Nunca removido.
+- **Toque:** todo controle encolhe 2–5% enquanto está pressionado
+  (`active:scale-*`). O mundo é de coisa na mão; coisa na mão afunda quando se
+  aperta. É a única resposta que todo controle do app dá, e ela custa uma
+  classe.
 
 ### Chips
 - **Style:** pílula branca com borda `tinta/10`, 12.5px medium; hover escurece
@@ -405,11 +449,20 @@ botão de canto arredondado a 8px não pertence a este mundo.
 - Todo ícone é `aria-hidden`; o nome do destino vai em texto `sr-only`.
 
 ### Icons
-Sete desenhos autorais em `components/icones.tsx`, todos no mesmo grid de 24,
-traço 1.75, pontas e junções arredondadas, `fill="none"`, `currentColor`. É o
-que faz um conjunto parecer um conjunto. O design de referência usava glifos
-Unicode (`◎ ▤ ✓ ‹`); glifo não é ícone — o peso do traço muda com a fonte do
-sistema e no Android alguns viram emoji colorido.
+Oito ícones de interface e seis marcas de categoria em `components/icones.tsx`,
+todos no mesmo grid de 24, traço 1.75, pontas e junções arredondadas,
+`fill="none"`, `currentColor`. É o que faz um conjunto parecer um conjunto. O
+design de referência usava glifos Unicode (`◎ ▤ ✓ ‹`); glifo não é ícone — o
+peso do traço muda com a fonte do sistema e no Android alguns viram emoji
+colorido.
+
+As marcas (`MarcaCasa`, `MarcaViagem`, `MarcaReserva`, `MarcaCasamento`,
+`MarcaBebe`, `MarcaGeral`) vivem dentro da chapa, grandes. O traço é o mesmo
+1.75 do grid de 24, e como o SVG escala junto ele engrossa com o desenho — que
+é o que dá o ar de traço feito à mão em vez de ícone de barra. `MarcaViagem` é
+serra e sol, e não avião de papel, porque avião de papel lê como "enviar";
+`MarcaGeral` é o brilho de quatro pontas, e nenhuma das outras pode se parecer
+com ele.
 
 ### Polaroide (peça-assinatura)
 Moldura branca, raio 6px, padding 8/12, `shadow-polaroide`, girada por índice
@@ -421,8 +474,8 @@ quebraria a hidratação). Duas escalas de giro:
 
 **Interação-assinatura:** marcar um item como comprado **endireita** a
 polaroide — a rotação vai a 0° em 500ms — e a etiqueta vira pílula de tinta com
-o texto em limão. É o gesto de colar no álbum, e é o único movimento autoral do
-app.
+o texto em limão. É o gesto de colar no álbum. Ver **Motion** para o outro
+momento autoral, a barra que cresce.
 
 ### Progresso
 Trilho de 6px de altura em `areia`, pílula, com as fatias lado a lado nas cores
@@ -435,17 +488,72 @@ Sempre `role="progressbar"` com `aria-valuenow/min/max` e `aria-label` em voz
 humana ("Quanto vocês já juntaram desta jornada"). Inclui a barra do mês. Não
 regride.
 
-### Chapa (o material da foto) — a promessa em aberto
+## Motion
+
+Dois momentos autorais, e nada mais. O piso é: se o movimento não fala do
+dinheiro nem da posse de um objeto, ele não entra.
+
+1. **A barra cresce.** Ao montar e a **cada valor novo**, o grupo de fatias
+   escala de 0 a 1 a partir da esquerda, em 900ms com desaceleração
+   (`cubic-bezier(.16,1,.3,1)`). A barra chega, não bate. O `key` no total
+   aportado é o que faz o gesto repetir quando o parceiro aporta do outro
+   aparelho — sem ele a animação só rodaria na primeira montagem e o valor
+   mudaria num salto. É o único movimento da tela que fala do que o casal
+   veio ver.
+2. **A polaroide endireita.** Marcar um item como comprado leva a rotação a 0°
+   em 500ms e a etiqueta vira pílula de tinta com o texto em limão. É o gesto
+   de colar no álbum.
+
+Fora isso: a peça do álbum **levanta** (translação, nunca sombra nova) sob o
+mouse e sob o foco de teclado, o disco de ação cresce 5%, e todo controle
+encolhe ao toque. `prefers-reduced-motion: reduce` zera animação e transição
+para o app inteiro, num bloco só em `globals.css` — é por isso que ele mora lá
+e não em cada peça.
+
+### Chapa (o material da foto)
 O plano de imagem da polaroide é um duotone autoral em CSS: gradiente radial
 com horizonte por categoria (casa, viagem, reserva, casamento, bebê, geral),
-grão SVG em `mix-blend-overlay` e um brilho oblíquo de luz de sala.
+grão SVG em `mix-blend-overlay`, a **marca da categoria** por cima em
+`white/35`, e um brilho oblíquo de luz de sala.
 
-**Isto não é uma fotografia, e a tese diz "fotos tortas sobre papel".** Três
-rodadas de revisão de acabamento marcaram a linha MATERIAL como contradita, e
-com razão: o `Chapa` parece um objeto, que era o mínimo, mas não é a foto que o
-mundo promete. A correção de verdade é Supabase Storage com a URL presa ao
-nosso bucket — é migration, e está parada como tarefa própria. Registrado aqui
-como a única promessa não cumprida do sistema, não como decisão de design.
+A marca não é enfeite, é conserto. Sem ela o álbum eram seis retângulos de
+gradiente dessaturado lado a lado, e retângulo de gradiente lê como imagem que
+não carregou: era o defeito mais visível do app inteiro. Com o desenho dentro,
+cada polaroide vira um objeto diferente dos outros, que é o que a tese
+prometia.
+
+**Continua não sendo uma fotografia**, e a tese diz "fotos tortas sobre papel".
+A diferença é que agora o que está lá é assumidamente um desenho nosso, e não
+um retângulo esperando virar foto. A correção de verdade continua sendo a capa
+de verdade pelo Supabase Storage — que já existe e entra por cima quando há
+`cover_path`. O material é o que se vê enquanto a foto não chegou, e o que fica
+quando a jornada não tem capa.
+
+### Estados de carregamento
+`components/esqueleto.tsx`. Três telas de cliente (`/jornadas`, a jornada
+aberta, o perfil) abriam com a palavra "Carregando…" em cinza claro no canto de
+uma tela inteira de creme vazio — a primeira coisa que se via, e a que mais
+parecia erro. O esqueleto é a **forma do que vem**: polaroides em branco na
+grade certa, com a chapa listrada em `areia`/`borda`, a mesma listra que a
+barra de progresso sem aporte usa. A tela não muda de layout quando os dados
+chegam.
+
+`aria-busy` mais um `sr-only`, nunca `role="status"`: quem usa leitor de tela
+ouve "Carregando" uma vez, e as caixas vazias ficam mudas.
+
+### Pessoas
+`DiscoDePessoa` (32px, iniciais em branco) e `PontoDePessoa` (10px, só a cor)
+são as duas únicas formas de mostrar de quem é o dinheiro. A cor sempre de
+`coresDoCasal`. `LinhaAporte` é a linha de aporte — quem, quando, quanto —
+e existe porque o mesmo fato aparecia de duas formas: bloco branco com disco
+colorido na jornada, e duas colunas de texto pelado em /aportes.
+
+### Tela de porta
+`Cartao`, em `components/form-ui.tsx`, é a moldura de login, cadastro, senha e
+convite. Carrega a marca: uma pílula de tinta com o `APP_NAME` em limão, no
+topo da tela, separada do título por um vão de verdade — rótulo colado em
+cabeçalho é etiqueta, não marca. Antes eram seis telas de creme vazio com um
+título no meio, e eram a primeira coisa que alguém via do produto.
 
 ## Do's and Don'ts
 
@@ -464,6 +572,12 @@ como a única promessa não cumprida do sistema, não como decisão de design.
   `components/icones.tsx`.
 - **Do** usar só classes Tailwind básicas: a fase 2 reescreve o `@theme`, não
   as telas.
+- **Do** puxar todo degrau de texto de um componente — `Secao`, `Explica`,
+  `Campo`, `Escolha`, `Saida`. Tamanho solto numa tela é o começo da quinta
+  variante.
+- **Do** passar toda categoria por `rotuloDaCategoria` antes de mostrar.
+- **Do** mostrar a forma do que vem enquanto carrega, e nunca a palavra
+  "Carregando" sozinha numa tela vazia.
 
 ### Don't:
 - **Don't** usar o cartão de tinta (`#16170F`) fora do fluxo do pedido do
@@ -483,3 +597,11 @@ como a única promessa não cumprida do sistema, não como decisão de design.
 - **Don't** girar 2° em linha larga; ali a escala é `sutil`.
 - **Don't** montar classe Tailwind por concatenação (`bg-${cor}`): a varredura
   de texto não a encontra e a cor some.
+- **Don't** escrever `text-sm`, `text-xs` ou `text-base`: são a escala do
+  Tailwind, não a nossa, e como o `body` fixa a fonte de display elas entregam
+  conversa na voz de afirmação.
+- **Don't** montar `<label>` com `<select>` ou `<input>` à mão ao lado de
+  campos que vêm de `form-ui`. Dá para ver na tela: era o defeito de /aportes e
+  de /parceiro.
+- **Don't** acrescentar um terceiro momento de movimento. Dois bastam, e o
+  terceiro apaga os dois.
