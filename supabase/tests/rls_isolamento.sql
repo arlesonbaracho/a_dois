@@ -35,6 +35,29 @@ end $$;
 
 -- Guarda contra teste vazio: sem grant, zero linha viria de permissão negada e
 -- não de RLS, e o teste passaria sem ter testado nada.
+create function rls_teste.texto(rotulo text, obtido text, esperado text)
+returns void language plpgsql as $$
+begin
+  if obtido is distinct from esperado then
+    raise exception 'FALHOU em "%": "%", esperava "%"', rotulo, obtido, esperado;
+  end if;
+end $$;
+
+-- Espera que o comando exploda. Erro de digitação não conta como recusa: os
+-- sqlstates de função/sintaxe/tabela inexistente viram TESTE INVÁLIDO.
+create function rls_teste.recusa(rotulo text, comando text)
+returns void language plpgsql as $$
+begin
+  execute comando;
+  raise exception 'FALHOU: "%" deveria ter sido recusado, e passou', rotulo;
+exception
+  when others then
+    if sqlerrm like 'FALHOU:%' then raise; end if;
+    if sqlstate in ('42883', '42601', '42P01') then
+      raise exception 'TESTE INVÁLIDO em "%": % (%)', rotulo, sqlerrm, sqlstate;
+    end if;
+end $$;
+
 create function rls_teste.exige_grant(papel text)
 returns void language plpgsql as $$
 declare t text;
@@ -340,6 +363,57 @@ begin
   perform rls_teste.igual('parceiro vê a linha da Ana',  (select count(*) from public.couple_members where user_id = ana), 1);
   perform rls_teste.igual('parceiro não vê o casal B',   (select count(*) from public.goals          where couple_id = casal_b), 0);
   raise notice 'o parceiro enxerga o próprio casal e não o outro';
+end $$;
+
+-- ===========================================================================
+-- Cenário 2b — ver a linha do par não é poder editá-la
+-- ===========================================================================
+-- Ler a linha do parceiro é legítimo: é dela que sai o nome na lista "Quem
+-- colocou" e a faixa que o rateio proporcional usa. ESCREVER nela não é — a
+-- faixa de renda é dado pessoal dela, e quem responde é ela.
+--
+-- O teste vive aqui, dentro do MESMO casal, porque entre casais qualquer
+-- policy sã já recusa: a versão entre casais passaria mesmo com esta cláusula
+-- ausente, e passaria pelo motivo errado.
+
+do $$
+declare
+  ana   constant uuid := 'a0000001-0000-0000-0000-000000000001';
+  artur constant uuid := 'a0000002-0000-0000-0000-000000000002';
+  n bigint;
+begin
+  -- A própria linha, sim.
+  update public.couple_members set income_band = 'de_5_a_10_sm' where user_id = artur;
+  get diagnostics n = row_count;
+  perform rls_teste.igual('Artur edita a própria faixa de renda', n, 1);
+
+  -- A da Ana, não. É o with check que recusa, e por isso levanta em vez de
+  -- devolver zero linha: o using ainda enxerga a linha, e a checagem acontece
+  -- sobre o resultado.
+  --
+  -- Se um dia o using também for restringido a `user_id = auth.uid()` — o que
+  -- seria MAIS apertado, não menos —, estas três viram update de zero linha e
+  -- o `recusa` passa a reprovar sem haver bug. Nesse dia, troque por
+  -- `igual(n, 0)`; o que não pode mudar é a asserção logo abaixo, que é a que
+  -- diz o que interessa: a faixa da Ana continua como ela deixou.
+  perform rls_teste.recusa('Artur editando a faixa de renda da Ana', format($q$
+    update public.couple_members set income_band = 'ate_2_sm' where user_id = %L
+  $q$, ana));
+
+  perform rls_teste.recusa('Artur rebaixando a Ana a parceira', format($q$
+    update public.couple_members set role = 'parceiro' where user_id = %L
+  $q$, ana));
+
+  -- E a varredura sem where tampouco: sem predicado, não há linha "citada"
+  -- para a policy de select filtrar, e só o with check segura.
+  perform rls_teste.recusa('Artur varrendo couple_members', $q$
+    update public.couple_members set income_band = 'ate_2_sm'
+  $q$);
+
+  perform rls_teste.texto('a faixa da Ana ficou como estava',
+    (select income_band::text from public.couple_members where user_id = ana), null);
+
+  raise notice 'cada um edita a própria linha, e só ela';
 end $$;
 
 -- ===========================================================================

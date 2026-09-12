@@ -94,10 +94,23 @@ insert into storage.objects (bucket_id, name, owner) values
   ('capas', 'cbbbbbbb-0000-0000-0000-00000000000b/cb100000-0000-0000-0000-00000000000b/cf000000-0000-0000-0000-0000000000f2.jpg',
    'cb000001-0000-0000-0000-000000000001');
 
+-- Conta só o que é DESTE teste, e não o bucket inteiro.
+--
+-- Aqui ainda somos postgres, ou seja, sem RLS filtrando: um banco que já
+-- rodou a suíte e2e tem capas de verdade guardadas, e a contagem global
+-- reprovaria por motivo nenhum. As asserções depois do `set local role`
+-- podem contar à vontade — lá o RLS já reduz ao casal de quem pergunta.
+create function capa_teste.minhas() returns bigint language sql as $$
+  select count(*) from storage.objects
+  where bucket_id = 'capas'
+    and (name like 'caaaaaaa-0000-0000-0000-00000000000a/%'
+      or name like 'cbbbbbbb-0000-0000-0000-00000000000b/%');
+$$;
+grant execute on function capa_teste.minhas() to authenticated, anon;
+
 do $$
 begin
-  perform capa_teste.igual('seed: duas capas no bucket',
-    (select count(*) from storage.objects where bucket_id = 'capas'), 2);
+  perform capa_teste.igual('seed: duas capas no bucket', capa_teste.minhas(), 2);
   raise notice 'seed ok: 2 casais, 3 jornadas, 2 capas';
 end $$;
 
