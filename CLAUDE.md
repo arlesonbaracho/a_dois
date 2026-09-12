@@ -4,11 +4,11 @@ App de planejamento de metas para casais. Duas pessoas, um plano compartilhado, 
 
 Nome provisório. Não espalhe "A DOIS" pelo código — use `APP_NAME` de `packages/core/src/constants.ts`.
 
-> **Este arquivo é o que manda.** Existe um `CLAUDE.md` antigo em
-> `~/Documentos/` que descreve a fase 1 como Expo puro, com `src/features/` e
-> token em `expo-secure-store`. Ele é anterior à decisão de começar pela web e
-> **está errado para este repositório**. Se algo que você leu fala em `src/`,
-> `app.json` ou AsyncStorage, veio de lá — ignore e siga este.
+> **Este arquivo é o que manda.** Existiu um `CLAUDE.md` em `~/Documentos/`
+> descrevendo a fase 1 como Expo puro, com `src/features/` e rotas em `app/`.
+> Ele era anterior à decisão de começar pela web, entrava no contexto junto
+> com este, e foi apagado em 2026-09-12. Se algo que você leu fala em `src/`,
+> `app.json` ou `npx expo start` como se fosse hoje, não é deste projeto.
 
 
 
@@ -70,13 +70,14 @@ Um PR que viole qualquer uma delas está errado.
 1. **Toda tabela tem `couple_id` e RLS habilitado.** Tabela sem `enable row level security` é vazamento público, porque a `anon key` fica embarcada no cliente.
 2. **Nenhuma policy usa `using (true)`** nem se contenta com `auth.uid() is not null`.
 3. **`couple_id` sempre vem do JWT**, nunca do corpo da requisição. Aceitar do cliente é IDOR.
-4. **`SUPABASE_SERVICE_ROLE_KEY` nunca sai do servidor.** Nunca em variável com prefixo `NEXT_PUBLIC_`, nunca importada em Client Component. Só em Route Handler, Server Action ou Edge Function.
+4. **`SUPABASE_SERVICE_ROLE_KEY` nunca sai do servidor.** Nunca em variável com prefixo `NEXT_PUBLIC_` (nem `EXPO_PUBLIC_` na fase 2), nunca importada em Client Component. Só em Route Handler, Server Action ou Edge Function.
 5. **Toda Edge Function e Route Handler valida o JWT antes de qualquer lógica.**
 6. **Fetch de URL externa passa pelo guard anti-SSRF** em `supabase/functions/_shared/ssrf-guard.ts`. Nunca `fetch` direto com URL vinda do usuário.
 7. **Dinheiro é `integer` em centavos.** Nunca float. Formatação só na UI, via `formatBRL()` de `packages/core`.
 8. **Nenhum log, breadcrumb ou evento de Sentry carrega valor monetário, e-mail ou `couple_id`.**
-9. **Sessão em cookie `httpOnly` + `secure` + `sameSite=lax`**, via `@supabase/ssr`. Nunca token em `localStorage`.
+9. **Sessão em cookie `httpOnly` + `secure` + `sameSite=lax`**, via `@supabase/ssr`. Nunca token em `localStorage`. Na fase 2 o equivalente é `expo-secure-store`, nunca `AsyncStorage`.
 10. **Service worker não faz cache de resposta autenticada.** Só do shell estático.
+11. **Push notification sem valor no corpo.** "Nova movimentação no plano", nunca "Ana adicionou R$ 4.200" — notificação aparece na tela de bloqueio, para quem estiver olhando. Vale a partir da fase 2; está aqui para não ser redescoberto depois do primeiro vazamento.
 
 ## Modelo de dados
 
