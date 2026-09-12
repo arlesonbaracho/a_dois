@@ -1,5 +1,6 @@
 export * from "./album";
 export * from "./capa";
+export * from "./categorias";
 export * from "./constants";
 export * from "./csv";
 export * from "./money";

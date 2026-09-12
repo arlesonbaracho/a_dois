@@ -38,7 +38,7 @@ export function Dock() {
               key={href}
               href={href}
               aria-current={aqui ? "page" : undefined}
-              className={`grid size-11 place-items-center rounded-full transition-colors ${
+              className={`grid size-11 place-items-center rounded-full transition active:scale-90 ${
                 aqui ? "bg-tinta text-white" : "text-suave hover:bg-areia"
               }`}
             >
@@ -51,7 +51,7 @@ export function Dock() {
 
       <Link
         href="/aportes"
-        className="grid size-12 place-items-center rounded-full bg-tinta text-limao shadow-peca transition-transform hover:scale-105"
+        className="grid size-12 place-items-center rounded-full bg-tinta text-limao shadow-peca transition-transform hover:scale-105 active:scale-95"
       >
         <IconeMais className="size-6" />
         <span className="sr-only">Anotar um aporte</span>

@@ -56,24 +56,40 @@ export function Progresso({
             : ""
         }`}
       >
-        {fatias && fatias.length > 0 ? (
-          fatias.map((fatia) => (
-            <i
-              key={fatia.chave}
-              className={`block h-full ${COR[fatia.cor]}`}
-              style={{ width: `${base > 0 ? Math.min(100, (fatia.cents / base) * 100) : 0}%` }}
-            />
-          ))
-        ) : (
-          <i
-            className="block h-full bg-tinta transition-[width] duration-500"
-            style={{ width: `${percentual}%` }}
-          />
-        )}
+        {/* O grupo inteiro cresce da esquerda, uma vez, a cada valor novo.
+            `key` no total é o que faz o gesto REPETIR quando o parceiro
+            aporta do outro aparelho: sem ele a animação só rodaria na
+            primeira montagem, e a barra mudaria de tamanho num salto. É o
+            único movimento da tela que fala do dinheiro. */}
+        <span
+          key={aportadoCents}
+          className="anima-crescer flex h-full w-full origin-left"
+        >
+          {fatias && fatias.length > 0 ? (
+            fatias.map((fatia) => (
+              <i
+                key={fatia.chave}
+                className={`block h-full ${COR[fatia.cor]}`}
+                style={{ width: `${base > 0 ? Math.min(100, (fatia.cents / base) * 100) : 0}%` }}
+              />
+            ))
+          ) : (
+            <i className="block h-full bg-tinta" style={{ width: `${percentual}%` }} />
+          )}
+        </span>
       </div>
+      {/* O texto é um nó só de propósito — a suíte e2e ancora na frase
+          inteira. O que muda é o peso: o que já entrou é o fato, o alvo e a
+          porcentagem são referência. */}
       <p className="font-corpo text-[11px] tabular-nums text-suave">
-        {formatBRL(aportadoCents)}
-        {alvoCents > 0 ? <> de {formatBRL(alvoCents)}</> : null} · {percentual}%
+        <b className="font-bold text-tinta">{formatBRL(aportadoCents)}</b>{" "}
+        {/* O `{" "}` acima não é enfeite: sem ele o JSX come o espaço entre os
+            dois nós e a linha fica sem ponto de quebra nenhum — o texto
+            vazava para fora da polaroide. Com ele, a única quebra possível é
+            depois do valor que já entrou, que é onde ela faz sentido. */}
+        <span className="whitespace-nowrap">
+          {alvoCents > 0 ? <>de {formatBRL(alvoCents)} </> : null}· {percentual}%
+        </span>
       </p>
     </div>
   );

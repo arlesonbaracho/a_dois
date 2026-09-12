@@ -26,7 +26,7 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
       aria-labelledby="primeiros-passos"
       className="rounded-cartao bg-tinta p-4 text-papel"
     >
-      <h2 id="primeiros-passos" className="text-[16px] font-bold tracking-[-0.03em]">
+      <h2 id="primeiros-passos" className="text-[17px] font-bold tracking-[-0.03em]">
         Comecem por aqui
       </h2>
       <p className="mt-0.5 font-corpo text-[11.5px] text-noite-suave">
@@ -41,7 +41,7 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
             <li key={passo.id}>
               <Link
                 href={passo.href}
-                className={`flex items-start gap-2.5 rounded-bloco px-2.5 py-2.5 transition-colors hover:bg-papel/10 ${
+                className={`flex items-start gap-2.5 rounded-bloco px-2.5 py-2.5 transition hover:bg-papel/10 active:scale-[0.99] ${
                   feito ? "opacity-55" : ""
                 }`}
               >

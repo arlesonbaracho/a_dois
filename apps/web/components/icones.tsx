@@ -84,3 +84,54 @@ export const IconePessoa = (props: Props) => (
     <path d="M5.2 20.2a6.8 6.8 0 0 1 13.6 0" />
   </Base>
 );
+
+/**
+ * As marcas de categoria.
+ *
+ * Vivem na chapa da polaroide, grandes e em tom claro: é o desenho que estava
+ * faltando para um retângulo de gradiente parar de parecer imagem que não
+ * carregou. Mesmo grid de 24 e mesmo traço de 1.75 dos ícones de interface —
+ * ampliadas, o traço engrossa junto, que é o que dá o ar de desenho à mão.
+ */
+export const MarcaCasa = IconeCasa;
+
+/** Serra e sol: a paisagem que estaria na foto, e não o ícone de "enviar". */
+export const MarcaViagem = (props: Props) => (
+  <Base {...props}>
+    <circle cx="16.9" cy="6.6" r="2.4" />
+    <path d="M2.6 19.4 8.5 10.5l3.7 5.4" />
+    <path d="M9.6 19.4 14.3 12.6l6.9 6.8" />
+  </Base>
+);
+
+/** Reserva é o que cresce parado: um broto, não um cofre. */
+export const MarcaReserva = (props: Props) => (
+  <Base {...props}>
+    <path d="M12 20.6v-8.2" />
+    <path d="M12 12.4C12 8.9 14.6 6 18.2 6c0 3.5-2.6 6.4-6.2 6.4z" />
+    <path d="M12 15.1C12 12.4 9.9 10 6.9 10c0 2.8 2.2 5.1 5.1 5.1z" />
+  </Base>
+);
+
+export const MarcaCasamento = (props: Props) => (
+  <Base {...props}>
+    <circle cx="9.2" cy="14.4" r="5.4" />
+    <circle cx="15.6" cy="10.4" r="5.4" />
+  </Base>
+);
+
+/** Ursinho: cabeça e duas orelhas encaixadas, nunca soltas. */
+export const MarcaBebe = (props: Props) => (
+  <Base {...props}>
+    <circle cx="12" cy="13.8" r="5.9" />
+    <circle cx="6.9" cy="7.6" r="2.5" />
+    <circle cx="17.1" cy="7.6" r="2.5" />
+  </Base>
+);
+
+/** O brilho de quando ainda não se sabe o que é — e de quando dá certo. */
+export const MarcaGeral = (props: Props) => (
+  <Base {...props}>
+    <path d="M12 3.2c0 4.4 2.2 8.8 8.8 8.8-6.6 0-8.8 4.4-8.8 8.8 0-4.4-2.2-8.8-8.8-8.8 6.6 0 8.8-4.4 8.8-8.8z" />
+  </Base>
+);

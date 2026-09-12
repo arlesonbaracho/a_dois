@@ -68,7 +68,7 @@ export function Pwa() {
       <div className="mt-3 flex gap-2">
         <button
           type="button"
-          className="rounded-full bg-tinta px-4 py-2.5 text-[12.5px] font-semibold text-white"
+          className="rounded-full bg-tinta px-4 py-2.5 text-[12.5px] font-semibold text-white transition hover:opacity-90 active:scale-[0.97]"
           onClick={() => {
             void evento.prompt();
             setEvento(null);
@@ -78,7 +78,7 @@ export function Pwa() {
         </button>
         <button
           type="button"
-          className="rounded-full border border-borda px-4 py-2.5 text-[12.5px] font-semibold text-suave-forte"
+          className="rounded-full border border-borda px-4 py-2.5 text-[12.5px] font-semibold text-suave-forte transition hover:bg-areia active:scale-[0.97]"
           onClick={dispensar}
         >
           Agora não

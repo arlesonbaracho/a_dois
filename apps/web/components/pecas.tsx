@@ -1,8 +1,16 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { formatBRL } from "@repo/core";
+import { formatBRL, iniciaisDoCasal, rotuloDaCategoria } from "@repo/core";
 
+import {
+  MarcaBebe,
+  MarcaCasa,
+  MarcaCasamento,
+  MarcaGeral,
+  MarcaReserva,
+  MarcaViagem,
+} from "./icones";
 import { Progresso, type Fatia } from "./progresso";
 
 /**
@@ -56,7 +64,13 @@ export function Polaroide({
  *
  * A hachura anterior lia como imagem quebrada, e a etiqueta `[ categoria ]`
  * lia como token de debug — os dois foram embora. No lugar, um material
- * autoral por categoria: duotone com horizonte e grão fino, tudo em CSS.
+ * autoral por categoria: duotone com horizonte, grão fino e a marca da
+ * categoria desenhada por cima, tudo em CSS e SVG nosso.
+ *
+ * A marca não é enfeite: seis retângulos de gradiente lado a lado no álbum
+ * liam como galeria de imagem que não carregou, e era o defeito mais visível
+ * da tela inteira. Com o desenho dentro, cada polaroide vira um objeto
+ * diferente dos outros — que é o que a tese do álbum prometia.
  *
  * Com o Storage, a foto de verdade entra por cima — e o material continua
  * aqui, agora no papel que sempre foi o dele: é o que se vê enquanto a foto
@@ -65,13 +79,16 @@ export function Polaroide({
  * sem efeito. Polaroide sem foto continua parecendo um objeto, e não uma
  * falha de carregamento.
  */
-const MATERIAL: Record<string, { de: string; para: string; forma: string }> = {
-  casa: { de: "#8C9A8E", para: "#5F6E62", forma: "circle at 72% 118%" },
-  viagem: { de: "#9BB4C4", para: "#6C8699", forma: "circle at 28% 120%" },
-  reserva: { de: "#B9AE95", para: "#8A7F68", forma: "circle at 50% 125%" },
-  casamento: { de: "#C1A17E", para: "#93765A", forma: "circle at 60% 120%" },
-  bebe: { de: "#C2B3C4", para: "#8E7E92", forma: "circle at 40% 118%" },
-  geral: { de: "#A2A492", para: "#75786A", forma: "circle at 55% 120%" },
+const MATERIAL: Record<
+  string,
+  { de: string; para: string; forma: string; Marca: (props: { className?: string }) => ReactNode }
+> = {
+  casa: { de: "#86A98C", para: "#47614F", forma: "circle at 72% 118%", Marca: MarcaCasa },
+  viagem: { de: "#8FB7CE", para: "#476A86", forma: "circle at 28% 120%", Marca: MarcaViagem },
+  reserva: { de: "#D2B478", para: "#8D6F3D", forma: "circle at 50% 125%", Marca: MarcaReserva },
+  casamento: { de: "#D7A6A1", para: "#94595C", forma: "circle at 60% 120%", Marca: MarcaCasamento },
+  bebe: { de: "#BCAAD9", para: "#73629A", forma: "circle at 40% 118%", Marca: MarcaBebe },
+  geral: { de: "#A5AA8F", para: "#686D57", forma: "circle at 55% 120%", Marca: MarcaGeral },
 };
 
 // Grão: um ruído SVG em data URI. Fica no arquivo, não na rede — nenhuma
@@ -112,16 +129,22 @@ export function Chapa({
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
-      ) : null}
-      {/* O grão só existe para o gradiente parecer material. Sobre uma foto de
-          verdade ele vira ruído — num plano de 96px de altura, leria como
-          artefato de compressão. */}
-      {capaUrl ? null : (
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 mix-blend-overlay"
-          style={{ backgroundImage: GRAO }}
-        />
+      ) : (
+        <>
+          {/* O grão só existe para o gradiente parecer material. Sobre uma foto
+              de verdade ele vira ruído — num plano de 96px de altura, leria
+              como artefato de compressão. */}
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 mix-blend-overlay"
+            style={{ backgroundImage: GRAO }}
+          />
+          {/* A marca da categoria. Sem ela o plano de imagem é um retângulo de
+              gradiente, e retângulo de gradiente lê como foto que não carregou
+              — foi o defeito mais visível do álbum. Decorativa de propósito:
+              a categoria já é dita por extenso ao lado do título. */}
+          <m.Marca className="absolute -bottom-[12%] -right-[6%] h-[78%] w-auto text-white/35" />
+        </>
       )}
       {/* O brilho oblíquo que uma foto impressa tem sob luz de sala. Fica por
           cima da foto também: é o que faz a imagem parecer papel revelado e
@@ -138,7 +161,6 @@ export function Chapa({
   );
 }
 
-/** A pílula preta com o total em limão. */
 export function PilulaTotal({ children }: { children: ReactNode }) {
   return (
     <p className="rounded-full bg-tinta px-4 py-2.5 text-center font-corpo text-[11px] font-bold text-limao lg:py-3 lg:text-[13px]">
@@ -190,7 +212,7 @@ export function Chip({
     <button
       type="button"
       aria-pressed={ativo}
-      className={`flex flex-none items-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium transition-colors ${
+      className={`flex flex-none items-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium transition active:scale-95 ${
         ativo
           ? "border-tinta bg-tinta text-white"
           : "border-tinta/10 bg-white text-tinta hover:border-tinta/25"
@@ -251,10 +273,23 @@ export function CartaoJornada({
   indice: number;
 }) {
   return (
-    <Link href={`/jornadas/${id}`} className="mb-3 block break-inside-avoid">
-      <Polaroide indice={indice}>
-        <Chapa categoria={categoria} capaUrl={capaUrl} className="h-24" />
-        <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em]">{titulo}</b>
+    <Link
+      href={`/jornadas/${id}`}
+      className="group mb-3 block break-inside-avoid lg:mb-4"
+    >
+      {/* A peça levanta do papel ao passar o mouse. Translação, nunca sombra
+          nova: a sombra pertence ao objeto, não ao ponteiro. */}
+      <Polaroide
+        indice={indice}
+        className="group-hover:-translate-y-1 group-focus-visible:-translate-y-1"
+      >
+        <Chapa categoria={categoria} capaUrl={capaUrl} className="h-24 lg:h-40" />
+        <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em] lg:text-[15px]">
+          {titulo}
+        </b>
+        <span className="mt-px block font-corpo text-[10.5px] text-suave">
+          {rotuloDaCategoria(categoria)}
+        </span>
         <div className="mt-1.5">
           <Progresso
             percentual={percentual}
@@ -265,5 +300,109 @@ export function CartaoJornada({
         </div>
       </Polaroide>
     </Link>
+  );
+}
+
+/**
+ * O degrau de seção.
+ *
+ * Existia de fato — e em quatro tamanhos diferentes: 17, 16, 15 e o `text-sm`
+ * que nem era do sistema. Um degrau só, com nome, é o que impede a próxima
+ * tela de inventar o quinto.
+ */
+export function Secao({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <h2 className={`text-[17px] font-bold tracking-[-0.03em] ${className}`}>{children}</h2>
+  );
+}
+
+/**
+ * O parágrafo que explica.
+ *
+ * Toda vez que uma tela escreveu `text-sm text-suave-forte` ela pediu 14px na
+ * fonte de display — que é a voz do que o app AFIRMA. Explicação é o app
+ * conversando, e conversa é Manrope. A regra das duas vozes cabe num
+ * componente.
+ */
+export function Explica({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <p className={`font-corpo text-[12.5px] leading-relaxed text-suave-forte ${className}`}>
+      {children}
+    </p>
+  );
+}
+
+/** O disco com as iniciais, na cor de quem colocou o dinheiro. */
+const DISCO: Record<Fatia["cor"], string> = {
+  "pessoa-1": "bg-pessoa-1",
+  "pessoa-2": "bg-pessoa-2",
+  fora: "bg-pessoa-fora",
+};
+
+export function DiscoDePessoa({
+  iniciais,
+  cor,
+  className = "",
+}: {
+  iniciais: string;
+  cor: Fatia["cor"];
+  className?: string;
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`grid size-8 flex-none place-items-center rounded-full text-[12px] font-bold text-white ${DISCO[cor]} ${className}`}
+    >
+      {iniciais || "·"}
+    </span>
+  );
+}
+
+/** O ponto de cor ao lado de um nome, onde o disco de iniciais seria grande demais. */
+export function PontoDePessoa({ cor }: { cor: Fatia["cor"] }) {
+  return (
+    <span aria-hidden="true" className={`size-2.5 flex-none rounded-full ${DISCO[cor]}`} />
+  );
+}
+
+/**
+ * Uma linha de aporte: quem, quando, quanto.
+ *
+ * Mora aqui porque o mesmo fato aparecia de duas formas — bloco branco com
+ * disco colorido na jornada, e duas colunas de texto pelado em /aportes. Era a
+ * mesma coisa desenhada duas vezes, e por isso desenhada diferente.
+ */
+export function LinhaAporte({
+  nome,
+  legenda,
+  cor,
+  valorCents,
+}: {
+  nome: string;
+  legenda: string;
+  cor: Fatia["cor"];
+  valorCents: number;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-bloco bg-white p-3">
+      <DiscoDePessoa iniciais={iniciaisDoCasal([nome])} cor={cor} />
+      <span className="min-w-0 flex-1">
+        <b className="block truncate text-[13px] font-semibold">{nome}</b>
+        <i className="block font-corpo text-[10.5px] not-italic text-suave">{legenda}</i>
+      </span>
+      <b className="flex-none text-[13px] font-bold tabular-nums">{formatBRL(valorCents)}</b>
+    </div>
   );
 }

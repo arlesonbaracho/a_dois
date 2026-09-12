@@ -135,3 +135,59 @@ select {
 .font-corpo {
   word-spacing: 0.12em;
 }
+
+/* O calendário nativo era a última superfície que o navegador ainda desenhava
+   no estilo dele: um ícone azul de sistema no meio de creme e limão. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 150ms ease-out;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Título que quebra em linhas de tamanhos parecidos, e parágrafo que não
+   deixa palavra órfã na última linha. Duas declarações, e toda a massa de
+   texto do app para de ter aquele recorte torto de página montada. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+.font-corpo {
+  text-wrap: pretty;
+}
+
+/* O único movimento que fala do dinheiro: a barra cresce da esquerda até o
+   que o casal já juntou. Sai do zero e vai ao valor, com desaceleração —
+   a barra chega, não bate. */
+@keyframes crescer {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.anima-crescer {
+  animation: crescer 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Quem pediu menos movimento recebe o estado final, imediato. Vale para tudo
+   que anima no app, e não só para a barra: é a razão de o bloco ficar aqui e
+   não em cada peça. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

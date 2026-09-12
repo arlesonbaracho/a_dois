@@ -3,6 +3,8 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
+import { APP_NAME } from "@repo/core";
+
 // Peças burras dos formulários: nenhuma delas sabe o que é Supabase.
 
 /**
@@ -15,25 +17,56 @@ import { useFormStatus } from "react-dom";
  */
 export type EstadoForm = { erro?: string; aviso?: string; email?: string };
 
+/**
+ * A moldura de toda tela de porta: login, cadastro, senha, convite.
+ *
+ * Carrega a marca. Antes eram seis telas de creme vazio com um título no
+ * meio — a primeira coisa que alguém vê do produto, e a única parte dele que
+ * não dizia de quem era. A pílula preta com o nome em limão é o vocabulário
+ * que o app já usa para o total; aqui ela assina. Fica no topo, e não colada
+ * no título, porque rótulo acima de cabeçalho não é marca, é etiqueta.
+ */
 export function Cartao({
   titulo,
   subtitulo,
   children,
 }: {
   titulo: string;
-  subtitulo: string;
+  subtitulo: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-[-0.035em]">{titulo}</h1>
-        <p className="mt-1.5 font-corpo text-[13.5px] leading-relaxed text-suave-forte">
-          {subtitulo}
-        </p>
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col p-6">
+      <p className="py-6">
+        <span className="inline-block rounded-full bg-tinta px-3.5 py-1.5 text-[12px] font-bold tracking-[-0.02em] text-limao">
+          {APP_NAME}
+        </span>
+      </p>
+      <div className="flex flex-1 flex-col justify-center gap-6 pb-12">
+        <div>
+          <h1 className="text-3xl font-bold tracking-[-0.035em]">{titulo}</h1>
+          <p className="mt-1.5 font-corpo text-[13.5px] leading-relaxed text-suave-forte">
+            {subtitulo}
+          </p>
+        </div>
+        {children}
       </div>
-      {children}
     </main>
+  );
+}
+
+/**
+ * O link de rodapé das telas de porta.
+ *
+ * Eram `text-sm underline` soltos — 14px na fonte de display, que é a voz do
+ * que o app afirma, para uma frase que é conversa. Um lugar só, e as seis
+ * telas param de divergir.
+ */
+export function Saida({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-corpo text-[12.5px] font-semibold text-suave-forte underline transition-colors hover:text-tinta">
+      {children}
+    </span>
   );
 }
 
@@ -106,7 +139,7 @@ export function Enviar({ children, pendente }: { children: ReactNode; pendente?:
     <button
       type="submit"
       disabled={ocupado}
-      className="rounded-full bg-tinta px-5 py-3.5 text-[13.5px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="rounded-full bg-tinta px-5 py-3.5 text-[13.5px] font-semibold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
     >
       {ocupado ? "Um instante…" : children}
     </button>
@@ -121,7 +154,7 @@ export function Secundario({
   return (
     <button
       {...props}
-      className="rounded-full border border-borda bg-transparent px-4 py-2.5 text-[12.5px] font-semibold text-tinta transition-colors hover:bg-white disabled:opacity-50"
+      className="rounded-full border border-borda bg-transparent px-4 py-2.5 text-[12.5px] font-semibold text-tinta transition hover:bg-white active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
     >
       {children}
     </button>
@@ -139,5 +172,28 @@ export function Recado({ erro, aviso }: EstadoForm) {
     >
       {erro ?? aviso}
     </p>
+  );
+}
+
+/**
+ * A pílula do que não volta.
+ *
+ * Contorno e não preenchimento: apagar e sair precisam do peso de aviso, não
+ * do peso de botão principal — o preenchido em `alerta` fica reservado à
+ * confirmação final, que já existe em /perfil. Antes estas ações eram texto
+ * sublinhado solto, indistinguível de um link de rodapé, e a regra da pílula
+ * diz que tudo que se clica é pílula.
+ */
+export function Perigo({
+  children,
+  ...props
+}: { children: ReactNode } & ComponentProps<"button">) {
+  return (
+    <button
+      {...props}
+      className="self-start rounded-full border border-alerta/35 px-4 py-2.5 font-corpo text-[12.5px] font-semibold text-alerta transition hover:bg-alerta-suave active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+    >
+      {children}
+    </button>
   );
 }
