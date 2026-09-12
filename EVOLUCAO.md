@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-11 (visual novo, marca "Jornada")
+**Última atualização:** 2026-09-11 (capa da jornada via Storage)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -54,6 +54,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-11 | `/auth/confirm` passa a aceitar `?code=` além de `?token_hash=`, e a recuperação de senha carrega `?type=recovery` no `redirect_to`. É o que faz o cadastro funcionar em produção sem SMTP próprio, porque o painel do Supabase só libera editar template de e-mail para quem tem remetente configurado | `(este commit)` |
 | 2026-09-11 | **Visual novo, e o produto vira "Jornada".** Paleta e tipografia do design em tokens `@theme` do Tailwind 4; Outfit e Manrope self-hosted por `next/font`; 7 ícones desenhados em SVG; peças novas (polaroide, pílula do total, cartão limão, chip, dock); barra de progresso bicolor por pessoa; cartão "este mês". As 15 telas repintadas, `/metas` virou `/jornadas`, e `APP_NAME` virou "Jornada". `packages/core/src/album.ts` com as regras novas (cor estável por pessoa, total do mês, parcela mensal), 18 testes. Conferido nos dois tamanhos, com contraste medido | `(este commit)` |
 | 2026-09-11 | Três rodadas de revisão de acabamento sobre o visual novo. Fechados: o kicker banido pelo piso de craft, `role="progressbar"` na barra do mês (era regressão de acessibilidade minha), o cartão escuro devolvido ao uso exclusivo do pedido do parceiro, a barra do mês bicolor por pessoa, o giro escalado à largura (a 690px a linha de item cisalhava sobre a vizinha), os rádios da divisão fora do azul de sistema, o grão do papel, o espaçamento do Manrope pequeno, e a home no desktop recomposta em três colunas com "Quem colocou" ancorando a direita | `(este commit)` |
+| 2026-09-11 | **Capa da jornada via Storage.** Bucket `capas` privado, com teto de 2 MiB e `image/jpeg` na linha do bucket — os dois limites valem no servidor, aplicados pela API do Storage. `goals.cover_path` guarda caminho e nunca URL: a constraint compara o caminho contra o `couple_id` e o `id` da própria linha, então endereço de terceiro não entra na tabela. Quatro policies em `storage.objects` contra `is_couple_member`, e `casal_do_caminho` devolvendo null (não exceção) para caminho torto. `supabase/tests/capa.sql` com ~30 asserções, provado quebrando cada policy e a constraint uma a uma | `2c242cc` |
+| 2026-09-11 | **A foto na polaroide.** A `Chapa` recebe a capa e o gradiente vira o estado de espera e de ausência — sem estado e sem efeito, porque o navegador pinta o fundo antes de baixar a imagem. Envio pelo detalhe, com o arquivo reduzido a 1280px e reencodado em JPEG no navegador, o que TIRA O EXIF e a coordenada de GPS junto. Home assina no servidor, lista e detalhe por hook. Um e2e atravessa a costura inteira e confere que a URL é do nosso bucket e assinada | `157407c` |
 
 ---
 
@@ -61,17 +63,12 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 O que está na fila imediata, em ordem de execução.
 
-**1. Capa da jornada via Storage.** É o que fecha a linha MATERIAL da revisão
-de acabamento: a tese do produto é "fotos tortas sobre papel", e hoje o plano
-de imagem da polaroide é material em CSS, não fotografia. Exige bucket,
-migration, RLS e as quatro policies — e a URL tem que ficar **presa ao nosso
-bucket**, nunca livre, pela mesma razão que `profiles.avatar_url` existe e
-nenhuma função grava nela: URL de terceiro faz o navegador de quem abre buscar
-um endereço escolhido por outra pessoa, entregando IP e horário. Decidido em
-2026-09-11 que entra em plan mode próprio.
+**1. Nome no cadastro.** Migration (`raw_user_meta_data` lido pelo gatilho
+`handle_new_user`), decidido em 2026-09-11. Ver Dívidas.
 
-**2. Nome no cadastro.** Também migration (`raw_user_meta_data` lido pelo
-gatilho `handle_new_user`), e também decidido em 2026-09-11. Ver Dívidas.
+**2. Varrer a capa órfã.** Apagar jornada ou plano não apaga o arquivo do
+bucket: o `protect_delete` do Storage barra delete por SQL de propósito, para
+a API não ficar com blob sem dono. Ver Dívidas.
 
 Fora isso, a fila dos prompts acabou e a da auditoria também: os sete achados
 estão fechados. O resto está em **Falta (backlog)** e em **Dívidas**.
@@ -282,6 +279,12 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-11 | "Sair" e o e-mail da conta saíram da home e foram para o perfil | O design não tem nenhum dos dois na home, e o perfil é para onde o disco de iniciais do cabeçalho leva. Foram dois testes atualizados — mudança de produto, não conserto de teste |
 | 2026-09-11 | No detalhe, "por mês" no lugar de "já juntaram" | "Já juntaram" repetia palavra por palavra o que a barra diz logo acima, e virava segundo casamento em `getByText`. "Por mês, a dois" é o que o design pede ali, e some quando não há prazo — inventar horizonte seria mentir com número redondo |
 | 2026-09-11 | O desktop foi derivado por mim; o design só desenhou o celular | Você pediu responsivo de verdade. A derivação é literal ao tema: o mesmo álbum, aberto sobre a mesa em vez de na mão — dock vira trilho à esquerda, total e "este mês" sobem para uma coluna à direita |
+| 2026-09-11 | Bucket de capas **privado**, com URL assinada, em vez de público | Bucket público entrega a foto do casal a qualquer um com o link; o preço é uma assinatura por visita, e o Storage só assina o que a policy de select deixa ver |
+| 2026-09-11 | `goals.cover_path` guarda **caminho**, com constraint contra o `couple_id` e o `id` da linha | Mesma razão de `profiles.avatar_url`: URL livre faz o navegador de quem abre buscar endereço escolhido por outra pessoa. Constraint e não RPC, porque editar jornada é update direto pelo PostgREST |
+| 2026-09-11 | Reduzir e reencodar a foto no navegador antes de subir | O canvas não copia metadado: sai o EXIF e a coordenada de GPS junto, que é dado que o projeto declara não coletar. Sem isso, subir a foto do celular seria coletá-la sem querer |
+| 2026-09-11 | Um tipo (`image/jpeg`) e uma extensão em todo o caminho | Como tudo é reencodado, aceitar mais tipos só aumentaria a superfície do regex, da policy e do bucket sem ninguém ganhar nada |
+| 2026-09-11 | `casal_do_caminho` devolve `null` para caminho torto, não exceção | Erro em policy daria mensagem diferente para "não é seu" e "não existe", e diferença de resposta vira oráculo para quem varre |
+| 2026-09-11 | Porta do Playwright vinda de `PORT`, com 3000 de padrão | `reuseExistingServer` aproveita o `next dev` de QUALQUER checkout na porta; a suíte rodou verde contra outra branch antes de alguém perceber |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -351,9 +354,11 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
 | cadastro × nome | Decidido em 2026-09-11 que o cadastro vai pedir o nome (o design mostra "oi, Lucas e Ana" e iniciais). **Não feito**: `set_profile` exige sessão, e com confirmação de e-mail ligada não existe sessão logo após o cadastro — o caminho é `raw_user_meta_data` lido pelo gatilho `handle_new_user`, ou seja, migration. Hoje a tela cai em "oi, vocês" e num ícone neutro | Média |
 | desktop com pouca jornada | Com três jornadas o desktop deixa boa parte da tela em creme. É coerente com a tese do álbum sobre a mesa, mas com uma jornada só fica visivelmente vazio | Baixa |
+| capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
+| capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
+| `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
 | `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
 | tela "Nova jornada" | O design tem uma tela própria em dois passos (chips de categoria, slider de valor, prazo em pílulas, checklist de começo). Não foi construída: o formulário dentro de `/jornadas` cumpre a função com os mesmos campos | Baixa |
-| `components/pecas.tsx` (`Chapa`) | A revisão de acabamento marcou a linha MATERIAL como **contraditada**: a tese é "fotos tortas sobre papel" e o plano de imagem da polaroide é gradiente em CSS, não fotografia. Não é escolha — não existe gerador de imagem no ambiente, e a capa de verdade depende do Storage. Enquanto isso a chapa segura a composição e já não lê como imagem quebrada, mas a tese do álbum não fecha sem foto | **Alta** |
 | home no desktop | Com três jornadas, a parte de baixo de um viewport de 900px fica em creme. As duas colunas terminam juntas e o bloco lê como composição, mas com uma jornada só continua visivelmente vazio | Baixa |
 
 ---
