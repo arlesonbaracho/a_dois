@@ -8,6 +8,20 @@ import { defineConfig, devices } from "@playwright/test";
  *
  *   npx supabase start && npm run test:e2e
  */
+/**
+ * A porta, com padrão de sempre e escape para worktree.
+ *
+ * `reuseExistingServer` aproveita QUALQUER coisa que já esteja atendendo nesta
+ * porta — inclusive o `next dev` de outro checkout do mesmo projeto. Quando
+ * isso acontece, a suíte inteira roda contra o código de outra branch e passa
+ * verde sem ter exercitado uma linha do que você acabou de escrever. Exportar
+ * PORT dá uma porta só sua:
+ *
+ *   PORT=3100 npx playwright test
+ */
+const PORTA = process.env.PORT ?? "3000";
+const BASE = `http://localhost:${PORTA}`;
+
 export default defineConfig({
   testDir: "./e2e",
 
@@ -38,7 +52,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: BASE,
     trace: "on-first-retry",
     // O app é em português e mostra data e dinheiro formatados. Sem fixar
     // isso, o teste passa na sua máquina e falha na de quem tem outro fuso.
@@ -50,7 +64,8 @@ export default defineConfig({
 
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:3000/login",
+    url: `${BASE}/login`,
+    env: { PORT: PORTA },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

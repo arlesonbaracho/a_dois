@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { comoPessoa, criarConta, entrar, parear } from "./apoio";
+import { chaves, comoPessoa, criarConta, entrar, parear } from "./apoio";
+
+/** Um PNG de 8x8 e 74 bytes. Pequeno para o teste ser rápido, e imagem de
+ *  verdade para o canvas do navegador conseguir decodificar. */
+const PNG_MINUSCULO =
+  "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEUlEQVR4nGM4EaCBFTEMLQkAaplQAc/OcKAAAAAASUVORK5CYII=";
 
 test.describe("metas e itens", () => {
   test("criar meta, listar, abrir e anotar item", async ({ page, request }) => {
@@ -126,5 +131,59 @@ test.describe("metas e itens", () => {
 
     await expect(page).toHaveURL("/jornadas");
     expect(await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`)).toHaveLength(0);
+  });
+
+  /**
+   * A capa da jornada, de ponta a ponta.
+   *
+   * É o único teste que atravessa a costura inteira: navegador reduz e
+   * reencoda, o Storage aceita pela policy, a coluna aceita pela constraint, e
+   * a tela volta com a foto. Cada pedaço tem prova própria em outro lugar; a
+   * emenda entre eles só existe aqui.
+   */
+  test("pôr uma capa, e a capa é do nosso bucket", async ({ page, request }) => {
+    const ana = await criarConta(request, "capa");
+    await entrar(page, ana);
+
+    const comoAna = await comoPessoa(request, ana);
+    const meta = await (await comoAna.rpc("add_goal", {
+      p_title: "Praia em janeiro",
+      p_target_amount_cents: 800000,
+    })).json();
+
+    await page.goto(`/jornadas/${meta}`);
+
+    // Antes: polaroide sem foto, e isso é estado legítimo — a chapa segura.
+    await expect(page.locator('img[src*="/capas/"]')).toHaveCount(0);
+
+    // getByLabel, e não um seletor de CSS: rótulo acessível é contrato nesta
+    // base, e um controle de arquivo sem nome é invisível para leitor de tela.
+    await page.getByLabel("Capa da jornada").setInputFiles({
+      name: "praia.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(PNG_MINUSCULO, "base64"),
+    });
+
+    const foto = page.locator('img[src*="/capas/"]');
+    await expect(foto).toBeVisible();
+
+    // O ponto da tarefa: o endereço é NOSSO e é assinado. URL de terceiro faria
+    // o navegador de quem abre a tela buscar um destino escolhido por outra
+    // pessoa, entregando IP e horário.
+    const src = await foto.getAttribute("src");
+    expect(src).toContain("/storage/v1/object/sign/capas/");
+    expect(new URL(src ?? "").origin).toBe(new URL(chaves().API_URL).origin);
+
+    // E a coluna guardou CAMINHO, nunca URL.
+    const [linha] = await comoAna.ler<{ cover_path: string }[]>(
+      `goals?select=cover_path&id=eq.${meta}`,
+    );
+    expect(linha.cover_path).not.toContain("http");
+    expect(linha.cover_path).toMatch(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/);
+
+    // Tem que sobreviver ao recarregar: senão o teste passaria com uma foto
+    // que só existe nesta aba.
+    await page.reload();
+    await expect(page.locator('img[src*="/capas/"]')).toBeVisible();
   });
 });

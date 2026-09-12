@@ -58,9 +58,12 @@ export function Polaroide({
  * lia como token de debug — os dois foram embora. No lugar, um material
  * autoral por categoria: duotone com horizonte e grão fino, tudo em CSS.
  *
- * Não é fotografia, e não pretende ser: a foto de verdade depende do Storage,
- * que é migration e está no backlog. O que esta peça precisa fazer até lá é
- * parecer um objeto, e não uma falha de carregamento.
+ * Com o Storage, a foto de verdade entra por cima — e o material continua
+ * aqui, agora no papel que sempre foi o dele: é o que se vê enquanto a foto
+ * não chegou, e é o que fica quando a jornada não tem capa. O navegador pinta
+ * o fundo antes de baixar a imagem, então a espera sai de graça, sem estado e
+ * sem efeito. Polaroide sem foto continua parecendo um objeto, e não uma
+ * falha de carregamento.
  */
 const MATERIAL: Record<string, { de: string; para: string; forma: string }> = {
   casa: { de: "#8C9A8E", para: "#5F6E62", forma: "circle at 72% 118%" },
@@ -76,7 +79,15 @@ const MATERIAL: Record<string, { de: string; para: string; forma: string }> = {
 const GRAO =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23r)' opacity='.22'/%3E%3C/svg%3E\")";
 
-export function Chapa({ categoria, className = "" }: { categoria: string; className?: string }) {
+export function Chapa({
+  categoria,
+  capaUrl,
+  className = "",
+}: {
+  categoria: string;
+  capaUrl?: string | null;
+  className?: string;
+}) {
   const m = MATERIAL[categoria.trim().toLowerCase()] ?? MATERIAL.geral;
   return (
     <div
@@ -85,12 +96,36 @@ export function Chapa({ categoria, className = "" }: { categoria: string; classN
         backgroundImage: `radial-gradient(${m.forma}, ${m.de} 0%, ${m.para} 68%)`,
       }}
     >
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 mix-blend-overlay"
-        style={{ backgroundImage: GRAO }}
-      />
-      {/* O brilho oblíquo que uma foto impressa tem sob luz de sala. */}
+      {capaUrl ? (
+        /* alt vazio de propósito: o nome acessível do cartão é o título da
+           jornada, logo ali embaixo. Descrever a foto de novo faria o leitor
+           de tela anunciar a mesma coisa duas vezes.
+
+           <img> e não next/image: a URL é assinada e vence em uma hora, então
+           o cache do otimizador trabalharia contra a gente — e o Storage já
+           serve a imagem no tamanho em que ela subiu. */
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={capaUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : null}
+      {/* O grão só existe para o gradiente parecer material. Sobre uma foto de
+          verdade ele vira ruído — num plano de 96px de altura, leria como
+          artefato de compressão. */}
+      {capaUrl ? null : (
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 mix-blend-overlay"
+          style={{ backgroundImage: GRAO }}
+        />
+      )}
+      {/* O brilho oblíquo que uma foto impressa tem sob luz de sala. Fica por
+          cima da foto também: é o que faz a imagem parecer papel revelado e
+          não uma miniatura colada. */}
       <span
         aria-hidden="true"
         className="absolute inset-0"
@@ -198,6 +233,7 @@ export function CartaoJornada({
   id,
   titulo,
   categoria,
+  capaUrl,
   aportadoCents,
   alvoCents,
   percentual,
@@ -207,6 +243,7 @@ export function CartaoJornada({
   id: string;
   titulo: string;
   categoria: string;
+  capaUrl?: string | null;
   aportadoCents: number;
   alvoCents: number;
   percentual: number;
@@ -216,7 +253,7 @@ export function CartaoJornada({
   return (
     <Link href={`/jornadas/${id}`} className="mb-3 block break-inside-avoid">
       <Polaroide indice={indice}>
-        <Chapa categoria={categoria} className="h-24" />
+        <Chapa categoria={categoria} capaUrl={capaUrl} className="h-24" />
         <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em]">{titulo}</b>
         <div className="mt-1.5">
           <Progresso

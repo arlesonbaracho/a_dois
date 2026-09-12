@@ -3,6 +3,7 @@ import {
   membrosDoCasal,
   metas,
   pedidosPendentes,
+  urlsDasCapas,
 } from "@repo/api";
 import {
   centavosNoMes,
@@ -43,6 +44,14 @@ export default async function Home() {
     porJornada.set(aporte.goal_id, dentro);
   }
 
+  // As capas da tela inteira numa chamada só. Aqui é Server Component, então
+  // a assinatura sai no mesmo render que busca as jornadas — sem ida e volta
+  // extra do navegador.
+  const capas = await urlsDasCapas(
+    supabase,
+    listaJornadas.map((jornada) => jornada.cover_path),
+  );
+
   const agora = new Date();
 
   const jornadas = listaJornadas.map((jornada) => {
@@ -70,6 +79,7 @@ export default async function Home() {
       id: jornada.id,
       titulo: jornada.title,
       categoria: jornada.category,
+      capaUrl: jornada.cover_path ? (capas.get(jornada.cover_path) ?? null) : null,
       aportadoCents,
       alvoCents: jornada.target_amount_cents,
       percentual: progressoPercentual(aportadoCents, jornada.target_amount_cents),

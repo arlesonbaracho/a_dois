@@ -9,7 +9,10 @@ import {
   useAportes,
   useApagarItem,
   useApagarMeta,
+  useCapas,
+  useCasal,
   useCriarItem,
+  useEnviarCapa,
   useItens,
   useMembros,
   useMeta,
@@ -31,6 +34,7 @@ import { Campo, Enviar, Escolha, Recado } from "@/components/form-ui";
 import { IconeVoltar } from "@/components/icones";
 import { Bloco, Chapa, Chip, CartaoLimao, Polaroide } from "@/components/pecas";
 import { Progresso, type Fatia } from "@/components/progresso";
+import { prepararCapa } from "@/lib/capa";
 import { paraCampoData, paraCentavos, paraInstante } from "@/lib/dinheiro";
 
 import { PRIORIDADES } from "../lista";
@@ -53,8 +57,11 @@ export function Detalhe({ goalId }: { goalId: string }) {
   const { data: itens } = useItens(goalId);
   const { data: aportes } = useAportes(goalId);
   const { data: membros } = useMembros();
+  const { data: casal } = useCasal();
+  const { data: capas } = useCapas([jornada?.cover_path ?? null]);
 
   const salvarJornada = useSalvarMeta(goalId);
+  const enviarCapa = useEnviarCapa(goalId);
   const apagarJornada = useApagarMeta(goalId);
   const criarItem = useCriarItem(goalId);
   const salvarItem = useSalvarItem(goalId);
@@ -62,6 +69,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
   const registrarAporte = useRegistrarAporte(goalId);
 
   const [erro, setErro] = useState("");
+  const [erroCapa, setErroCapa] = useState("");
   const [avisoApagar, setAvisoApagar] = useState("");
   const [aba, setAba] = useState<Aba>("Itens");
   // Inicializador de estado, e não `Date.now()` solto: o render precisa ser
@@ -109,6 +117,38 @@ export function Detalhe({ goalId }: { goalId: string }) {
       await acao();
     } catch {
       setErro(frase);
+    }
+  }
+
+  /**
+   * Trocar a capa.
+   *
+   * O caminho é montado com o couple_id que o app já tem em mãos, e o banco
+   * confere de novo: a constraint `goals_cover_path_do_nosso_bucket` compara o
+   * caminho contra o couple_id e o id da própria linha. Não existe forma de
+   * esta tela gravar um endereço de fora, mesmo que alguém tentasse.
+   */
+  async function trocarCapa(evento: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = evento.target.files?.[0];
+    // O input guarda o arquivo escolhido; limpar aqui deixa escolher a MESMA
+    // foto de novo depois de um erro — senão o segundo "change" não dispara.
+    evento.target.value = "";
+    // `jornada` já foi conferida acima, mas esta função é declarada no corpo do
+    // componente e o TypeScript não carrega a checagem para dentro dela — e
+    // ele tem razão: quem chama é o navegador, depois.
+    if (!arquivo || !casal || !jornada) return;
+
+    setErroCapa("");
+    try {
+      const blob = await prepararCapa(arquivo);
+      await enviarCapa.mutateAsync({
+        coupleId: casal.id,
+        blob,
+        id: crypto.randomUUID(),
+        anterior: jornada.cover_path,
+      });
+    } catch {
+      setErroCapa("Não consegui usar essa foto. Tenta outra?");
     }
   }
 
@@ -221,7 +261,11 @@ export function Detalhe({ goalId }: { goalId: string }) {
       <div className="flex gap-3">
         <div className="flex-1">
           <Polaroide indice={1}>
-            <Chapa categoria={jornada.category} className="h-20" />
+            <Chapa
+              categoria={jornada.category}
+              capaUrl={jornada.cover_path ? capas?.get(jornada.cover_path) : null}
+              className="h-20"
+            />
             <div className="mt-2">
               <Progresso
                 percentual={percentual}
@@ -231,6 +275,27 @@ export function Detalhe({ goalId }: { goalId: string }) {
               />
             </div>
           </Polaroide>
+
+          {/* O input fica escondido e o label é o botão: o controle nativo tem
+              rótulo associado de verdade (é o mesmo elemento), então continua
+              alcançável por teclado e por leitor de tela — e a suíte e2e o
+              encontra por getByLabel, que aqui é contrato. */}
+          <label className="mt-2 block cursor-pointer rounded-full border border-tinta/15 bg-white px-3 py-1.5 text-center font-corpo text-[11.5px] text-suave-forte transition-colors hover:border-tinta/30 has-[:focus-visible]:border-tinta">
+            {enviarCapa.isPending
+              ? "Guardando a foto…"
+              : jornada.cover_path
+                ? "Trocar a foto"
+                : "Pôr uma foto"}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              aria-label="Capa da jornada"
+              disabled={enviarCapa.isPending || !casal}
+              onChange={trocarCapa}
+            />
+          </label>
+          <Recado erro={erroCapa} />
         </div>
         <div className="flex flex-1 flex-col gap-2.5">
           <CartaoLimao

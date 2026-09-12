@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   type Prioridade,
   useAportes,
+  useCapas,
   useCriarMeta,
   useMembros,
   useMetas,
@@ -32,6 +33,9 @@ export function Lista() {
   const { data: jornadas, isPending, isError } = useMetas();
   const { data: aportes } = useAportes();
   const { data: membros } = useMembros();
+  // Tela de cliente, então a assinatura vem por hook. Mesma função embaixo que
+  // a home usa no servidor — o que muda é só quem chama.
+  const { data: capas } = useCapas((jornadas ?? []).map((jornada) => jornada.cover_path));
   const criar = useCriarMeta();
   const [erro, setErro] = useState("");
 
@@ -133,6 +137,7 @@ export function Lista() {
                   id={jornada.id}
                   titulo={jornada.title}
                   categoria={jornada.category}
+                  capaUrl={jornada.cover_path ? capas?.get(jornada.cover_path) : null}
                   aportadoCents={aportado}
                   alvoCents={jornada.target_amount_cents}
                   percentual={progressoPercentual(aportado, jornada.target_amount_cents)}

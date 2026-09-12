@@ -13,6 +13,7 @@ type Jornada = {
   id: string;
   titulo: string;
   categoria: string;
+  capaUrl: string | null;
   aportadoCents: number;
   alvoCents: number;
   percentual: number;
