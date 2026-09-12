@@ -60,6 +60,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-12 | **Nome no cadastro.** O nome viaja no `raw_user_meta_data` do `signUp` e a trigger `on_auth_user_created` grava nas duas tabelas que o mostram: `profiles` (campo Nome do cartão de pedido) e `couple_members` (saudação da home). Cortado em 80 dentro da trigger — sem isso o `check` da coluna estouraria na mesma transação do cadastro e derrubaria o próprio signup. `create_couple_for(uuid)` foi apagada em favor da de dois argumentos, senão as duas viravam sobrecarga ambígua | `affb53c` |
 | 2026-09-12 | **A regra de divisão passa a ser do casal.** `split_rule` sobe de `couple_members` para `couples`, com backfill fazendo uma vez em SQL a escolha que `regraDoCasal` fazia a cada render. A função some, e com ela `Participante.papel` e `Participante.regra`. `salvarMinhaDivisao` vira duas escritas em duas tabelas | `cc692c5` |
 | 2026-09-12 | **Cada um edita só a própria linha de vínculo.** `couple_members_update` ganha `user_id = auth.uid()` no `with check`; o `using` segue o casal inteiro, porque ler a linha do par é legítimo. Teste dentro do MESMO casal, com a varredura sem WHERE incluída | `5c41f6b` |
+| 2026-09-12 | **Produção em dia.** As quatro migrations aditivas aplicadas no hospedado e o web em `2578b5e`. O `drop column` foi isolado numa quinta migration retida, e foi isso que tirou a necessidade de janela coordenada: `db push` e deploy deixaram de precisar acontecer juntos. Provado antes por `scripts/subir-producao.sh` (ensaio contra o estado exato de produção, com dados) e conferido depois por `migration list --linked`. Fica provado também que `postgres` cria policy em `storage.objects` no hospedado — era o único ponto que não dava para verificar local | `—` |
 
 ---
 
@@ -93,33 +94,25 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 | Onde | Quantas | Última |
 |---|---|---|
 | Repositório (`supabase/migrations/`) | **16** | `20260912150948_regra_do_casal_contrai` |
-| Produção (`qysekkewsrwtebpiowim`) | **11** | `20260910231420_meta_com_limites` |
+| Produção (`qysekkewsrwtebpiowim`) | **15** | `20260912042341_minha_linha_so_minha` |
 
-**Cinco de diferença, e o web da capa já está no ar sem a dela.** Quem tocar
-em "Pôr uma foto" em produção recebe "Não consegui usar essa foto" — o bucket
-`capas` e a coluna `cover_path` não existem lá. É a **única** coisa quebrada:
-o caminho de leitura está intacto, porque sem a coluna `cover_path` é
-`undefined`, a lista de capas sai vazia e nada é assinado.
+**Em dia desde 2026-09-12.** As quatro pendentes subiram pelo
+`scripts/subir-producao.sh`, e o web foi para `2578b5e` na sequência.
+Conferido por `supabase migration list --linked`.
 
-O runbook está em `relatorios/subir-pendentes-2026-09-12.md`, e o ensaio que
-o valida em `scripts/ensaio-producao.sh`.
+**Falta uma, de propósito:** `20260912150948_regra_do_casal_contrai`, a única
+destrutiva do lote — ela apaga `couple_members.split_rule`. Ficou retida
+enquanto o web antigo estava no ar, e **agora já pode subir**, porque o web
+publicado lê a regra de `couples`.
 
-**As quatro que sobem juntas — todas aditivas, todas reversíveis:**
+Foi separá-la que tirou a janela coordenada: enquanto as duas colunas
+convivem, o web antigo lê `couple_members.split_rule` e o novo lê
+`couples.split_rule`, os dois contra o mesmo banco. Aplicada cedo ela não
+derrubaria a tela antiga — faria pior, `regraDoCasal` cairia no `?? "igual"`
+e **todo casal apareceria dividindo meio a meio**, em silêncio.
 
-- `20260912022112_capa_da_jornada` — bucket, coluna e as 4 policies de Storage
-- `20260912040653_nome_no_cadastro` — trigger lendo `raw_user_meta_data`
-- `20260912041204_regra_do_casal` — `couples.split_rule` + backfill
-- `20260912042341_minha_linha_so_minha` — `couple_members_update` apertado
-
-**A quinta fica para depois do deploy**, e é a única que apaga alguma coisa:
-`20260912150948_regra_do_casal_contrai` remove `couple_members.split_rule`.
-
-Foi ela que deixou de forçar uma janela coordenada. Enquanto as duas colunas
-convivem, o web publicado lê `couple_members.split_rule` e o novo lê
-`couples.split_rule`, e os dois funcionam contra o mesmo banco — `db push` e
-deploy deixam de precisar acontecer juntos. Aplicada cedo, ela não derruba a
-tela antiga: faz pior, `regraDoCasal` cai no `?? "igual"` e **todo casal
-aparece dividindo meio a meio**, silenciosamente.
+O runbook está em `relatorios/subir-pendentes-2026-09-12.md` e o ensaio que o
+valida em `scripts/ensaio-producao.sh`.
 
 - [x] Projeto em **`sa-east-1`** (`qysekkewsrwtebpiowim`), Postgres 17.6.
 - [x] **`pg_cron` antes do `db push`** — as 11 migrations entraram inteiras.
