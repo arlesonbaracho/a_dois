@@ -19,6 +19,7 @@ testes=(
   "$raiz/supabase/tests/perfil.sql"
   "$raiz/supabase/tests/convite.sql"
   "$raiz/supabase/tests/metas.sql"
+  "$raiz/supabase/tests/capa.sql"
   "$raiz/supabase/tests/aportes.sql"
   "$raiz/supabase/tests/saida.sql"
   "$raiz/supabase/tests/direitos.sql"

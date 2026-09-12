@@ -263,6 +263,7 @@ export type Database = {
         Row: {
           category: string
           couple_id: string
+          cover_path: string | null
           created_at: string
           deadline_at: string | null
           id: string
@@ -274,6 +275,7 @@ export type Database = {
         Insert: {
           category: string
           couple_id: string
+          cover_path?: string | null
           created_at?: string
           deadline_at?: string | null
           id?: string
@@ -285,6 +287,7 @@ export type Database = {
         Update: {
           category?: string
           couple_id?: string
+          cover_path?: string | null
           created_at?: string
           deadline_at?: string | null
           id?: string
@@ -449,6 +452,7 @@ export type Database = {
         }
         Returns: string
       }
+      casal_do_caminho: { Args: { caminho: string }; Returns: string }
       casal_vazio: { Args: { p_couple_id: string }; Returns: boolean }
       checar_limite: {
         Args: {

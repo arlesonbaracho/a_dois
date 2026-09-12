@@ -1,5 +1,6 @@
 export type { Database, Json } from "./database.types";
 export * from "./auth";
+export * from "./capas";
 export * from "./contributions";
 export * from "./couple";
 export * from "./goal-items";

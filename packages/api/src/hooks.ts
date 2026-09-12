@@ -8,6 +8,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 
+import { urlsDasCapas, enviarCapa, type NovaCapa } from "./capas";
 import { aportes, registrarAporte, type Aporte } from "./contributions";
 import { membrosDoCasal, meuCasal, type MembroDoCasal } from "./couple";
 import { salvarConsentimento, type TipoConsentimento } from "./privacy";
@@ -56,6 +57,10 @@ export const chaves = {
   aportesDeQualquerMeta: ["aportes-da-meta"] as const,
   aportes: (goalId?: string) =>
     goalId ? (["aportes-da-meta", goalId] as const) : (["aportes-do-casal"] as const),
+  // Os caminhos entram na chave, e não só a lista de jornadas: trocar a foto
+  // muda o caminho, a chave muda junto e a assinatura é refeita sozinha. Sem
+  // isso, a tela mostraria a capa velha até alguém recarregar.
+  capas: (caminhos: string[]) => ["capas", caminhos.join(",")] as const,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -109,6 +114,32 @@ export function useAportes(goalId?: string): UseQueryResult<Aporte[]> {
   return useQuery({ queryKey: chaves.aportes(goalId), queryFn: () => aportes(client, goalId) });
 }
 
+/**
+ * As URLs assinadas das capas de uma tela.
+ *
+ * O bucket é privado, então a foto não tem endereço fixo: cada visita pede uma
+ * assinatura com o JWT de quem está olhando, e o Storage só assina o que a
+ * policy de select deixa ver.
+ *
+ * `staleTime` bem abaixo da validade da assinatura, de propósito: URL vencida
+ * na tela é foto quebrada, e vale mais assinar de novo do que descobrir isso
+ * pelo buraco branco na polaroide.
+ */
+export function useCapas(caminhos: (string | null)[]): UseQueryResult<Map<string, string>> {
+  const client = useSupabase();
+  const lista = [...new Set(caminhos.filter((c): c is string => Boolean(c)))].sort();
+
+  return useQuery({
+    queryKey: chaves.capas(lista),
+    queryFn: () => urlsDasCapas(client, lista),
+    enabled: lista.length > 0,
+    staleTime: 30 * 60 * 1000,
+    // Sem capa nenhuma a query nem roda, e a tela ainda precisa de um mapa
+    // para consultar. Vazio é a resposta certa, não "carregando".
+    initialData: lista.length === 0 ? new Map<string, string>() : undefined,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Escrita
 // ---------------------------------------------------------------------------
@@ -136,6 +167,28 @@ export function useSalvarMeta(
     mutationFn: (dados: DadosMeta) => salvarMeta(client, goalId, dados),
     onSuccess: async () => {
       // A lista mostra título e alvo; o detalhe mostra o resto. As duas mudaram.
+      await cache.invalidateQueries({ queryKey: chaves.meta(goalId) });
+      await cache.invalidateQueries({ queryKey: chaves.metas });
+    },
+  });
+}
+
+/**
+ * Troca a capa da jornada.
+ *
+ * Invalida a lista e o detalhe porque as duas mostram a foto — e não invalida
+ * as capas: o caminho novo já muda a chave de `useCapas`, que é o que faz a
+ * assinatura ser refeita.
+ */
+export function useEnviarCapa(
+  goalId: string,
+): UseMutationResult<string, Error, Omit<NovaCapa, "goalId">> {
+  const client = useSupabase();
+  const cache = useQueryClient();
+
+  return useMutation({
+    mutationFn: (nova: Omit<NovaCapa, "goalId">) => enviarCapa(client, { ...nova, goalId }),
+    onSuccess: async () => {
       await cache.invalidateQueries({ queryKey: chaves.meta(goalId) });
       await cache.invalidateQueries({ queryKey: chaves.metas });
     },
