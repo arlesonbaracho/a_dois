@@ -4,6 +4,14 @@ App de planejamento de metas para casais. Duas pessoas, um plano compartilhado, 
 
 Nome provisório. Não espalhe "A DOIS" pelo código — use `APP_NAME` de `packages/core/src/constants.ts`.
 
+> **Este arquivo é o que manda.** Existe um `CLAUDE.md` antigo em
+> `~/Documentos/` que descreve a fase 1 como Expo puro, com `src/features/` e
+> token em `expo-secure-store`. Ele é anterior à decisão de começar pela web e
+> **está errado para este repositório**. Se algo que você leu fala em `src/`,
+> `app.json` ou AsyncStorage, veio de lá — ignore e siga este.
+
+
+
 ## Estratégia
 
 Começamos **web**, como PWA em Next.js, para validar com casais reais sem passar pela review das lojas. O app nativo em Expo vem depois, e **precisa ser uma adição, não uma reescrita**. Por isso o monorepo e as regras de portabilidade abaixo não são negociáveis.
@@ -25,8 +33,8 @@ Começamos **web**, como PWA em Next.js, para validar com casais reais sem passa
 apps/
   web/                  Next.js PWA — única pasta que pode tocar em DOM
     app/                App Router
-      (auth)/           login, cadastro, aceitar-convite
-      (app)/            metas, aportes, perfil
+      (auth)/           login, cadastro, recuperar-senha, nova-senha
+      (app)/            jornadas, aportes, parceiro, convite, perfil
     components/         UI web (Tailwind)
     lib/supabase/       client browser + server (@supabase/ssr)
   mobile/               vazio até a fase 2 (Expo entra aqui)
@@ -74,8 +82,8 @@ Um PR que viole qualquer uma delas está errado.
 
 | Tabela | Conteúdo |
 |---|---|
-| `couples` | O espaço compartilhado |
-| `couple_members` | Vínculo usuário ↔ casal, papel, regra de divisão, faixa de renda |
+| `couples` | O espaço compartilhado, e a **regra de divisão** — uma por casal |
+| `couple_members` | Vínculo usuário ↔ casal, papel, faixa de renda, valor combinado |
 | `profiles` | Perfil mínimo por pessoa: nome de exibição, apelido, avatar. **Sem leitura ampla** — só a própria linha e a de quem divide casal |
 | `couple_invites` | Convites como **máquina de estados**. Ver abaixo |
 | `goals` | Metas: título, categoria, `target_amount_cents`, prazo, prioridade |
@@ -155,6 +163,9 @@ npm run typecheck        # tsc --noEmit em todos os pacotes
 npm run lint
 npm test                 # unitários
 npm run test:rls         # isolamento entre casais (obrigatório no CI)
+npm run guardas          # RLS em toda tabela, e packages/ sem API de navegador
+npm run db:types         # regenera packages/api/src/database.types.ts
+cd apps/web && PORT=3100 npx playwright test   # e2e (PORT= por causa da armadilha 8)
 ```
 
 Migrations sempre em arquivo, nunca pelo painel do Supabase. Toda migration que cria tabela precisa, no mesmo arquivo, do `enable row level security` e das quatro policies.
@@ -172,6 +183,50 @@ Ao atualizar:
 
 Seja específico e curto. "Auth funcionando" não serve; "login, cadastro e recuperação de senha com @supabase/ssr, sessão em cookie httpOnly" serve.
 
+## Armadilhas que já nos pegaram
+
+Cada uma destas custou tempo de verdade neste projeto, e nenhuma delas é pega
+pelo checklist do fim. Não são boas práticas genéricas — são cicatrizes.
+
+**Postgres e PostgREST**
+
+1. **`create or replace function` com parâmetro novo cria uma função NOVA.**
+   A antiga continua viva e as duas viram sobrecarga ambígua (`42725`) — em
+   tempo de execução, dentro de quem chama, não na migration. O `db reset`
+   passa verde. Ao mudar assinatura, **apague a versão antiga** no mesmo
+   arquivo.
+2. **PostgREST recusa `update` e `delete` sem `WHERE`** (`21000`). RLS não
+   substitui o filtro: mande o `.eq()`, com o id vindo de uma leitura sua,
+   nunca do cliente.
+3. **`if obtido <> esperado` não enxerga `NULL`.** A comparação devolve nulo,
+   o `if` trata como falso, e a asserção passa justamente no caso que ela
+   veio pegar. Em teste de SQL, use `is distinct from`.
+
+**Testes**
+
+4. **Guarda novo sem sabotagem não está provado.** Toda policy, constraint ou
+   trigger nova: quebre-a de propósito e confirme que o teste **reprova**.
+   Mais de uma sabotagem já passou verde aqui.
+5. **Em `storage.objects`, a varredura sem `WHERE` é o que escapa.** Com
+   `WHERE`, o Postgres exige a policy de `select` para as linhas citadas, e
+   ela já esconde o que é do vizinho. Sem `WHERE` nenhum, só o `using` segura.
+   Teste as duas formas.
+6. **Teste que só passa em banco recém-resetado não é teste.** Conte o que é
+   seu (filtre pelos ids do próprio cenário), nunca a tabela inteira — depois
+   de uma rodada de e2e há dados de verdade lá.
+7. **Esperar um recado que já está na tela não é esperar.** `useActionState`
+   mantém a mensagem anterior até a nova voltar. No e2e, espere a **resposta**
+   da Server Action.
+8. **`reuseExistingServer` do Playwright pega o `next dev` de QUALQUER
+   checkout na porta.** Em worktree, rode com `PORT=3100`. A suíte já rodou
+   verde inteira contra o código de outra branch.
+
+**Deploy**
+
+9. **Migration no repositório não é migration em produção.** `supabase db push`
+   **antes** do deploy do web que depende dela — senão a tela chama coluna que
+   não existe e o erro não diz isso. O contador está no EVOLUCAO.
+
 ## Como quero trabalhar com você
 
 - Tarefa que toque em schema, RLS, autenticação ou dado pessoal: **entre em plan mode e me mostre o plano antes de escrever código.**
@@ -188,4 +243,7 @@ Seja específico e curto. "Auth funcionando" não serve; "login, cadastro e recu
 - [ ] Nada de `window`/`document`/`localStorage` fora de `apps/web`
 - [ ] Valores monetários em centavos, como inteiro
 - [ ] Nenhum dado pessoal em log ou breadcrumb
+- [ ] Guarda novo (policy, constraint, trigger) provado **quebrando-o de propósito**
+- [ ] `npm run test:rls` roda duas vezes seguidas, sem `db reset` no meio
+- [ ] Migration nova anotada no contador de produção do `EVOLUCAO.md`
 - [ ] `EVOLUCAO.md` atualizado

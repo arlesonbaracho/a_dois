@@ -85,6 +85,41 @@ buraco que `couple_members_update` acabou de fechar, e custa uma cláusula.
 **No ar desde 2026-09-11**, em `https://a-dois-web.vercel.app`. O runbook, a
 análise de risco e o teste de fumaça estão em `relatorios/deploy-2026-09-11.md`.
 
+### Migrations: repositório × produção
+
+O número mais perigoso do projeto, porque nada na tela avisa quando ele
+diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
+
+| Onde | Quantas | Última |
+|---|---|---|
+| Repositório (`supabase/migrations/`) | **15** | `20260912042341_minha_linha_so_minha` |
+| Produção (`qysekkewsrwtebpiowim`) | **11** | `20260910231420_meta_com_limites` |
+
+**Quatro migrations de diferença, e o web da capa já está no ar sem a dela.**
+Quem abrir uma jornada e tocar em "Pôr uma foto" em produção recebe "Não
+consegui usar essa foto" — o bucket `capas` e a coluna `cover_path` não
+existem lá. As quatro pendentes:
+
+- `20260912022112_capa_da_jornada` — bucket, coluna e as 4 policies de Storage
+- `20260912040653_nome_no_cadastro` — trigger lendo `raw_user_meta_data`
+- `20260912041204_regra_do_casal` — `split_rule` sobe para `couples`
+- `20260912042341_minha_linha_so_minha` — `couple_members_update` apertado
+
+Ordem obrigatória: **`supabase db push` primeiro, deploy do web depois** — e
+as duas na mesma janela, por causa da terceira, que APAGA
+`couple_members.split_rule`. O que o web antigo faz entre uma e outra, medido
+e não suposto:
+
+- não quebra a tela: `split_rule` vira `undefined` e `regraDoCasal` cai no
+  `?? "igual"`. Ou seja, **todo casal aparece dividindo meio a meio**, mesmo
+  quem escolheu outra coisa. Silencioso, que é o pior tipo;
+- e salvar a divisão passa a falhar, porque o `PATCH` manda uma coluna que
+  não existe mais.
+
+A da capa é o contrário: o caminho de LEITURA já está seguro (sem a coluna,
+`cover_path` é `undefined`, a lista de capas sai vazia e nada é assinado).
+Só o envio falha, com "Não consegui usar essa foto".
+
 - [x] Projeto em **`sa-east-1`** (`qysekkewsrwtebpiowim`), Postgres 17.6.
 - [x] **`pg_cron` antes do `db push`** — as 11 migrations entraram inteiras.
 - [x] **Vercel**: Root Directory `apps/web`, e as duas `NEXT_PUBLIC_*` em Production.
