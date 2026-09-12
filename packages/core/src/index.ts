@@ -3,6 +3,7 @@ export * from "./capa";
 export * from "./constants";
 export * from "./csv";
 export * from "./money";
+export * from "./primeiros-passos";
 export * from "./schemas";
 export * from "./split";
 export * from "./types";

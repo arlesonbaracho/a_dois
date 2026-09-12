@@ -31,6 +31,14 @@ test.describe("autenticação", () => {
 
     await expect(page).toHaveURL("/");
     await expect(page.getByRole("heading", { name: "Nossa jornada" })).toBeVisible();
+
+    // Conta nova cai nos primeiros passos, e o primeiro deles é chamar quem
+    // divide o plano. É a lista no lugar de um gate: a home abre, e a pessoa
+    // escolhe a hora de convidar.
+    await expect(page.getByRole("heading", { name: "Comecem por aqui" })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /Chamar quem divide o plano/ }),
+    ).toBeVisible();
   });
 
   // O middleware protege por negação padrão: rota que ele não conhece como

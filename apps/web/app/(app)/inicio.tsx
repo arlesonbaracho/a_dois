@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { formatBRL } from "@repo/core";
+import { formatBRL, type Passo } from "@repo/core";
 
 import { IconePessoa } from "@/components/icones";
 import { CartaoJornada, CartaoLimao, Chip, PilulaTotal } from "@/components/pecas";
+import { PrimeirosPassos } from "@/components/primeiros-passos";
 import type { Fatia } from "@/components/progresso";
 
 type Jornada = {
@@ -37,6 +38,7 @@ function saudacao(nomes: (string | null)[]): string {
 }
 
 export function Inicio({
+  passos,
   nomes,
   iniciais,
   mes,
@@ -47,6 +49,8 @@ export function Inicio({
   jornadas,
   temPedido,
 }: {
+  /** Nulo quando o casal já passou dos primeiros passos. */
+  passos: Passo[] | null;
   nomes: (string | null)[];
   iniciais: string;
   mes: string;
@@ -186,7 +190,12 @@ export function Inicio({
         </Link>
       ) : null}
 
-      {jornadas.length === 0 ? (
+      {passos ? <PrimeirosPassos passos={passos} /> : null}
+
+      {/* O estado vazio só aparece quando a lista de primeiros passos NÃO
+          está acesa: os dois dizem "criem a primeira jornada", e um deles
+          dizendo já basta. */}
+      {jornadas.length === 0 && !passos ? (
         <div className="mt-2 flex flex-col items-start gap-4">
           <p className="max-w-[22ch] text-[22px] font-bold leading-tight tracking-[-0.03em]">
             Vocês ainda não escolheram o que querem conquistar.

@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-11 (capa da jornada via Storage)
+**Última atualização:** 2026-09-12 (primeiros passos na home)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -56,6 +56,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-11 | Três rodadas de revisão de acabamento sobre o visual novo. Fechados: o kicker banido pelo piso de craft, `role="progressbar"` na barra do mês (era regressão de acessibilidade minha), o cartão escuro devolvido ao uso exclusivo do pedido do parceiro, a barra do mês bicolor por pessoa, o giro escalado à largura (a 690px a linha de item cisalhava sobre a vizinha), os rádios da divisão fora do azul de sistema, o grão do papel, o espaçamento do Manrope pequeno, e a home no desktop recomposta em três colunas com "Quem colocou" ancorando a direita | `(este commit)` |
 | 2026-09-11 | **Capa da jornada via Storage.** Bucket `capas` privado, com teto de 2 MiB e `image/jpeg` na linha do bucket — os dois limites valem no servidor, aplicados pela API do Storage. `goals.cover_path` guarda caminho e nunca URL: a constraint compara o caminho contra o `couple_id` e o `id` da própria linha, então endereço de terceiro não entra na tabela. Quatro policies em `storage.objects` contra `is_couple_member`, e `casal_do_caminho` devolvendo null (não exceção) para caminho torto. `supabase/tests/capa.sql` com ~30 asserções, provado quebrando cada policy e a constraint uma a uma | `2c242cc` |
 | 2026-09-11 | **A foto na polaroide.** A `Chapa` recebe a capa e o gradiente vira o estado de espera e de ausência — sem estado e sem efeito, porque o navegador pinta o fundo antes de baixar a imagem. Envio pelo detalhe, com o arquivo reduzido a 1280px e reencodado em JPEG no navegador, o que TIRA O EXIF e a coordenada de GPS junto. Home assina no servidor, lista e detalhe por hook. Um e2e atravessa a costura inteira e confere que a URL é do nosso bucket e assinada | `157407c` |
+| 2026-09-12 | **Primeiros passos na home.** Lista de três passos obrigatórios (chamar o parceiro, criar a primeira jornada, anotar o primeiro aporte) mais a faixa de renda como opcional, no cartão escuro. Derivada inteira de dados que a home já carregava — nenhum estado de onboarding guardado, nenhuma tabela, nenhuma tela nova; uma consulta a mais (`convitesAtivos`). O passo do parceiro tem três estados, e o do meio (`esperando`) é o que impede a lista de cobrar convite de quem já mandou. Some sozinha quando os três fecham. `marcarPrimeiraMeta()` ganhou chamador e deixou de ser código morto | `(este commit)` |
 
 ---
 
@@ -285,6 +286,9 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-11 | Um tipo (`image/jpeg`) e uma extensão em todo o caminho | Como tudo é reencodado, aceitar mais tipos só aumentaria a superfície do regex, da policy e do bucket sem ninguém ganhar nada |
 | 2026-09-11 | `casal_do_caminho` devolve `null` para caminho torto, não exceção | Erro em policy daria mensagem diferente para "não é seu" e "não existe", e diferença de resposta vira oráculo para quem varre |
 | 2026-09-11 | Porta do Playwright vinda de `PORT`, com 3000 de padrão | `reuseExistingServer` aproveita o `next dev` de QUALQUER checkout na porta; a suíte rodou verde contra outra branch antes de alguém perceber |
+| 2026-09-12 | Onboarding é **lista derivada**, não gate obrigatório nem tour guiado | Gate trava em coisa que a pessoa não termina agora (o convite depende do parceiro aparecer e de ela confirmar, dias depois), contradiz o casal solo que o `handle_new_user` cria, e reprovaria `auth.spec.ts:32` e `auditoria.spec.ts:134`/`:151`, que afirmam `toHaveURL("/")` logo após o login |
+| 2026-09-12 | Nenhum estado de onboarding guardado | Cada passo é pergunta que os dados já respondem; uma coluna "tutorial concluído" seria uma segunda verdade para manter alinhada, e mentiria quando alguém apagasse a última jornada |
+| 2026-09-12 | Permissão não vira passo do onboarding | O produto vende minimização como argumento; empurrar alguém a LIGAR métricas e marketing na primeira tela contradiz isso. O bloco só diz onde se desliga |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -311,7 +315,6 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/app/page.tsx` | Home provisória, só prova de fumaça do workspace | Baixa |
 | `contributions.user_id` | FK para `auth.users`, sem garantia de que o usuário é membro daquele casal. Um membro consegue registrar aporte atribuído a alguém de fora | Baixa |
 | `packages/core/src/schemas.ts` × `database.types.ts` | Duas descrições da mesma forma. Devem divergir de propósito quando os formulários entrarem (schema de entrada × linha do banco); até lá é duplicação | Média |
-| `apps/web/components/pwa.tsx` | `marcarPrimeiraMeta()` não é chamada por ninguém ainda. Até o prompt 7 criar metas, o convite de instalação é código morto na prática | Baixa |
 | `apps/web/public/sw.js` | Sem teste automatizado. O allowlist do cache foi conferido à mão no navegador (5 arquivos antes e depois de navegar, e servidor derrubado caindo na tela offline). É regra de segurança sem rede de proteção no CI — deveria virar teste quando o Playwright entrar | Média |
 | iOS | Nenhuma instrução de "Adicionar à Tela de Início" para quem abre no Safari. O convite de instalação simplesmente não aparece lá | Baixa |
 | `apps/web/public/icon-*.png` | Ícones placeholder: dois anéis entrelaçados feitos por script. Serve para instalar, não para lançar | Baixa |

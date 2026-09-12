@@ -21,6 +21,7 @@ import {
 import { Campo, Enviar, Escolha, Recado } from "@/components/form-ui";
 import { Bloco, CartaoJornada, PilulaTotal } from "@/components/pecas";
 import type { Fatia } from "@/components/progresso";
+import { marcarPrimeiraMeta } from "@/components/pwa";
 import { paraCentavos, paraInstante } from "@/lib/dinheiro";
 
 export const PRIORIDADES: [Prioridade, string][] = [
@@ -89,6 +90,9 @@ export function Lista() {
         prazoISO: paraInstante(campo("prazo")),
         prioridade: (campo("prioridade") || "media") as Prioridade,
       });
+      // Libera o convite de instalar o PWA. A função existia sem nenhum
+      // chamador desde o prompt 5 — o convite nunca aparecia.
+      marcarPrimeiraMeta();
       evento.currentTarget?.reset();
     } catch {
       setErro("Não consegui criar agora. Tenta de novo?");

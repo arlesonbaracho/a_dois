@@ -1,16 +1,20 @@
 import {
   aportes,
+  convitesAtivos,
   membrosDoCasal,
   metas,
   pedidosPendentes,
   urlsDasCapas,
+  usuarioAtual,
 } from "@repo/api";
 import {
   centavosNoMes,
   coresDoCasal,
+  faltaComecar,
   iniciaisDoCasal,
   mesPorExtenso,
   ordemEstavel,
+  primeirosPassos,
   progressoPercentual,
   sumCents,
 } from "@repo/core";
@@ -22,11 +26,14 @@ import { Inicio } from "./inicio";
 export default async function Home() {
   const supabase = await criarClienteServidor();
 
-  const [membros, listaJornadas, listaAportes, pedidos] = await Promise.all([
+  const usuario = await usuarioAtual(supabase);
+
+  const [membros, listaJornadas, listaAportes, pedidos, ativos] = await Promise.all([
     membrosDoCasal(supabase),
     metas(supabase),
     aportes(supabase),
     pedidosPendentes(supabase),
+    convitesAtivos(supabase),
   ]);
 
   const cores = coresDoCasal(
@@ -128,13 +135,28 @@ export default async function Home() {
     cor: cores.get(membro.userId) ?? ("fora" as const),
   }));
 
+  const totalCents = sumCents(listaAportes.map((aporte) => aporte.amount_cents));
+
+  // A faixa de renda sai da MINHA linha em membros — nenhuma consulta a mais,
+  // e a do parceiro não é da minha conta aqui.
+  const eu = membros.find((membro) => membro.user_id === usuario?.id);
+
+  const passos = primeirosPassos({
+    membros: membros.length,
+    conviteEmAndamento: ativos.length > 0 || pedidos.length > 0,
+    jornadas: listaJornadas.length,
+    totalCents,
+    minhaFaixa: eu?.income_band ?? null,
+  });
+
   return (
     <Inicio
+      passos={faltaComecar(passos) ? passos : null}
       porPessoa={porPessoa}
       nomes={nomes}
       iniciais={iniciaisDoCasal(nomes)}
       mes={mesPorExtenso(agora)}
-      totalCents={sumCents(listaAportes.map((aporte) => aporte.amount_cents))}
+      totalCents={totalCents}
       doMesCents={centavosNoMes(
         listaAportes.map((aporte) => ({
           quandoISO: aporte.contributed_at,
