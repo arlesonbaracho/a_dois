@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-11T00:00:00Z",
+  "title": "Design System: Jornada",
+  "extensions": {
+    "colorMeta": {
+      "papel": { "role": "neutral", "displayName": "Papel Creme", "canonical": "#F7F0E1", "note": "Mesmo valor cru em THEME_COLOR e BACKGROUND_COLOR (packages/core/src/constants.ts), para o manifest do PWA e o app.json do Expo na fase 2.", "tonalRamp": ["#2A261B", "#4A4433", "#6B624B", "#8C8265", "#ADA285", "#CDC4A9", "#E6DEC9", "#F7F0E1"] },
+      "tinta": { "role": "primary", "displayName": "Tinta de Caneta", "canonical": "#16170F", "tonalRamp": ["#16170F", "#2B2D1E", "#41442E", "#585C3E", "#71754F", "#8B9065", "#B4B894", "#DDDFC9"] },
+      "limao": { "role": "primary", "displayName": "Limão", "canonical": "#D8F26B", "tonalRamp": ["#2C3A05", "#46590C", "#607815", "#7B981E", "#96B72C", "#B4D446", "#D8F26B", "#EDF9B8"] },
+      "limao-tinta": { "role": "primary", "displayName": "Limão Tinta", "canonical": "#4A5A15", "tonalRamp": ["#151A04", "#25300A", "#37440F", "#4A5A15", "#63761D", "#7F9429", "#A6BB4C", "#CFDE94"] },
+      "suave": { "role": "neutral", "displayName": "Sálvia Clara", "canonical": "#63695D", "contrastOnPapel": "4.99:1", "tonalRamp": ["#1E211B", "#31342C", "#44483E", "#575C50", "#63695D", "#868C7F", "#ADB2A5", "#D6D9D0"] },
+      "suave-forte": { "role": "neutral", "displayName": "Sálvia Escura", "canonical": "#4C5345", "contrastOnPapel": "7.29:1", "tonalRamp": ["#171A14", "#262A22", "#363B30", "#4C5345", "#646C5C", "#868D7C", "#AEB4A5", "#D7DAD1"] },
+      "corpo": { "role": "neutral", "displayName": "Corpo", "canonical": "#3F4239", "tonalRamp": ["#14150F", "#22241D", "#30332A", "#3F4239", "#5A5E51", "#7C816F", "#A8AC9B", "#D4D6CC"] },
+      "areia": { "role": "neutral", "displayName": "Areia", "canonical": "#EFEADD", "tonalRamp": ["#28241A", "#453F2E", "#615A43", "#7E7658", "#9C946F", "#BCB495", "#D8D2BE", "#EFEADD"] },
+      "borda": { "role": "neutral", "displayName": "Borda", "canonical": "#E3DDCC", "tonalRamp": ["#26221A", "#413B2C", "#5C543E", "#786E50", "#948A66", "#B4AB8C", "#CCC5AF", "#E3DDCC"] },
+      "divisa": { "role": "neutral", "displayName": "Divisa", "canonical": "#F0EBDD", "tonalRamp": ["#29251A", "#46402E", "#625B43", "#7F7658", "#9D936F", "#BDB595", "#D9D3BE", "#F0EBDD"] },
+      "noite-suave": { "role": "neutral", "displayName": "Noite Suave", "canonical": "#A7AC95", "note": "Texto secundário sobre o cartão de tinta. Só lá.", "tonalRamp": ["#2A2C23", "#44483A", "#5E6350", "#787E67", "#93997F", "#A7AC95", "#C4C8B5", "#E2E4D8"] },
+      "noite-corpo": { "role": "neutral", "displayName": "Noite Corpo", "canonical": "#C9CDB8", "tonalRamp": ["#2E3125", "#4A4E3C", "#666B53", "#82886B", "#9EA487", "#B8BDA2", "#C9CDB8", "#E6E8DA"] },
+      "pessoa-1": { "role": "secondary", "displayName": "Verde da Pessoa 1", "canonical": "#14B88C", "note": "Atribuída por coresDoCasal (packages/core/src/album.ts); ordem estável, papel dono primeiro.", "tonalRamp": ["#04241C", "#073E2F", "#0A5743", "#0D7358", "#118F6D", "#14B88C", "#4FD5B2", "#9FEBD7"] },
+      "pessoa-2": { "role": "secondary", "displayName": "Âmbar da Pessoa 2", "canonical": "#F3B63F", "tonalRamp": ["#3A2704", "#5C3E07", "#7E560B", "#A0700F", "#C28C1B", "#E0A32C", "#F3B63F", "#F9D68F"] },
+      "pessoa-fora": { "role": "secondary", "displayName": "Cinza de Quem Saiu", "canonical": "#C6C3B4", "tonalRamp": ["#26241C", "#403D31", "#5A5646", "#75705C", "#918C75", "#ADA894", "#C6C3B4", "#E4E2D9"] },
+      "alerta": { "role": "tertiary", "displayName": "Alerta", "canonical": "#A8322E", "tonalRamp": ["#2C0D0C", "#480F0E", "#661714", "#84221E", "#A8322E", "#C55650", "#DE8D89", "#F2C8C5"] },
+      "alerta-suave": { "role": "tertiary", "displayName": "Alerta Suave", "canonical": "#F7E4E1", "tonalRamp": ["#33110F", "#511C18", "#6F2924", "#8D3B35", "#AC5A54", "#CA8983", "#E5BBB7", "#F7E4E1"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Título da tela, um por tela. Outfit 700, tracking -0.04em, 27px no celular e 36px no desktop." },
+      "headline": { "displayName": "Chamada", "purpose": "Estado vazio e convite. Preso em 22-26ch para quebrar em linhas curtas de propósito." },
+      "title": { "displayName": "Título de peça", "purpose": "Nome da jornada na polaroide, rótulo de interruptor, texto de botão." },
+      "numero": { "displayName": "Número", "purpose": "Valor no cartão limão. Outfit 800 com tabular-nums; todo número que muda usa tabular-nums." },
+      "body": { "displayName": "Corpo", "purpose": "Manrope com a classe .font-corpo (word-spacing 0.12em). Tudo que é dito em voz humana." },
+      "label": { "displayName": "Rótulo", "purpose": "Rótulo de campo, saudação, contagem de chip, secundários do cartão de tinta." }
+    },
+    "fontDelivery": { "method": "next/font (Outfit + Manrope), self-hosted", "rule": "Nunca <link> para fonts.googleapis.com: mandaria o IP de cada visitante a um terceiro e desfaria a razão de o banco estar em sa-east-1." },
+    "shadows": [
+      { "name": "polaroide", "value": "0 10px 20px rgb(22 23 15 / 0.1)", "purpose": "Só na polaroide. É a foto levantando do papel." },
+      { "name": "peca", "value": "0 8px 18px rgb(22 23 15 / 0.08)", "purpose": "Dock e disco de ação, que flutuam sobre o conteúdo que rola por baixo." }
+    ],
+    "surfaces": [
+      { "name": "grao-papel", "value": "SVG feTurbulence fractalNoise baseFrequency=.8 numOctaves=4, opacity .09, 140x140, repeat, em data URI no body", "purpose": "O mundo se chama papel; chapa de cor lisa não é papel. Nada a baixar, nenhuma requisição a terceiro." },
+      { "name": "grao-chapa", "value": "SVG feTurbulence fractalNoise baseFrequency=.85 numOctaves=3, opacity .22, 120x120, mix-blend-overlay", "purpose": "O grão dentro do plano de imagem da polaroide." },
+      { "name": "foco", "value": "outline: 2px solid #16170F; outline-offset: 3px", "purpose": "Anel de foco global. Nunca removido." },
+      { "name": "selecao", "value": "::selection { background: #D8F26B; color: #16170F }", "purpose": "Seleção de texto dentro da paleta, em vez do azul de sistema." },
+      { "name": "scrollbar", "value": "scrollbar-color: #E3DDCC transparent; scrollbar-width: thin", "purpose": "Barra de rolagem na paleta." },
+      { "name": "esquema", "value": "color-scheme: light", "purpose": "Sem paleta escura desenhada; sem isto o navegador em modo escuro pinta o fundo de preto." }
+    ],
+    "motion": [
+      { "name": "endireitar", "value": "transition-transform 500ms", "purpose": "O gesto de colar no álbum: item comprado leva a polaroide a 0°." },
+      { "name": "progresso", "value": "transition-[width] 500ms", "purpose": "Crescimento da barra de preenchimento único." },
+      { "name": "chevron", "value": "transform 180ms ease-out", "purpose": "O chevron autoral do <summary> abrindo e fechando." },
+      { "name": "hover-acao", "value": "transform: scale(1.05)", "purpose": "Só no disco de ação primária do dock. É o único elemento que escala no hover." }
+    ],
+    "breakpoints": [
+      { "name": "lg", "value": "1024px", "purpose": "O álbum sai da mão e abre sobre a mesa: dock deita como trilho à esquerda, a home vira minmax(0,1fr) 17rem." }
+    ],
+    "tilt": [
+      { "name": "album", "value": ["-2deg", "1deg", "-1deg", "2deg"], "purpose": "Grade de jornadas. Escolhida por índice, nunca por Math.random (quebraria a hidratação)." },
+      { "name": "sutil", "value": ["-0.4deg", "0.25deg", "-0.25deg", "0.4deg"], "purpose": "Linha larga: a 690px, 2° cisalham 24px e a linha encosta na de baixo." }
+    ],
+    "portability": { "note": "Todo o tema vive num bloco @theme do Tailwind 4, que o NativeWind estável não lê. A fase 2 reescreve o tema, não as telas — por isso só classes Tailwind básicas nas telas." }
+  },
+  "components": [
+    {
+      "name": "Botão primário (Enviar)",
+      "kind": "button",
+      "refersTo": "botao-primario",
+      "description": "A ação de confirmar em qualquer formulário. Pílula de tinta com texto branco; ocupado vira 'Um instante…'.",
+      "html": "<button class=\"ds-btn-primario\">Anotar aporte</button>",
+      "css": ".ds-btn-primario { background: var(--color-tinta, #16170F); color: #fff; font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600; padding: 14px 20px; border: none; border-radius: 9999px; cursor: pointer; transition: opacity .2s; } .ds-btn-primario:hover { opacity: .9; } .ds-btn-primario:focus-visible { outline: 2px solid var(--color-tinta, #16170F); outline-offset: 3px; } .ds-btn-primario:disabled { opacity: .5; cursor: default; }"
+    },
+    {
+      "name": "Botão secundário",
+      "kind": "button",
+      "refersTo": "botao-secundario",
+      "description": "Mesma pílula, sem o peso da tinta. Para a ação que não é a principal da tela.",
+      "html": "<button class=\"ds-btn-secundario\">Cancelar</button>",
+      "css": ".ds-btn-secundario { background: transparent; color: var(--color-tinta, #16170F); font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; font-weight: 600; padding: 10px 16px; border: 1px solid var(--color-borda, #E3DDCC); border-radius: 9999px; cursor: pointer; transition: background-color .2s; } .ds-btn-secundario:hover { background: #fff; } .ds-btn-secundario:focus-visible { outline: 2px solid var(--color-tinta, #16170F); outline-offset: 3px; }"
+    },
+    {
+      "name": "Chip de filtro",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filtro de categoria com contagem, na faixa rolável do topo da home. Selecionado inverte para tinta.",
+      "html": "<div style=\"display:flex;gap:6px\"><button class=\"ds-chip ds-chip-ativo\" aria-pressed=\"true\">Tudo<span class=\"ds-chip-conta\">3</span></button><button class=\"ds-chip\" aria-pressed=\"false\">viagem<span class=\"ds-chip-conta\">1</span></button></div>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--color-tinta, #16170F); font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; font-weight: 500; padding: 8px 12px; border: 1px solid rgb(22 23 15 / .1); border-radius: 9999px; cursor: pointer; transition: border-color .2s, background-color .2s; } .ds-chip:hover { border-color: rgb(22 23 15 / .25); } .ds-chip:focus-visible { outline: 2px solid var(--color-tinta, #16170F); outline-offset: 3px; } .ds-chip-conta { background: var(--color-areia, #EFEADD); color: var(--color-suave, #63695D); font-size: 10.5px; padding: 1px 6px; border-radius: 9999px; } .ds-chip-ativo { background: var(--color-tinta, #16170F); color: #fff; border-color: var(--color-tinta, #16170F); } .ds-chip-ativo .ds-chip-conta { background: rgb(255 255 255 / .2); color: #fff; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Rótulo sempre associado. 16px de texto porque abaixo disso o iOS dá zoom no foco.",
+      "html": "<label class=\"ds-campo\"><span class=\"ds-campo-rotulo\">Quanto você colocou</span><input class=\"ds-campo-entrada\" inputmode=\"decimal\" type=\"text\" placeholder=\"0,00\" /></label>",
+      "css": ".ds-campo { display: flex; flex-direction: column; gap: 6px; } .ds-campo-rotulo { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; font-weight: 600; word-spacing: .12em; color: var(--color-suave-forte, #4C5345); } .ds-campo-entrada { background: #fff; color: var(--color-tinta, #16170F); caret-color: var(--color-tinta, #16170F); font-size: 16px; padding: 10px 14px; border: 1px solid var(--color-borda, #E3DDCC); border-radius: 18px; } .ds-campo-entrada::placeholder { color: var(--color-suave, #63695D); } .ds-campo-entrada:focus-visible { outline: 2px solid var(--color-tinta, #16170F); outline-offset: 3px; }"
+    },
+    {
+      "name": "Polaroide com chapa",
+      "kind": "card",
+      "refersTo": "polaroide",
+      "description": "A peça-assinatura: moldura branca girada, com o plano de imagem em duotone autoral. Marcar como comprado endireita para 0°.",
+      "html": "<div class=\"ds-polaroide\"><div class=\"ds-chapa\"><span class=\"ds-chapa-grao\"></span><span class=\"ds-chapa-brilho\"></span></div><b class=\"ds-polaroide-titulo\">Viagem pro Chile</b></div>",
+      "css": ".ds-polaroide { width: 180px; background: #fff; padding: 8px 8px 12px; border-radius: 6px; box-shadow: 0 10px 20px rgb(22 23 15 / .1); transform: rotate(-2deg); transition: transform .5s; } .ds-polaroide:hover { transform: rotate(0deg); } .ds-chapa { position: relative; overflow: hidden; height: 96px; border-radius: 3px; background-image: radial-gradient(circle at 28% 120%, #9BB4C4 0%, #6C8699 68%); } .ds-chapa-grao { position: absolute; inset: 0; mix-blend-mode: overlay; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23r)' opacity='.22'/%3E%3C/svg%3E\"); } .ds-chapa-brilho { position: absolute; inset: 0; background-image: linear-gradient(118deg, rgb(255 255 255 / .16) 0%, transparent 38%, transparent 76%, rgb(22 23 15 / .13) 100%); } .ds-polaroide-titulo { display: block; margin-top: 8px; font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: -.02em; color: var(--color-tinta, #16170F); }"
+    },
+    {
+      "name": "Barra de progresso bicolor",
+      "kind": "custom",
+      "refersTo": "polaroide",
+      "description": "Mostra de quem é o dinheiro, não só quanto é. Sem aporte, o trilho ganha listra diagonal — barra lisa e vazia lê como defeito.",
+      "html": "<div class=\"ds-prog\"><div class=\"ds-prog-trilho\" role=\"progressbar\" aria-valuenow=\"45\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-label=\"Quanto vocês já juntaram desta jornada\"><i style=\"width:30%;background:#14B88C\"></i><i style=\"width:15%;background:#F3B63F\"></i></div><p class=\"ds-prog-legenda\">R$ 4.050,00 de R$ 9.000,00 · 45%</p></div>",
+      "css": ".ds-prog { display: flex; flex-direction: column; gap: 6px; width: 220px; } .ds-prog-trilho { display: flex; height: 6px; width: 100%; overflow: hidden; border-radius: 9999px; background: var(--color-areia, #EFEADD); } .ds-prog-trilho i { display: block; height: 100%; } .ds-prog-vazio { background: repeating-linear-gradient(115deg, var(--color-areia, #EFEADD) 0 5px, var(--color-borda, #E3DDCC) 5px 10px); } .ds-prog-legenda { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-variant-numeric: tabular-nums; word-spacing: .12em; color: var(--color-suave, #63695D); margin: 0; }"
+    },
+    {
+      "name": "Cartão limão",
+      "kind": "card",
+      "refersTo": "cartao-limao",
+      "description": "Rótulo pequeno, número grande. Ancora o 'este mês' na coluna direita.",
+      "html": "<div class=\"ds-cartao-limao\"><span class=\"ds-cartao-limao-rotulo\">este mês</span><b class=\"ds-cartao-limao-valor\">R$ 8.400,00</b></div>",
+      "css": ".ds-cartao-limao { width: 220px; background: var(--color-limao, #D8F26B); padding: 12px; border-radius: 18px; } .ds-cartao-limao-rotulo { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; word-spacing: .12em; color: var(--color-limao-tinta, #4A5A15); } .ds-cartao-limao-valor { display: block; margin-top: 1px; font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; color: var(--color-tinta, #16170F); }"
+    },
+    {
+      "name": "Pílula do total",
+      "kind": "custom",
+      "refersTo": "pilula-total",
+      "description": "O dinheiro como fato guardado, largura total, no topo do álbum.",
+      "html": "<p class=\"ds-pilula-total\">R$ 12.450,00 juntos</p>",
+      "css": ".ds-pilula-total { background: var(--color-tinta, #16170F); color: var(--color-limao, #D8F26B); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 700; word-spacing: .12em; text-align: center; padding: 10px 16px; border-radius: 9999px; margin: 0; }"
+    },
+    {
+      "name": "Dock",
+      "kind": "nav",
+      "refersTo": "botao-primario",
+      "description": "Pílula branca com dois destinos e, separado, o disco de tinta com o '+' em limão — a ação primária. No desktop deita como trilho à esquerda.",
+      "html": "<nav class=\"ds-dock\" aria-label=\"Navegação principal\"><div class=\"ds-dock-pilula\"><a href=\"#\" class=\"ds-dock-item ds-dock-ativo\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 10.2 12 3.8l8.5 6.4V19a1.4 1.4 0 0 1-1.4 1.4H4.9A1.4 1.4 0 0 1 3.5 19z\"/><path d=\"M9.4 20.4v-6.2h5.2v6.2\"/></svg></a><a href=\"#\" class=\"ds-dock-item\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"7.4\" y=\"3.6\" width=\"13\" height=\"13\" rx=\"1.8\"/><path d=\"M16.4 20.4H5.4a1.8 1.8 0 0 1-1.8-1.8V7.6\"/><path d=\"M10.6 12.4l2.1-2.1 3.1 3.1\"/></svg></a></div><a href=\"#\" class=\"ds-dock-acao\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5.5v13M5.5 12h13\"/></svg></a></nav>",
+      "css": ".ds-dock { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 300px; } .ds-dock-pilula { display: flex; gap: 8px; background: #fff; padding: 6px; border-radius: 9999px; box-shadow: 0 8px 18px rgb(22 23 15 / .08); } .ds-dock-item { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 9999px; color: var(--color-suave, #63695D); transition: background-color .2s, color .2s; } .ds-dock-item:hover { background: var(--color-areia, #EFEADD); } .ds-dock-item:focus-visible { outline: 2px solid var(--color-tinta, #16170F); outline-offset: 3px; } .ds-dock-ativo { background: var(--color-tinta, #16170F); color: #fff; } .ds-dock-acao { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 9999px; background: var(--color-tinta, #16170F); color: var(--color-limao, #D8F26B); box-shadow: 0 8px 18px rgb(22 23 15 / .08); transition: transform .2s; } .ds-dock-acao:hover { transform: scale(1.05); } .ds-dock-acao:focus-visible { outline: 2px solid var(--color-tinta, #16170F); outline-offset: 3px; }"
+    },
+    {
+      "name": "Cartão de tinta (pedido do parceiro)",
+      "kind": "card",
+      "refersTo": "cartao-tinta",
+      "description": "Reservado ao único momento que concede acesso ao dado financeiro de outra pessoa. Um segundo cartão escuro em qualquer outro lugar apaga o sinal deste.",
+      "html": "<div class=\"ds-cartao-tinta\"><span class=\"ds-cartao-tinta-rotulo\">pedido pendente</span><p class=\"ds-cartao-tinta-corpo\">Quem confirmar dá acesso a tudo que vocês já juntaram.</p><div class=\"ds-cartao-tinta-acoes\"><button class=\"ds-btn-conceder\">Confirmar</button><button class=\"ds-btn-recusar\">Recusar</button></div></div>",
+      "css": ".ds-cartao-tinta { width: 300px; background: var(--color-tinta, #16170F); color: var(--color-papel, #F7F0E1); padding: 16px; border-radius: 22px; display: flex; flex-direction: column; gap: 12px; } .ds-cartao-tinta-rotulo { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 10.5px; word-spacing: .12em; color: var(--color-noite-suave, #A7AC95); } .ds-cartao-tinta-corpo { margin: 0; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; line-height: 1.625; word-spacing: .12em; color: var(--color-noite-corpo, #C9CDB8); } .ds-cartao-tinta-acoes { display: flex; gap: 8px; } .ds-btn-conceder { flex: 1; background: var(--color-limao, #D8F26B); color: var(--color-tinta, #16170F); font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 700; padding: 12px 16px; border: none; border-radius: 9999px; cursor: pointer; } .ds-btn-recusar { flex: 1; background: transparent; color: var(--color-noite-corpo, #C9CDB8); font-family: Outfit, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 600; padding: 12px 16px; border: 1px solid rgb(247 240 225 / .25); border-radius: 9999px; cursor: pointer; } .ds-btn-conceder:focus-visible, .ds-btn-recusar:focus-visible { outline: 2px solid var(--color-limao, #D8F26B); outline-offset: 3px; }"
+    },
+    {
+      "name": "Recado",
+      "kind": "custom",
+      "refersTo": "recado-erro",
+      "description": "Erro e aviso. Sempre role=\"status\", senão a mensagem não chega a quem usa leitor de tela.",
+      "html": "<p class=\"ds-recado ds-recado-erro\" role=\"status\">Não deu pra entrar com esses dados.</p>",
+      "css": ".ds-recado { margin: 0; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; line-height: 1.625; word-spacing: .12em; padding: 10px 14px; border-radius: 18px; } .ds-recado-erro { background: var(--color-alerta-suave, #F7E4E1); color: var(--color-alerta, #A8322E); } .ds-recado-aviso { background: var(--color-areia, #EFEADD); color: var(--color-corpo, #3F4239); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O álbum sobre a mesa da cozinha",
+    "overview": "O plano de um casal é um álbum, não um extrato. Este mundo recusa o arranjo padrão de app de dinheiro — grade de cartões iguais, gráfico no topo, saldo cinza em número grande — e no lugar põe fotos tortas sobre papel creme, onde cada jornada é um objeto que dá vontade de pegar. O dinheiro aparece como fato guardado (\"R$ 12.450,00 juntos\"), nunca como métrica de painel.\n\nA densidade é de coisa na mão, não de planilha: uma coluna no celular, o mesmo álbum aberto sobre a mesa no desktop. O papel é papel de verdade — o fundo creme leva um grão de ruído SVG embutido, e até as superfícies que o navegador desenha sozinho (seleção de texto, anel de foco, cursor, barra de rolagem, o triângulo do <details>, a seta do <select>) foram trazidas para dentro da paleta. É o detalhe mais barato que separa uma tela montada de uma desenhada.\n\nO tom emocional é caloroso e sem cerimônia: minúscula na saudação (\"oi, Lucas e Ana\"), negrito apertado no título, e o limão aparecendo só onde há motivo de comemorar ou de decidir. Nada de azul de sistema, nada de cinza corporativo, nada de modo escuro — o app se compromete com o claro (color-scheme: light) porque não existe paleta escura desenhada.",
+    "keyCharacteristics": [
+      "Papel creme de borda a borda, com grão; nunca chapa de cor lisa.",
+      "Polaroide girada 1–2° como peça-assinatura; branco sobre creme.",
+      "Limão como acento único, nunca fundo de página.",
+      "Todo controle é pílula (raio 9999px).",
+      "Progresso é bicolor por pessoa, nunca preenchimento único.",
+      "Outfit carrega estrutura e número; Manrope carrega o que é dito em voz humana.",
+      "Ícones desenhados à mão em SVG, grid de 24, traço 1.75."
+    ],
+    "rules": [
+      { "name": "A Regra do Contraste Vence o Pin", "body": "O design fixado trazia #8A8C7C e #6E7566 como tons apagados. Medidos sobre o papel creme dão 3.02:1 e 4.21:1 — os dois abaixo do piso de 4.5:1 para texto pequeno, e é neles que estão preço, data e toda explicação. Shipam escurecidos para 4.99:1 (suave) e 7.29:1 (suave-forte), na mesma família sálvia. Valor de paleta não sobrevive a um teste de contraste reprovado, nem quando vem do brief.", "section": "colors" },
+      { "name": "A Regra do Cartão de Tinta Reservado", "body": "O fundo tinta como superfície de cartão pertence a um único fluxo: o pedido do parceiro (o aviso de pedido pendente em inicio.tsx e o cartão de pedido em parceiro/form.tsx). É o único momento do app que concede a outra pessoa acesso a dado financeiro. Um segundo cartão escuro em qualquer outro lugar faz o primeiro parar de sinalizar.", "section": "colors" },
+      { "name": "A Regra da Mesma Pessoa, Mesma Cor", "body": "A cor de uma pessoa vem sempre de coresDoCasal, nunca do índice do array na tela. Se a mesma pessoa for verde na home e âmbar na jornada, a barra bicolor deixa de querer dizer qualquer coisa.", "section": "colors" },
+      { "name": "A Regra do Limão Escasso", "body": "O limão nunca é fundo de página nem texto sobre papel. Ele aparece em três lugares por tela, no máximo: o total, o cartão \"este mês\", e o que acabou de ser conquistado.", "section": "colors" },
+      { "name": "A Regra do Espaço Entre Palavras", "body": ".font-corpo carrega word-spacing: 0.12em. O Manrope fecha as palavras em 10–12px a ponto de ligá-las (\"o usodela\", \"juntandodinheiro\"). 0.05em ali dava 0.6px e sumia no arredondamento — o valor precisa sobreviver à rasterização no tamanho em que o defeito mora.", "section": "typography" },
+      { "name": "A Regra das Duas Vozes", "body": "Se o texto é dito por uma pessoa a outra, é Manrope. Se é estrutura, título ou número, é Outfit. Não existe terceira face, e nenhuma das duas é a fonte do sistema.", "section": "typography" },
+      { "name": "A Regra da Sombra em Repouso", "body": "As duas sombras são de repouso, não de estado: pertencem ao objeto, não ao mouse. Hover muda cor, opacidade ou escala — nunca acrescenta sombra.", "section": "elevation" },
+      { "name": "A Regra do Contorno Único", "body": "Onde uma borda é necessária (campo, chip inativo, botão secundário), é 1px de borda ou tinta/10. Nunca duas bordas, nunca borda mais sombra na mesma peça.", "section": "elevation" },
+      { "name": "A Regra da Pílula", "body": "Se é clicável e não é uma peça do álbum, é pílula. Um botão de canto arredondado a 8px não pertence a este mundo.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do puxar toda cor, raio e sombra do bloco @theme em apps/web/app/globals.css. Valor solto na tela é o começo do drift.",
+      "Do medir contraste sobre o papel creme (#F7F0E1) antes de usar um tom novo. O piso é 4.5:1 para texto pequeno, e ele vence o valor do brief.",
+      "Do usar coresDoCasal de packages/core para toda cor de pessoa.",
+      "Do dar role=\"progressbar\" com aria-value* a toda barra, e role=\"status\" a todo recado.",
+      "Do rotular todo controle com nome acessível — a suíte e2e ancora nele.",
+      "Do usar tabular-nums em todo número que muda.",
+      "Do manter .font-corpo em tudo que é dito em voz humana.",
+      "Do desenhar ícone novo no grid de 24 com traço 1.75 e pontas redondas, em components/icones.tsx.",
+      "Do usar só classes Tailwind básicas: a fase 2 reescreve o @theme, não as telas."
+    ],
+    "donts": [
+      "Don't usar o cartão de tinta (#16170F) fora do fluxo do pedido do parceiro. Um segundo cartão escuro apaga o sinal do primeiro.",
+      "Don't pôr limão como fundo de página nem como texto sobre o papel creme.",
+      "Don't usar preenchimento único onde há fatia por pessoa.",
+      "Don't usar glifo Unicode, emoji ou biblioteca de ícones no lugar dos sete desenhos autorais.",
+      "Don't carregar fonte por <link> para um CDN de terceiro; next/font e origem própria, sempre.",
+      "Don't remover o anel de foco global (2px tinta, offset 3px) nem deixar superfície de navegador com o azul de sistema.",
+      "Don't desenhar tema escuro: o app declara color-scheme: light porque não existe paleta escura desenhada.",
+      "Don't sortear a inclinação da polaroide com Math.random — índice, e o gesto de endireitar reservado a \"item comprado\".",
+      "Don't girar 2° em linha larga; ali a escala é sutil.",
+      "Don't montar classe Tailwind por concatenação (bg-${cor}): a varredura de texto não a encontra e a cor some."
+    ],
+    "unresolved": [
+      "MATERIAL contradito: a tese diz \"fotos tortas sobre papel\", e o plano de imagem da polaroide (Chapa) é um duotone autoral em CSS com grão, não uma fotografia. A correção é Supabase Storage com a URL presa ao nosso bucket — é migration, e está parada como tarefa própria. Registrado como a única promessa não cumprida do sistema, não como decisão de design.",
+      "Medida de texto: o contrato pedia corpo preso em 65–75ch no desktop; o que shipou limita por contêiner (max-w-sm / max-w-2xl / max-w-5xl) e só as chamadas display têm limite em ch (22–26ch)."
+    ]
+  }
+}
