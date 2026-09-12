@@ -64,7 +64,8 @@ Rodar de novo antes de começar. Leva uns 40 segundos e é de graça.
 ### 1. Ligar o CLI ao projeto
 
 ```bash
-supabase link --project-ref qysekkewsrwtebpiowim
+npx supabase login          # se ainda não estiver autenticado
+npx supabase link --project-ref qysekkewsrwtebpiowim
 ```
 
 Pede a senha do banco (Dashboard → Settings → Database). Não altera nada.
@@ -72,31 +73,30 @@ Pede a senha do banco (Dashboard → Settings → Database). Não altera nada.
 ### 2. Ver o que vai entrar, sem aplicar
 
 ```bash
-supabase db push --dry-run
+npx supabase db push --dry-run
 ```
 
 **Esperado: exatamente 5 arquivos listados** — as quatro mais a contração.
 Se aparecer número diferente, pare: o contador do `EVOLUCAO.md` está errado e
 o ensaio rodou contra o estado errado.
 
-### 3. Tirar a contração do caminho
+(O script do passo 3 refaz este dry-run por dentro, já sem a contração. Este
+aqui é só para você ver o número inteiro antes de começar.)
 
-`db push` aplica tudo que está pendente, e a contração **não pode entrar
-agora**. Antes do push:
-
-```bash
-mkdir -p /tmp/contrai
-mv supabase/migrations/20260912150948_regra_do_casal_contrai.sql /tmp/contrai/
-```
-
-> Guardar fora da pasta é feio e é o caminho mais curto. A alternativa seria
-> um `db push` por arquivo, que a CLI não oferece.
-
-### 4. Aplicar
+### 3. Aplicar
 
 ```bash
-supabase db push
+bash scripts/subir-producao.sh
 ```
+
+O script faz o que o `db push` sozinho não sabe fazer: tira a contração da
+pasta antes (a CLI não aplica migration parcial), confere no dry-run que ela
+**não** está na lista, pede confirmação, aplica, e devolve o arquivo — por
+`trap`, então ele volta mesmo se o push falhar ou você apertar Ctrl+C.
+
+Os quatro caminhos foram exercidos com uma CLI falsa: falha no dry-run,
+contração vazando para a lista, resposta "não" e resposta "sim". Nos quatro o
+arquivo volta para `supabase/migrations/`.
 
 **Esperado:** as 4 aplicadas, em ordem. Ao terminar, o botão "Pôr uma foto"
 volta a funcionar em produção — **sem nenhum deploy**.
@@ -106,11 +106,7 @@ papel `postgres` possa criar policy numa tabela de `supabase_storage_admin`.
 Local funciona; no hospedado é o caminho documentado pelo Supabase, mas não
 foi possível provar daqui. Se reprovar ali, ver o apêndice — não é emergência.
 
-```bash
-mv /tmp/contrai/20260912150948_regra_do_casal_contrai.sql supabase/migrations/
-```
-
-### 5. Conferir, no app de verdade
+### 4. Conferir, no app de verdade
 
 Quatro conferências, não os 8 itens do teste de fumaça (que é outra tarefa):
 
@@ -120,13 +116,13 @@ Quatro conferências, não os 8 itens do teste de fumaça (que é outra tarefa):
 3. criar conta nova e confirmar pelo e-mail — a trigger mudou;
 4. anotar um aporte — prova que o `with check` novo não fechou demais.
 
-### 6. Subir o web
+### 5. Subir o web
 
 ```bash
 git push origin main
 ```
 
-Vercel constrói e publica `1f32071`. **Sem pressa:** entre o passo 4 e este, o
+Vercel constrói e publica o `main` atual. **Sem pressa:** entre o passo 3 e este, o
 app no ar segue funcionando igual. A única consequência de demorar é que, se
 alguém trocar a regra de divisão pelo web antigo nesse meio, `couples.split_rule`
 fica desatualizada — com zero usuários, é teórico, e o deploy resolve.
@@ -134,7 +130,7 @@ fica desatualizada — com zero usuários, é teórico, e o deploy resolve.
 Depois do deploy, conferir de novo o item 2 acima: agora a regra é lida de
 `couples`.
 
-### 7. A contração — outro dia
+### 6. A contração — outro dia
 
 Quando o web novo estiver no ar e testado, `supabase db push` de novo, que
 aplica só a contração. **Como saber que dá:** abra `/aportes` em produção e
