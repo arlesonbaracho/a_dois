@@ -157,7 +157,6 @@ export type Database = {
           is_adult: boolean
           left_at: string | null
           role: Database["public"]["Enums"]["couple_role"]
-          split_rule: Database["public"]["Enums"]["split_rule"]
           updated_at: string
           user_id: string
         }
@@ -170,7 +169,6 @@ export type Database = {
           is_adult?: boolean
           left_at?: string | null
           role?: Database["public"]["Enums"]["couple_role"]
-          split_rule?: Database["public"]["Enums"]["split_rule"]
           updated_at?: string
           user_id: string
         }
@@ -183,7 +181,6 @@ export type Database = {
           is_adult?: boolean
           left_at?: string | null
           role?: Database["public"]["Enums"]["couple_role"]
-          split_rule?: Database["public"]["Enums"]["split_rule"]
           updated_at?: string
           user_id?: string
         }
@@ -201,16 +198,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          split_rule: Database["public"]["Enums"]["split_rule"]
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          split_rule?: Database["public"]["Enums"]["split_rule"]
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          split_rule?: Database["public"]["Enums"]["split_rule"]
           updated_at?: string
         }
         Relationships: []
@@ -466,7 +466,10 @@ export type Database = {
       claim_invite: { Args: { p_token: string }; Returns: string }
       confirm_invite: { Args: { p_invite_id: string }; Returns: undefined }
       create_couple: { Args: never; Returns: string }
-      create_couple_for: { Args: { p_user_id: string }; Returns: string }
+      create_couple_for: {
+        Args: { p_display_name?: string; p_user_id: string }
+        Returns: string
+      }
       create_invite: {
         Args: {
           p_channel: Database["public"]["Enums"]["invite_channel"]

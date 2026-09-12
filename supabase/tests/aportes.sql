@@ -207,6 +207,40 @@ end $$;
 
 
 -- ===========================================================================
+-- 3b. A regra de divisão é UMA, e é do casal
+-- ===========================================================================
+
+-- Antes ela era coluna por pessoa: as duas linhas podiam discordar, e uma
+-- função em TypeScript desempatava pelo papel 'dono'. Agora mora em `couples`,
+-- e é isto que o teste tranca — se alguém a devolver para couple_members, o
+-- casal volta a poder ter duas respostas para "como a gente divide".
+do $$
+declare
+  casal uuid := (select valor from cenario where chave = 'casal_a');
+begin
+  perform aporte_teste.igual('a regra não é mais coluna de couple_members',
+    (select count(*) from information_schema.columns
+      where table_schema = 'public' and table_name = 'couple_members'
+        and column_name = 'split_rule'), 0);
+
+  perform aporte_teste.texto('e o casal nasce dividindo meio a meio',
+    (select split_rule::text from public.couples where id = casal), 'igual');
+
+  -- Beto, que é parceiro e não dono, muda a regra: ela é dos dois.
+  update public.couples set split_rule = 'proporcional' where id = casal;
+
+  perform aporte_teste.texto('o parceiro muda a regra do casal',
+    (select split_rule::text from public.couples where id = casal), 'proporcional');
+
+  -- E não existe segunda resposta em lugar nenhum para a Ana ver.
+  perform aporte_teste.igual('a regra é uma só para o casal inteiro',
+    (select count(distinct split_rule) from public.couples where id = casal), 1);
+
+  update public.couples set split_rule = 'igual' where id = casal;
+end $$;
+
+
+-- ===========================================================================
 -- 4. O casal do lado continua sem enxergar nada
 -- ===========================================================================
 

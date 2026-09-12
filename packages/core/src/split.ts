@@ -29,11 +29,15 @@ export const PESO_FAIXA: Record<FaixaRenda, number> = {
   acima_10_sm: 30, // ~15 SM
 };
 
-/** Uma pessoa ativa no casal, do ponto de vista da divisão. */
+/**
+ * Uma pessoa ativa no casal, do ponto de vista da divisão.
+ *
+ * Sem `papel` e sem `regra`: a regra é do CASAL e chega por parâmetro, e o
+ * papel só existia para desempatar duas regras que discordavam. Não discordam
+ * mais.
+ */
 export type Participante = {
   userId: string;
-  papel: "dono" | "parceiro";
-  regra: RegraDivisao;
   faixaRenda: FaixaRenda | null;
   /**
    * A pessoa consentiu com o uso da faixa dela no cálculo?
@@ -110,19 +114,6 @@ export function dividirCentavos(totalCents: number, pesos: number[]): number[] {
 }
 
 /**
- * Qual regra vale para o casal.
- *
- * A regra é coluna de couple_members, ou seja, existe uma por pessoa, e as duas
- * podem discordar. Quem desempata é o papel 'dono'; sem dono, a primeira da
- * lista (a consulta vem ordenada por created_at). Esta função só existe por
- * causa desse modelo — está registrada em Dívidas.
- */
-export function regraDoCasal(participantes: Participante[]): RegraDivisao {
-  const dono = participantes.find((p) => p.papel === "dono");
-  return (dono ?? participantes[0])?.regra ?? "igual";
-}
-
-/**
  * Os pesos que a regra produz, ou `null` quando ela não dá para aplicar com os
  * dados que existem.
  *
@@ -191,7 +182,7 @@ export type Saldo = {
 export function saldoDoCasal(
   participantes: Participante[],
   aportadoPorPessoa: Readonly<Record<string, number>>,
-  regra: RegraDivisao = regraDoCasal(participantes),
+  regra: RegraDivisao,
 ): Saldo {
   const aportado = participantes.map((p) => aportadoPorPessoa[p.userId] ?? 0);
   const totalRateadoCents = sumCents(aportado);

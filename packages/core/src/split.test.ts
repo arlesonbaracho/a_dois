@@ -6,14 +6,11 @@ import {
   type Participante,
   PESO_FAIXA,
   pesosDaRegra,
-  regraDoCasal,
   saldoDoCasal,
 } from "./split";
 
 function pessoa(over: Partial<Participante> & { userId: string }): Participante {
   return {
-    papel: "parceiro",
-    regra: "igual",
     faixaRenda: null,
     usoDaFaixaConsentido: true,
     parteFixaCents: null,
@@ -187,32 +184,8 @@ describe("pesosDaRegra", () => {
   });
 });
 
-describe("regraDoCasal", () => {
-  it("o dono desempata quando as duas linhas discordam", () => {
-    expect(
-      regraDoCasal([
-        pessoa({ userId: "ana", regra: "igual" }),
-        pessoa({ userId: "bia", papel: "dono", regra: "proporcional" }),
-      ]),
-    ).toBe("proporcional");
-  });
-
-  it("sem dono, vale a primeira da lista", () => {
-    expect(
-      regraDoCasal([
-        pessoa({ userId: "ana", regra: "fixo" }),
-        pessoa({ userId: "bia", regra: "igual" }),
-      ]),
-    ).toBe("fixo");
-  });
-
-  it("sem ninguém, cai no igual", () => {
-    expect(regraDoCasal([])).toBe("igual");
-  });
-});
-
 describe("saldoDoCasal", () => {
-  const ana = pessoa({ userId: "ana", papel: "dono" });
+  const ana = pessoa({ userId: "ana" });
   const bia = pessoa({ userId: "bia" });
 
   it("fecha em zero quando os dois colocaram igual", () => {
@@ -265,10 +238,14 @@ describe("saldoDoCasal", () => {
     expect(saldo.linhas.map((l) => l.diferencaCents)).toEqual([0, 0]);
   });
 
-  it("usa a regra do dono quando ninguém passa uma", () => {
+  // A regra chega de fora, sempre: ela é do casal, e quem a lê é a página.
+  // Antes havia um default que a adivinhava pela linha do dono — some junto
+  // com a coluna por pessoa.
+  it("o valor combinado rateia na proporção do que cada um disse", () => {
     const saldo = saldoDoCasal(
-      [{ ...ana, regra: "fixo", parteFixaCents: 3 }, { ...bia, parteFixaCents: 1 }],
+      [{ ...ana, parteFixaCents: 3 }, { ...bia, parteFixaCents: 1 }],
       { ana: 0, bia: 100 },
+      "fixo",
     );
     expect(saldo.regra).toBe("fixo");
     expect(saldo.linhas.map((l) => l.devidoCents)).toEqual([75, 25]);

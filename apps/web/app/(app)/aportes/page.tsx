@@ -1,11 +1,5 @@
-import { aportes, membrosDoCasal, metas, perfisDoCasal, usuarioAtual } from "@repo/api";
-import {
-  type Participante,
-  pesosDaRegra,
-  regraDoCasal,
-  saldoDoCasal,
-  sumCents,
-} from "@repo/core";
+import { aportes, membrosDoCasal, metas, meuCasal, perfisDoCasal, usuarioAtual } from "@repo/api";
+import { type Participante, pesosDaRegra, saldoDoCasal, sumCents } from "@repo/core";
 
 import { criarClienteServidor } from "@/lib/supabase/server";
 
@@ -15,11 +9,12 @@ export default async function Aportes() {
   const supabase = await criarClienteServidor();
   const usuario = await usuarioAtual(supabase);
 
-  const [membros, listaMetas, listaAportes, perfis] = await Promise.all([
+  const [membros, listaMetas, listaAportes, perfis, casal] = await Promise.all([
     membrosDoCasal(supabase),
     metas(supabase),
     aportes(supabase),
     perfisDoCasal(supabase),
+    meuCasal(supabase),
   ]);
 
   // O consentimento com o uso da faixa mora no perfil de cada pessoa. Sem ele,
@@ -29,12 +24,10 @@ export default async function Aportes() {
     perfis.map((perfil) => [perfil.user_id, perfil.consent_income_band_at !== null]),
   );
 
-  // Quem está ativo no casal, na forma que o core entende. A regra de divisão
-  // é coluna por pessoa; quem desempata é regraDoCasal.
+  // Quem está ativo no casal, na forma que o core entende. A regra não vem
+  // daqui: ela é do casal, e chega por parâmetro logo abaixo.
   const participantes: Participante[] = membros.map((membro) => ({
     userId: membro.user_id,
-    papel: membro.role,
-    regra: membro.split_rule,
     faixaRenda: membro.income_band,
     usoDaFaixaConsentido: consentiuFaixa.get(membro.user_id) ?? false,
     parteFixaCents: membro.fixed_share_cents,
@@ -48,7 +41,7 @@ export default async function Aportes() {
     aportadoPorPessoa[chave] = (aportadoPorPessoa[chave] ?? 0) + aporte.amount_cents;
   }
 
-  const regra = regraDoCasal(participantes);
+  const regra = casal?.split_rule ?? "igual";
   const saldo = saldoDoCasal(participantes, aportadoPorPessoa, regra);
   const totalDoPlanoCents = sumCents(listaAportes.map((a) => a.amount_cents));
 
@@ -87,7 +80,7 @@ export default async function Aportes() {
       nomes={nomes}
       totalDoPlanoCents={totalDoPlanoCents}
       disponivel={disponivel}
-      minhaRegra={eu?.split_rule ?? "igual"}
+      minhaRegra={regra}
       minhaFaixa={eu?.income_band ?? null}
       minhaParteFixaCents={eu?.fixed_share_cents ?? null}
     />

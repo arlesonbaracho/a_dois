@@ -14,7 +14,7 @@ type Client = SupabaseClient<Database>;
 export async function meuCasal(client: Client) {
   const { data, error } = await client
     .from("couples")
-    .select("id, created_at")
+    .select("id, created_at, split_rule")
     .order("created_at")
     .limit(1)
     .maybeSingle();

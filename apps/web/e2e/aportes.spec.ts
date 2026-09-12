@@ -1,6 +1,26 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { comoPessoa, criarConta, entrar, parear } from "./apoio";
+
+/**
+ * Salva a divisão e espera a escrita LANDAR antes de seguir.
+ *
+ * Sem esperar, o teste recarregava no meio da escrita e lia o estado anterior —
+ * corrida que sempre esteve aqui e que ficou visível quando a regra subiu para
+ * `couples` e o salvar passou a ser mais de uma ida ao servidor.
+ *
+ * Espera a resposta da Server Action, e não o recado "Pronto": o recado do
+ * salvamento ANTERIOR continua na tela enquanto o novo não volta, então
+ * esperar por ele passa na hora e não espera nada.
+ */
+async function salvar(page: Page) {
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.request().method() === "POST" && r.url().includes("/aportes"),
+    ),
+    page.getByRole("button", { name: "Salvar" }).click(),
+  ]);
+}
 
 test.describe("aportes e divisão", () => {
   // R$ 1.500,01 entre duas pessoas divide mal de propósito: é o caso em que um
@@ -31,7 +51,7 @@ test.describe("aportes e divisão", () => {
 
     // Pela renda: 15 para 7, sobre o mesmo total.
     await page.getByLabel("Sua faixa de renda (opcional)").selectOption("de_5_a_10_sm");
-    await page.getByRole("button", { name: "Salvar" }).click();
+    await salvar(page);
 
     // O Beto precisa de faixa TAMBÉM: consentir sem ter faixa não abre o modo,
     // porque o que falta continua faltando. Ele faz isso do aparelho dele.
@@ -42,20 +62,20 @@ test.describe("aportes e divisão", () => {
 
     await page.reload();
     await page.getByRole("radio", { name: "Pela renda de cada um" }).check();
-    await page.getByRole("button", { name: "Salvar" }).click();
+    await salvar(page);
 
     await expect(saldo).toContainText("cabia R$ 1.022,73");
     await expect(saldo).toContainText("cabia R$ 477,28");
 
     // Por valor combinado: 800 para 500.
     await page.getByLabel("Quanto você combina de colocar (R$, opcional)").fill("800");
-    await page.getByRole("button", { name: "Salvar" }).click();
+    await salvar(page);
     await comoBeto.atualizar(`couple_members?user_id=eq.${beto.userId}`, {
       fixed_share_cents: 50000,
     });
     await page.reload();
     await page.getByRole("radio", { name: "Um valor combinado" }).check();
-    await page.getByRole("button", { name: "Salvar" }).click();
+    await salvar(page);
 
     await expect(saldo).toContainText("cabia R$ 923,08");
     await expect(saldo).toContainText("cabia R$ 576,93");
@@ -135,7 +155,7 @@ test.describe("aportes e divisão", () => {
     await entrar(page, ana);
     await page.goto("/aportes");
     await page.getByLabel("Sua faixa de renda (opcional)").selectOption("de_5_a_10_sm");
-    await page.getByRole("button", { name: "Salvar" }).click();
+    await salvar(page);
     await page.reload();
 
     await expect(page.getByRole("radio", { name: "Pela renda de cada um" })).toBeDisabled();

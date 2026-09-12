@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { meuCasal } from "./couple";
 import type { Database } from "./database.types";
 
 type Client = SupabaseClient<Database>;
@@ -54,7 +55,6 @@ export async function salvarMinhaDivisao(
   client: Client,
   userId: string,
   dados: {
-    regra: Database["public"]["Enums"]["split_rule"];
     faixaRenda: Database["public"]["Enums"]["income_band"] | null;
     parteFixaCents: number | null;
   },
@@ -62,7 +62,6 @@ export async function salvarMinhaDivisao(
   const { error } = await client
     .from("couple_members")
     .update({
-      split_rule: dados.regra,
       income_band: dados.faixaRenda,
       fixed_share_cents: dados.parteFixaCents,
     })
@@ -70,4 +69,35 @@ export async function salvarMinhaDivisao(
     .is("left_at", null);
 
   if (error) throw error;
+}
+
+/**
+ * A regra de divisão, que é do casal e não de cada um.
+ *
+ * Escrita separada de `salvarMinhaDivisao` porque são fatos em tabelas
+ * diferentes: o que cada pessoa ganha e quanto ela coloca são dela; COMO os
+ * dois dividem é dos dois.
+ *
+ * O id do casal é buscado aqui e não recebido por parâmetro. Duas razões: o
+ * PostgREST recusa update sem WHERE (`21000`), e couple_id vindo do cliente é
+ * o que a regra 3 do CLAUDE.md proíbe. Assim ele sai de `meuCasal`, que já
+ * passa pela policy de select — nunca atravessa a rede vindo de fora.
+ */
+export async function salvarRegraDoCasal(
+  client: Client,
+  regra: Database["public"]["Enums"]["split_rule"],
+): Promise<void> {
+  const casal = await meuCasal(client);
+  if (!casal) throw new Error("Você ainda não tem um plano por aqui");
+
+  const { data, error } = await client
+    .from("couples")
+    .update({ split_rule: regra })
+    .eq("id", casal.id)
+    .select("id");
+
+  if (error) throw error;
+  // Zero linhas é RLS dizendo "esse casal não é seu". Sem esta checagem, a
+  // tela mostraria a regra nova e o banco guardaria a antiga.
+  if (!data?.length) throw new Error("Nenhum plano para atualizar");
 }

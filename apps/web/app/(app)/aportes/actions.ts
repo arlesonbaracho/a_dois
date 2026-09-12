@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
-import { registrarAporte, salvarMinhaDivisao, usuarioAtual } from "@repo/api";
+import {
+  registrarAporte,
+  salvarMinhaDivisao,
+  salvarRegraDoCasal,
+  usuarioAtual,
+} from "@repo/api";
 import { type FaixaRenda, PESO_FAIXA, type RegraDivisao } from "@repo/core";
 
 import type { EstadoForm } from "@/components/form-ui";
@@ -67,8 +72,11 @@ export async function acaoSalvarDivisao(
   if (!usuario) return { erro: "Sua sessão expirou. Entra de novo?" };
 
   try {
+    // Duas escritas, em duas tabelas, porque são dois fatos: como o CASAL
+    // divide, e o que ESTA pessoa ganha e coloca. A regra primeiro — é a que a
+    // outra pessoa também vê.
+    await salvarRegraDoCasal(supabase, regra);
     await salvarMinhaDivisao(supabase, usuario.id, {
-      regra,
       // Qualquer coisa que não seja faixa conhecida vira nulo — inclusive o
       // "prefiro não dizer". A faixa é opcional, e ficar sem ela é resposta.
       faixaRenda: ehFaixa(faixa) ? faixa : null,
