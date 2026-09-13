@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-12 (nome no cadastro, regra do casal, linha de cada um)
+**Última atualização:** 2026-09-13 (LGPD no banco, a promessa ligada, papelada)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -61,6 +61,10 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-12 | **A regra de divisão passa a ser do casal.** `split_rule` sobe de `couple_members` para `couples`, com backfill fazendo uma vez em SQL a escolha que `regraDoCasal` fazia a cada render. A função some, e com ela `Participante.papel` e `Participante.regra`. `salvarMinhaDivisao` vira duas escritas em duas tabelas | `cc692c5` |
 | 2026-09-12 | **Cada um edita só a própria linha de vínculo.** `couple_members_update` ganha `user_id = auth.uid()` no `with check`; o `using` segue o casal inteiro, porque ler a linha do par é legítimo. Teste dentro do MESMO casal, com a varredura sem WHERE incluída | `5c41f6b` |
 | 2026-09-12 | **Produção em dia.** As quatro migrations aditivas aplicadas no hospedado e o web em `2578b5e`. O `drop column` foi isolado numa quinta migration retida, e foi isso que tirou a necessidade de janela coordenada: `db push` e deploy deixaram de precisar acontecer juntos. Provado antes por `scripts/subir-producao.sh` (ensaio contra o estado exato de produção, com dados) e conferido depois por `migration list --linked`. Fica provado também que `postgres` cria policy em `storage.objects` no hospedado — era o único ponto que não dava para verificar local | `—` |
+| 2026-09-13 | **LGPD no banco.** Revogar o consentimento da faixa de renda passa a APAGAR a faixa, não só o carimbo (Art. 18, IX); `price_quotes` ganha retenção de 180 dias no expurgo que já existia (Art. 15/16); e `contributions_update` deixa de aceitar `user_id` de fora do casal. Seis sabotagens, seis reprovações — duas delas acharam teste cego meu | `de074cb` |
+| 2026-09-13 | **A capa sai junto com a conta.** Foto é dado pessoal e ficava no bucket depois de a conta sumir: inalcançável, mas guardada. Removida ANTES da RPC (depois a policy nega), nos dois caminhos que destroem o plano, e só quando ele vai mesmo morrer. O e2e confere pela API do Storage, não pela tabela | `6d663b9` |
+| 2026-09-13 | **A promessa ligada.** O botão "buscar preço" chama a Edge Function que existia sem chamador desde o prompt 6; o histórico de `price_quotes` aparece no item; e a prioridade passa a ordenar o álbum (`.order` no banco, que o enum já vem na ordem certa). Três coisas construídas e desligadas, agora em uso | `20d6c89` |
+| 2026-09-13 | **Papelada da LGPD.** `docs/ROPA.md` (Art. 37) tirado do schema real, `docs/SECURITY.md` com o plano de resposta a incidente e o prazo da ANPD, e a política de privacidade como PÁGINA pública do app, linkada do cadastro e do perfil. O que depende do controlador vai marcado `<<PREENCHER>>` | `(este commit)` |
 
 ---
 
@@ -165,11 +169,9 @@ Sabemos que precisa existir, mas ainda não entrou na fila.
 - [ ] Build via EAS e publicação nas lojas
 
 ### Conformidade e operação
-- [ ] `docs/ROPA.md` preenchido
-- [ ] `docs/PRIVACY.md` publicado e linkado no rodapé
-- [ ] Plano de resposta a incidente escrito (prazo ANPD: 3 dias úteis)
-- [ ] Canal `privacidade@` ativo
-- [ ] Retenção automática de `price_quotes` via `pg_cron`
+- [ ] Canal `privacidade@` ativo — é o que fecha os `<<PREENCHER>>` do ROPA,
+      do plano de incidente e da página de privacidade
+- [ ] Identificação do controlador e do encarregado (DPO), Art. 41
 - [ ] Backup com restauração testada de verdade
 - [ ] Sentry com `beforeSend` removendo PII
 - [ ] Revisão com especialista em proteção de dados antes de monetizar
@@ -322,6 +324,11 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-12 | `split_rule` sai de `couple_members` e vai para `couples` | Substitui a decisão de 2026-09-10: com uma coluna por casal não há o que desempatar, e `regraDoCasal` deixa de existir |
 | 2026-09-12 | `salvarRegraDoCasal` busca o casal em vez de recebê-lo | PostgREST recusa update sem WHERE (`21000`), e couple_id vindo do cliente é a regra 3 do CLAUDE.md. Buscar por `meuCasal` resolve os dois |
 | 2026-09-12 | O e2e espera a resposta da Server Action, não o recado na tela | O recado do salvamento anterior continua visível enquanto o novo não volta: esperar por ele passa na hora e não espera nada |
+| 2026-09-13 | Revogar consentimento apaga o DADO, não só o carimbo | Art. 18, IX. Guardar a faixa de renda depois da revogação é guardar sem base legal — e o app já parava de usar, o que dava a impressão de estar resolvido |
+| 2026-09-13 | Retenção de cotação em 180 dias, dentro do expurgo existente | Curto demais mata o histórico de preço, que é a razão de a tabela ser append-only; e um job a menos é um agendamento a menos para descobrir que parou |
+| 2026-09-13 | A política de privacidade é PÁGINA do app, não arquivo em `docs/` | Política que o titular não consegue abrir não está publicada. `docs/` fica com o que é interno: ROPA e plano de incidente |
+| 2026-09-13 | A prioridade ordena pelo `.order` do banco, sem função em `core` | O enum `goal_priority` foi declarado ('baixa','media','alta') e o Postgres ordena enum pela ordem de declaração. Uma função de comparação no cliente seria código para repetir o que o banco já sabe |
+| 2026-09-13 | O mapeamento de código de erro da Edge Function mora em `packages/core` | É regra de negócio (quais falhas o produto distingue) e é a única forma de testá-la sem subir o runtime de Edge Functions |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -387,6 +394,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
 | desktop com pouca jornada | Com três jornadas o desktop deixa boa parte da tela em creme. É coerente com a tese do álbum sobre a mesa, mas com uma jornada só fica visivelmente vazio | Baixa |
 | `contributions_update` | Mesma classe do `couple_members_update` que acabou de fechar: o update segue aberto ao casal, então dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Custa uma cláusula no `with check` | Baixa |
+| `<<PREENCHER>>` na papelada | ROPA, plano de incidente e página de privacidade estão escritos e **não valem como documento** até o controlador, o encarregado e o canal de contato serem preenchidos. A página já está no ar com as lacunas visíveis em vermelho — é melhor que lacuna escondida, e pior que documento pronto | **Alta** |
+| busca de preço × e2e | O caminho feliz do botão não é exercido de ponta a ponta: o runtime de Edge Functions não sobe com `supabase start` neste ambiente e, servido à mão, não resolve o host interno do Supabase. O mapeamento de erro tem teste puro em `core`, e a função tem 17 unitários — falta a emenda | Média |
 | capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |

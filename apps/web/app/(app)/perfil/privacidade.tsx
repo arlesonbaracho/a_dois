@@ -159,6 +159,11 @@ export function Privacidade({ userId }: { userId: string }) {
             Cada um destes é independente. Desligar um não desliga os outros, e
             desligar qualquer um não tira nenhuma função do app.
           </p>
+          {/* O link mora aqui porque é aqui que a pessoa está decidindo sobre
+              os dados dela — e não num rodapé que ninguém lê. */}
+          <a href="/privacidade" className="text-sm text-suave underline">
+            O que a gente guarda, e o que não guarda
+          </a>
         </div>
 
         {CONSENTIMENTOS.map((item) => {

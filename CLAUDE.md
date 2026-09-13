@@ -46,7 +46,10 @@ supabase/
   functions/            Edge Functions
     _shared/            ssrf-guard.ts, auth.ts
   tests/                isolamento RLS
-docs/                   SECURITY.md, PRIVACY.md, ROPA.md
+docs/                   ROPA.md (Art. 37), SECURITY.md (incidente)
+                        a política de privacidade é PÁGINA do app, em
+                        app/(auth)/privacidade — política que exige login não
+                        está publicada
 EVOLUCAO.md             diário do projeto (ver seção própria)
 ```
 

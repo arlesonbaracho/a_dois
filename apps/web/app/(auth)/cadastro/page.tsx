@@ -40,9 +40,17 @@ export default function Cadastro() {
         <Enviar>Criar conta</Enviar>
       </form>
 
-      <Link href="/login" className="text-sm underline">
-        Já tenho conta
-      </Link>
+      <div className="flex flex-col gap-2">
+        <Link href="/login" className="text-sm underline">
+          Já tenho conta
+        </Link>
+        {/* Aqui, e não só no perfil: é neste instante que a pessoa decide
+            entregar o e-mail dela, e é antes de decidir que ela precisa poder
+            ler o que a gente guarda. */}
+        <Link href="/privacidade" className="font-corpo text-[12.5px] text-suave underline">
+          O que a gente guarda, e o que não guarda
+        </Link>
+      </div>
     </Cartao>
   );
 }
