@@ -186,4 +186,88 @@ test.describe("metas e itens", () => {
     await page.reload();
     await expect(page.locator('img[src*="/capas/"]')).toBeVisible();
   });
+
+  /**
+   * `price_quotes` guardava a série desde o prompt 6 — append-only, com RLS e
+   * com teste de auditoria — e NADA no app lia. Este teste é o que faz a
+   * tabela existir para alguém.
+   */
+  test("o histórico de preço aparece no item", async ({ page, request }) => {
+    const ana = await criarConta(request, "preco");
+    await entrar(page, ana);
+
+    const comoAna = await comoPessoa(request, ana);
+    const meta = await (await comoAna.rpc("add_goal", {
+      p_title: "Cozinha nova",
+      p_target_amount_cents: 2000000,
+    })).json();
+    const item = await (await comoAna.rpc("add_goal_item", {
+      p_goal_id: meta,
+      p_name: "Geladeira",
+    })).json();
+
+    await page.goto(`/jornadas/${meta}`);
+    // Uma cotação só não é histórico: a linha não pode aparecer ainda.
+    await expect(page.getByText(/caiu|subiu/)).toHaveCount(0);
+
+    // Pela RPC, que é o único caminho de escrita — insert direto é negado.
+    await comoAna.rpc("add_price_quote", {
+      p_goal_item_id: item,
+      p_price_cents: 419900,
+      p_source_url: "https://loja.test/geladeira",
+    });
+    await comoAna.rpc("add_price_quote", {
+      p_goal_item_id: item,
+      p_price_cents: 399000,
+      p_source_url: "https://loja.test/geladeira",
+    });
+
+    await page.reload();
+    await expect(page.getByText("R$ 4.199,00 → R$ 3.990,00")).toBeVisible();
+    await expect(page.getByText(/caiu 5%/)).toBeVisible();
+  });
+
+  /**
+   * A prioridade era gravada e nunca lida: a pessoa escolhia "É o que a gente
+   * mais quer" e o app ignorava. Pedir uma decisão e ignorá-la é pior que não
+   * perguntar.
+   */
+  test("a prioridade ordena o álbum", async ({ page, request }) => {
+    const ana = await criarConta(request, "prioridade");
+    await entrar(page, ana);
+    const comoAna = await comoPessoa(request, ana);
+
+    // A ordem de criação é A ALTA PRIMEIRO, e isso é o teste inteiro.
+    //
+    // A consulta desempata por `created_at desc`. Criando da baixa para a
+    // alta, a data sozinha já devolveria alta-media-baixa e o teste passaria
+    // mesmo com a ordenação por prioridade removida — foi o que aconteceu na
+    // primeira versão disto. Criando ao contrário, data e prioridade discordam,
+    // e só a prioridade dá o resultado esperado.
+    for (const [titulo, prioridade] of [
+      ["O que mais queremos", "alta"],
+      ["Importante sem pressa", "media"],
+      ["Um dia quem sabe", "baixa"],
+    ] as [string, string][]) {
+      await comoAna.rpc("add_goal", {
+        p_title: titulo,
+        p_target_amount_cents: 100000,
+        p_priority: prioridade,
+      });
+    }
+
+    await page.goto("/jornadas");
+    // A lista é client-side: sem esperar, `allInnerTexts` lê a página antes de
+    // a consulta voltar e devolve array vazio — o teste falharia por corrida,
+    // não por ordem errada.
+    await expect(page.getByRole("link", { name: /quem sabe/ })).toBeVisible();
+
+    const titulos = await page
+      .getByRole("link", { name: /quem sabe|sem pressa|mais queremos/ })
+      .allInnerTexts();
+    expect(titulos, "as três jornadas deviam estar na tela").toHaveLength(3);
+
+    expect(titulos[0], "a de prioridade alta devia vir primeiro").toContain("O que mais queremos");
+    expect(titulos[titulos.length - 1]).toContain("Um dia quem sabe");
+  });
 });

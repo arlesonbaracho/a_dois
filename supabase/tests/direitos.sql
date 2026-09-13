@@ -253,21 +253,28 @@ end $$;
 -- insert direto nas policies, porque o único caminho é `add_price_quote`. Mas
 -- ela carimba com now(), e o que está sendo medido aqui é justamente o prazo —
 -- então a data vai à mão, por fora do RLS.
+-- O item VEM DO CENÁRIO deste teste, e não de um `limit 1` na tabela.
+--
+-- O banco local é compartilhado com a suíte e2e, que também cria goal_items.
+-- `limit 1` sem `order by` devolvia um item no insert e outro na asserção, e o
+-- teste reprovava com "0, esperava 2" sem nada de errado no código. Armadilha
+-- 6, agora pela terceira vez.
 reset role;
 insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url, created_at)
 select gi.couple_id, gi.id, 419900, 'https://loja.test/nova', now() - interval '1 day'
-from public.goal_items as gi limit 1;
+from public.goal_items as gi
+where gi.id = (select valor from cenario where chave = 'item');
 insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url, created_at)
 select gi.couple_id, gi.id, 399000, 'https://loja.test/velha', now() - interval '365 days'
-from public.goal_items as gi limit 1;
+from public.goal_items as gi
+where gi.id = (select valor from cenario where chave = 'item');
 
 set local role authenticated;
 
 do $$
 declare
-  item uuid;
+  item uuid := (select valor from cenario where chave = 'item');
 begin
-  select id into item from public.goal_items limit 1;
   if item is null then
     raise exception 'SEED QUEBRADO: sem item para pendurar cotação';
   end if;

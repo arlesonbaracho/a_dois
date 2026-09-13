@@ -25,9 +25,17 @@ export type DadosMeta = {
  * tabela à lista de casais do auth.uid().
  */
 export async function metas(client: Client): Promise<Meta[]> {
+  // A prioridade ordena o álbum, e quem ordena é o banco. O enum
+  // `goal_priority` foi declarado como ('baixa', 'media', 'alta'), e Postgres
+  // ordena enum pela ordem de declaração — então descendente põe "É o que a
+  // gente mais quer" primeiro, sem função de comparação nenhuma no cliente.
+  //
+  // Até aqui o campo era gravado e nunca lido: a pessoa escolhia a prioridade
+  // e o app ignorava. Pedir uma decisão e ignorá-la é pior que não perguntar.
   const { data, error } = await client
     .from("goals")
     .select("*")
+    .order("priority", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (error) throw error;

@@ -9,6 +9,7 @@ import {
   useAportes,
   useApagarItem,
   useApagarMeta,
+  useBuscarPreco,
   useCapas,
   useCasal,
   useCriarItem,
@@ -34,6 +35,7 @@ import { Campo, Enviar, Escolha, Recado } from "@/components/form-ui";
 import { IconeVoltar } from "@/components/icones";
 import { Bloco, Chapa, Chip, CartaoLimao, Polaroide } from "@/components/pecas";
 import { Progresso, type Fatia } from "@/components/progresso";
+import { PrecoDoItem } from "@/components/preco-do-item";
 import { prepararCapa } from "@/lib/capa";
 import { paraCampoData, paraCentavos, paraInstante } from "@/lib/dinheiro";
 
@@ -62,6 +64,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
 
   const salvarJornada = useSalvarMeta(goalId);
   const enviarCapa = useEnviarCapa(goalId);
+  const buscarPreco = useBuscarPreco(goalId);
   const apagarJornada = useApagarMeta(goalId);
   const criarItem = useCriarItem(goalId);
   const salvarItem = useSalvarItem(goalId);
@@ -149,6 +152,38 @@ export function Detalhe({ goalId }: { goalId: string }) {
       });
     } catch {
       setErroCapa("Não consegui usar essa foto. Tenta outra?");
+    }
+  }
+
+  /**
+   * Vai à loja pelo link do item e guarda o preço.
+   *
+   * Os motivos de recusa viram frase em pt-BR aqui, e não no `packages/api`:
+   * lá eles são código, porque a camada de dados não sabe em que idioma a tela
+   * fala. Nenhuma das frases repete o detalhe técnico — "url_recusada" é sobre
+   * a nossa infraestrutura, não sobre o que a pessoa fez.
+   */
+  async function verPreco(itemId: string, url: string) {
+    setErro("");
+    try {
+      const resultado = await buscarPreco.mutateAsync({ itemId, url });
+      if (resultado.ok) {
+        setErro(
+          resultado.precoCents === null
+            ? "Achei a página, mas ela não diz o preço em lugar nenhum."
+            : "",
+        );
+        return;
+      }
+      setErro(
+        resultado.motivo === "endereco_recusado"
+          ? "Esse endereço a gente não abre. Tenta o link direto do produto?"
+          : resultado.motivo === "loja_nao_respondeu"
+            ? "A loja não respondeu agora. Tenta de novo daqui a pouco?"
+            : "Não consegui ler essa página. Tenta outro link?",
+      );
+    } catch {
+      setErro("Não consegui buscar o preço agora. Tenta de novo?");
     }
   }
 
@@ -373,9 +408,23 @@ export function Detalhe({ goalId }: { goalId: string }) {
                                 >
                                   ver na loja
                                 </a>
+                                {" · "}
+                                {/* A terceira frase do que o produto promete: "com
+                                    sugestão de onde comprar cada item". Quem vai à loja
+                                    é a Edge Function, com o guard anti-SSRF em cada
+                                    salto — nunca o navegador. */}
+                                <button
+                                  type="button"
+                                  disabled={buscarPreco.isPending}
+                                  onClick={() => void verPreco(item.id, item.url as string)}
+                                  className="underline disabled:opacity-50"
+                                >
+                                  {buscarPreco.isPending ? "buscando…" : "buscar preço"}
+                                </button>
                               </>
                             ) : null}
                           </span>
+                          <PrecoDoItem itemId={item.id} />
                         </span>
                         {comprado ? (
                           <span className="flex-none rounded-full bg-tinta px-2 py-1 font-corpo text-[10px] font-bold text-limao">
