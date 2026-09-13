@@ -27,7 +27,7 @@ export default async function Perfil() {
         <form action={acaoSair}>
           <button
             type="submit"
-            className="rounded-full border border-borda px-5 py-2.5 text-[12.5px] font-semibold text-tinta transition hover:bg-white active:scale-[0.97]"
+            className="rounded-full border border-contorno/60 bg-white px-5 py-2.5 text-[12.5px] font-semibold text-tinta transition hover:border-contorno active:scale-[0.97]"
           >
             Sair
           </button>

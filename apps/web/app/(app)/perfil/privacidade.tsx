@@ -234,7 +234,7 @@ export function Privacidade({ userId }: { userId: string }) {
           type="button"
           onClick={() => void excluir()}
           disabled={!podeExcluir}
-          className="self-start rounded-full bg-alerta px-5 py-3 text-[13px] font-semibold text-white transition hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
+          className="self-start rounded-full bg-alerta px-5 py-3.5 text-[13px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
         >
           Apagar minha conta
         </button>

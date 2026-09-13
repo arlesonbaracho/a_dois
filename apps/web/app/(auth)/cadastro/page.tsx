@@ -5,7 +5,15 @@ import { useActionState } from "react";
 
 import { SENHA_MINIMA } from "@repo/core";
 
-import { Campo, Cartao, Enviar, Recado, Saida, type EstadoForm } from "@/components/form-ui";
+import {
+  Campo,
+  CampoSenha,
+  Cartao,
+  Enviar,
+  Recado,
+  Saida,
+  type EstadoForm,
+} from "@/components/form-ui";
 
 import { acaoCadastrar } from "../actions";
 
@@ -13,8 +21,11 @@ export default function Cadastro() {
   const [estado, acao] = useActionState<EstadoForm, FormData>(acaoCadastrar, {});
 
   return (
-    <Cartao titulo="Vamos começar" subtitulo="Crie sua conta. O parceiro entra depois, por convite.">
-      <form action={acao} className="flex flex-col gap-4">
+    <Cartao
+      titulo="Vamos começar"
+      subtitulo="Crie sua conta. Quem divide o plano com você entra depois, por convite."
+    >
+      <form action={acao} className="flex flex-1 flex-col gap-4">
         {/* Primeiro campo, e opcional: é o que faz a home dizer "oi, Lia" em
             vez de "oi, vocês", e é o nome que seu parceiro vê na hora de
             confirmar quem está entrando no plano. maxLength casa com o corte
@@ -28,21 +39,27 @@ export default function Cadastro() {
           placeholder="Lia"
         />
         <Campo rotulo="E-mail" name="email" type="email" autoComplete="email" required />
-        <Campo
+        <CampoSenha
           rotulo={`Senha (mínimo ${SENHA_MINIMA} caracteres)`}
           name="senha"
-          type="password"
           autoComplete="new-password"
           minLength={SENHA_MINIMA}
           required
         />
         <Recado erro={estado.erro} aviso={estado.aviso} />
-        <Enviar>Criar conta</Enviar>
-      </form>
 
-      <Link href="/login" className="self-start">
-        <Saida>Já tenho conta</Saida>
-      </Link>
+        <p className="mt-auto pt-6 font-corpo text-[11px] leading-relaxed text-suave">
+          A gente não pede CPF, endereço nem data de nascimento. Nunca pediu, e
+          não é por esquecimento.
+        </p>
+        <Enviar largo>Criar conta</Enviar>
+        <p className="pb-2 text-center font-corpo text-[12px] text-suave">
+          Já tem conta?{" "}
+          <Link href="/login">
+            <Saida>Entrar</Saida>
+          </Link>
+        </p>
+      </form>
     </Cartao>
   );
 }

@@ -12,7 +12,7 @@ import {
 } from "@repo/core";
 
 import { Campo, Enviar, Escolha, Recado, type EstadoForm } from "@/components/form-ui";
-import { Explica, LinhaAporte, PontoDePessoa, Secao } from "@/components/pecas";
+import { CartaoDestaque, Explica, LinhaAporte, PontoDePessoa, Secao } from "@/components/pecas";
 
 import { acaoRegistrarAporte, acaoSalvarDivisao } from "./actions";
 
@@ -67,6 +67,7 @@ export function TelaAportes({
   nomes,
   cores,
   totalDoPlanoCents,
+  doMesCents,
   disponivel,
   minhaRegra,
   minhaFaixa,
@@ -78,6 +79,7 @@ export function TelaAportes({
   nomes: Record<string, string>;
   cores: Record<string, CorDePessoa>;
   totalDoPlanoCents: number;
+  doMesCents: number;
   disponivel: Record<RegraDivisao, boolean>;
   minhaRegra: RegraDivisao;
   minhaFaixa: string | null;
@@ -98,7 +100,7 @@ export function TelaAportes({
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-5 p-5 lg:max-w-2xl lg:p-10">
       <div>
-        <h1 className="text-[27px] font-bold tracking-[-0.04em] lg:text-4xl">Aportes</h1>
+        <h1 className="text-[28px] font-semibold leading-none tracking-[-0.03em] lg:text-4xl">Aportes</h1>
         <Explica className="mt-1">
           Quem colocou quanto, e como vocês combinaram de dividir.
         </Explica>
@@ -106,8 +108,12 @@ export function TelaAportes({
 
       <Saldos saldo={saldo} nomes={nomes} cores={cores} deQuemSaiuCents={deQuemSaiu} />
 
+      {/* "este mês" saiu da home quando ela virou uma jornada por vez. O lugar
+          dele é aqui, que é a tela do dinheiro. */}
+      <CartaoDestaque rotulo="este mês" valorCents={doMesCents} rodape="o que entrou desde o dia 1" />
+
       {metas.length === 0 ? (
-        <p className="rounded-cartao bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-corpo">
+        <p className="rounded-cartao border border-borda bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-suave-forte">
           Antes do primeiro aporte, criem uma jornada em{" "}
           <Link href="/jornadas" className="font-semibold underline">
             jornadas de vocês
@@ -141,7 +147,7 @@ export function TelaAportes({
           <Campo rotulo="Quando" name="quando" type="date" defaultValue={hoje} max={hoje} />
 
           <Recado erro={estadoAporte.erro} aviso={estadoAporte.aviso} />
-          <Enviar>Anotar</Enviar>
+          <Enviar largo>Anotar</Enviar>
         </form>
       )}
 
@@ -171,7 +177,7 @@ export function TelaAportes({
                   value={modo.valor}
                   defaultChecked={minhaRegra === modo.valor}
                   disabled={!podeUsar}
-                  className="mt-0.5 size-4 accent-tinta"
+                  className="mt-0.5 size-4 accent-verde"
                 />
                 <span>
                   <span className="block text-[13.5px] font-semibold">{modo.rotulo}</span>
@@ -210,7 +216,7 @@ export function TelaAportes({
         />
 
         <Recado erro={estadoDivisao.erro} aviso={estadoDivisao.aviso} />
-        <Enviar>Salvar</Enviar>
+        <Enviar largo>Salvar</Enviar>
       </form>
 
       {ultimos.length > 0 ? (
@@ -262,11 +268,11 @@ function Saldos({
     //
     // E o número deixa de ser herói: quem lidera é a frase do rodapé, que é o
     // que a pessoa veio saber. O total é referência, não troféu.
-    <section className="flex flex-col gap-3 rounded-cartao bg-white p-4">
+    <section className="flex flex-col gap-3 rounded-cartao border border-borda bg-white p-4">
       {/* h2, total, lista e frase como filhos diretos: o e2e ancora em
           heading.locator("..") e um invólucro tiraria as linhas do pai. */}
-      <h2 className="text-[17px] font-bold tracking-[-0.03em]">Quanto vocês já juntaram</h2>
-      <p className="-mt-2 text-[27px] font-extrabold tracking-[-0.04em] tabular-nums">
+      <h2 className="text-[17px] font-semibold tracking-[-0.03em]">Quanto vocês já juntaram</h2>
+      <p className="-mt-2 text-[28px] font-semibold tracking-[-0.035em] tabular-nums">
         {formatBRL(saldo.totalRateadoCents + deQuemSaiuCents)}
       </p>
 
@@ -296,7 +302,7 @@ function Saldos({
         ) : null}
       </ul>
 
-      <p className="border-t border-divisa pt-3 font-corpo text-[12.5px] font-medium leading-relaxed text-corpo">
+      <p className="border-t border-divisa pt-3 font-corpo text-[12.5px] font-medium leading-relaxed text-suave-forte">
         {!saldo.aplicavel
           ? "Escolham ali embaixo como querem dividir, e eu faço essa conta."
           : emDia

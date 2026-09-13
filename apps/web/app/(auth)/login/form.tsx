@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Campo, Cartao, Enviar, Recado, Saida, type EstadoForm } from "@/components/form-ui";
+import {
+  Campo,
+  CampoSenha,
+  Cartao,
+  Enviar,
+  Recado,
+  Saida,
+  type EstadoForm,
+} from "@/components/form-ui";
 
 import { acaoEntrar } from "../actions";
 
@@ -22,8 +30,8 @@ export function FormLogin({
   });
 
   return (
-    <Cartao titulo="Bem-vindo de volta" subtitulo="O plano de vocês está esperando.">
-      <form action={acao} className="flex flex-col gap-4">
+    <Cartao titulo="Bem-vindos de volta" subtitulo="O plano de vocês continua de onde parou.">
+      <form action={acao} className="flex flex-1 flex-col gap-4">
         <input type="hidden" name="proxima" value={proxima} />
         <Campo
           rotulo="E-mail"
@@ -35,25 +43,25 @@ export function FormLogin({
           // onde esse reset cai.
           defaultValue={estado.email ?? ""}
         />
-        <Campo
-          rotulo="Senha"
-          name="senha"
-          type="password"
-          autoComplete="current-password"
-          required
-        />
-        <Recado erro={estado.erro} aviso={estado.aviso} />
-        <Enviar>Entrar</Enviar>
-      </form>
-
-      <div className="flex flex-col items-start gap-2">
-        <Link href="/recuperar-senha">
+        <CampoSenha rotulo="Senha" name="senha" autoComplete="current-password" required />
+        <Link href="/recuperar-senha" className="-mt-1 self-end">
           <Saida>Esqueci minha senha</Saida>
         </Link>
-        <Link href="/cadastro">
-          <Saida>Ainda não temos conta</Saida>
-        </Link>
-      </div>
+
+        <Recado erro={estado.erro} aviso={estado.aviso} />
+
+        {/* A promessa que o produto inteiro sustenta, dita na porta. */}
+        <p className="mt-auto pt-6 font-corpo text-[11px] leading-relaxed text-suave">
+          Ninguém entra no plano de vocês sem a sua confirmação, nem por link.
+        </p>
+        <Enviar largo>Entrar</Enviar>
+        <p className="pb-2 text-center font-corpo text-[12px] text-suave">
+          Ainda não têm conta?{" "}
+          <Link href="/cadastro">
+            <Saida>Criar conta</Saida>
+          </Link>
+        </p>
+      </form>
     </Cartao>
   );
 }

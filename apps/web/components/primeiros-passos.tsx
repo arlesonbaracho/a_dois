@@ -19,17 +19,18 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
   const total = passos.filter((passo) => !passo.opcional).length;
 
   return (
-    // O cartão escuro é reservado ao momento que concede acesso ao dinheiro do
-    // outro, e chamar o parceiro é exatamente isso. Por isso ele mora aqui, e
-    // não em qualquer bloco branco.
+    // Bloco branco, e não o cartão escuro: o escuro é reservado ao único
+    // momento que concede a outra pessoa acesso a dado financeiro, que é o
+    // pedido do parceiro. Um segundo cartão escuro faz o primeiro parar de
+    // sinalizar.
     <section
       aria-labelledby="primeiros-passos"
-      className="rounded-cartao bg-tinta p-4 text-papel"
+      className="rounded-cartao border border-borda bg-white p-4"
     >
-      <h2 id="primeiros-passos" className="text-[17px] font-bold tracking-[-0.03em]">
+      <h2 id="primeiros-passos" className="text-[17px] font-semibold tracking-[-0.03em]">
         Comecem por aqui
       </h2>
-      <p className="mt-0.5 font-corpo text-[11.5px] text-noite-suave">
+      <p className="mt-0.5 font-corpo text-[11.5px] text-suave">
         {feitos} de {total} — a lista some sozinha quando acabar.
       </p>
 
@@ -41,13 +42,13 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
             <li key={passo.id}>
               <Link
                 href={passo.href}
-                className={`flex items-start gap-2.5 rounded-bloco px-2.5 py-2.5 transition hover:bg-papel/10 active:scale-[0.99] ${
+                className={`flex items-start gap-2.5 rounded-bloco px-2.5 py-2.5 transition hover:bg-areia active:scale-[0.99] ${
                   feito ? "opacity-55" : ""
                 }`}
               >
                 <Marca
                   aria-hidden="true"
-                  className={`mt-px size-4 flex-none ${feito ? "text-limao" : "text-noite-suave"}`}
+                  className={`mt-px size-4 flex-none ${feito ? "text-verde" : "text-suave"}`}
                 />
                 <span className="min-w-0 flex-1">
                   <span
@@ -57,19 +58,19 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
                   >
                     {passo.titulo}
                     {passo.opcional ? (
-                      <span className="ml-1.5 font-corpo text-[10.5px] font-normal text-noite-suave">
+                      <span className="ml-1.5 font-corpo text-[10.5px] font-normal text-suave">
                         opcional
                       </span>
                     ) : null}
                   </span>
-                  <span className="mt-0.5 block font-corpo text-[11.5px] leading-relaxed text-noite-corpo">
+                  <span className="mt-0.5 block font-corpo text-[11.5px] leading-relaxed text-suave">
                     {passo.dica}
                   </span>
                 </span>
                 {feito ? null : (
                   <IconeAvancar
                     aria-hidden="true"
-                    className="mt-0.5 size-4 flex-none text-noite-suave"
+                    className="mt-0.5 size-4 flex-none text-suave"
                   />
                 )}
                 {/* O estado precisa existir para quem não vê o ícone: sem
@@ -88,7 +89,7 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
           argumento — o que cabe aqui é dizer onde se desliga. */}
       <Link
         href="/perfil"
-        className="mt-2 inline-block px-2.5 font-corpo text-[11px] text-noite-suave underline"
+        className="mt-2 inline-block px-2.5 font-corpo text-[11px] text-verde underline"
       >
         O que a gente guarda, e o que vocês podem desligar
       </Link>

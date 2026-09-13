@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import { SENHA_MINIMA } from "@repo/core";
 
-import { Campo, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
+import { CampoSenha, Cartao, Enviar, Recado, type EstadoForm } from "@/components/form-ui";
 
 import { acaoTrocarSenha } from "../actions";
 
@@ -13,17 +13,18 @@ export default function NovaSenha() {
 
   return (
     <Cartao titulo="Escolha a nova senha" subtitulo="Depois disso você já entra direto.">
-      <form action={acao} className="flex flex-col gap-4">
-        <Campo
+      <form action={acao} className="flex flex-1 flex-col gap-4">
+        <CampoSenha
           rotulo={`Nova senha (mínimo ${SENHA_MINIMA} caracteres)`}
           name="senha"
-          type="password"
           autoComplete="new-password"
           minLength={SENHA_MINIMA}
           required
         />
         <Recado erro={estado.erro} />
-        <Enviar>Salvar senha</Enviar>
+        <div className="mt-auto pb-2 pt-6">
+          <Enviar largo>Salvar senha</Enviar>
+        </div>
       </form>
     </Cartao>
   );

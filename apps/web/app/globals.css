@@ -1,56 +1,70 @@
 @import "tailwindcss";
 
-/* Tokens do design "Jornada": papel creme, tinta quase preta, limão como
-   acento. Ficam aqui, e não espalhados nas telas, porque é o que permite
-   trocar a paleta inteira num arquivo só.
+/* Tokens do design v2: superfície quase branca, tinta quase preta, verde como
+   a cor da ação e marrom como a segunda pessoa. Ficam aqui, e não espalhados
+   nas telas, porque é o que permite trocar a paleta inteira num arquivo só —
+   foi exatamente isso que a troca do creme+limão para cá exercitou.
 
    Vive com a dívida registrada: o NativeWind estável ainda espera Tailwind 3,
    então na fase 2 este bloco é reescrito — as telas, não. */
 @theme {
-  --color-papel: #f7f0e1;
-  --color-tinta: #16170f;
-  --color-limao: #d8f26b;
-  --color-limao-tinta: #4a5a15;
+  --color-papel: #fdfbf7;
+  --color-tinta: #070001;
 
-  /* O design traz #8A8C7C e #6E7566. Medidos sobre o papel creme dão 3.02:1
-     e 4.21:1 — os dois abaixo do piso de 4.5:1 para texto pequeno, e é neles
-     que estão preço, data e toda a explicação. Escurecidos o suficiente para
-     passar (4.99 e 7.29), mantendo a mesma família sálvia do design. */
-  --color-suave: #63695d;
-  --color-suave-forte: #4c5345;
-  --color-corpo: #3f4239;
+  /* Verde é a ação e a primeira pessoa; marrom é a segunda. Uma cor só faz os
+     dois papéis de propósito: o dinheiro de quem age é da cor de quem age. */
+  --color-verde: #33605a;
+  --color-marrom: #68462b;
 
-  --color-areia: #efeadd;
-  --color-borda: #e3ddcc;
-  --color-divisa: #f0ebdd;
+  /* Sálvia é SUPERFÍCIE, nunca texto: mede 2.57:1 sobre o fundo. Sobre ela o
+     texto é tinta, que dá 7.82:1. */
+  --color-salvia: #91a398;
 
-  /* Sobre o cartão escuro (#16170F), onde o texto suave precisa clarear. */
-  --color-noite-suave: #a7ac95;
-  --color-noite-corpo: #c9cdb8;
+  /* O creme deixou de ser fundo e virou o texto sobre superfície escura:
+     15.90:1 sobre a tinta, 5.42:1 sobre o verde. */
+  --color-creme: #e9e0d1;
 
-  /* Quem colocou o dinheiro. A ordem é estável: papel `dono` leva a primeira. */
-  --color-pessoa-1: #14b88c;
-  --color-pessoa-2: #f3b63f;
-  --color-pessoa-fora: #c6c3b4;
+  --color-suave: #5f6f68;
+  --color-suave-forte: #3d4a44;
 
-  /* O design não traz cor de erro; esta vem da mesma família das outras. */
-  --color-alerta: #a8322e;
-  --color-alerta-suave: #f7e4e1;
+  --color-areia: #f1eae0;
+  --color-divisa: #f1eae0;
+  /* A listra do trilho vazio. Precisa destoar do creme o suficiente para ler
+     como hachura e não como sujeira de renderização. */
+  --color-listra: #dcd2c2;
+
+  /* Duas bordas, e a diferença é o piso de contraste. `borda` contorna cartão,
+     que é decoração e pode ser quase invisível. `contorno` fecha CONTROLE —
+     campo, select, chip, botão de contorno — e aí o limite do controle é
+     informação: 3.42:1 sobre o branco, contra 1.25:1 da outra. */
+  --color-borda: #ede5d8;
+  --color-contorno: #7e8f84;
+
+  --color-pessoa-1: #33605a;
+  --color-pessoa-2: #68462b;
+  --color-pessoa-fora: #b3ab9c;
+
+  --color-alerta: #8a3a2a;
+  --color-alerta-suave: #f4e6df;
 
   --font-display: var(--fonte-display), ui-sans-serif, system-ui, sans-serif;
   --font-corpo: var(--fonte-corpo), ui-sans-serif, system-ui, sans-serif;
 
-  --radius-polaroide: 6px;
-  --radius-bloco: 18px;
-  --radius-cartao: 22px;
+  /* Seis raios, e cada um quer dizer uma coisa. */
+  --radius-chapa: 4px;
+  --radius-polaroide: 8px;
+  --radius-quadro: 16px;
+  --radius-bloco: 20px;
+  --radius-cartao: 24px;
 
-  --shadow-polaroide: 0 10px 20px rgb(22 23 15 / 0.1);
-  --shadow-peca: 0 8px 18px rgb(22 23 15 / 0.08);
+  --shadow-polaroide: 0 12px 26px rgb(7 0 1 / 0.11);
+  --shadow-peca: 0 14px 30px rgb(7 0 1 / 0.1);
+  --shadow-disco: 0 8px 18px rgb(7 0 1 / 0.24);
 }
 
-/* O app se compromete com o claro: o design é creme, e não existe paleta
-   escura desenhada. Sem isto, navegador em modo escuro pinta o fundo de preto
-   e as telas de auth ficam texto escuro sobre fundo escuro. */
+/* O app se compromete com o claro: o design é de superfície quase branca, e
+   não existe paleta escura desenhada. Sem isto, navegador em modo escuro pinta
+   o fundo de preto e as telas de auth ficam texto escuro sobre fundo escuro. */
 :root {
   color-scheme: light;
 }
@@ -60,23 +74,18 @@ body {
   color: var(--color-tinta);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
-
-  /* O mundo se chama "papel"; uma chapa de cor lisa não é papel. O grão é um
-     ruído SVG embutido — nada a baixar, e nenhuma requisição a terceiro. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23p)' opacity='.09'/%3E%3C/svg%3E");
-  background-repeat: repeat;
 }
 
 /* As superfícies que o navegador desenha por conta própria. Sem isto elas
-   ficam com o azul de sistema no meio de uma paleta creme e limão — é o
-   detalhe mais barato que separa uma tela montada de uma desenhada. */
+   ficam com o azul de sistema no meio da paleta — é o detalhe mais barato que
+   separa uma tela montada de uma desenhada. */
 ::selection {
-  background-color: var(--color-limao);
-  color: var(--color-tinta);
+  background-color: var(--color-verde);
+  color: var(--color-creme);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-tinta);
+  outline: 2px solid var(--color-verde);
   outline-offset: 3px;
 }
 
@@ -87,7 +96,7 @@ a {
 input,
 textarea,
 select {
-  caret-color: var(--color-tinta);
+  caret-color: var(--color-verde);
 }
 
 * {
@@ -124,20 +133,13 @@ details[open] > summary::before {
 select {
   appearance: none;
   padding-right: 2.25rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%234c5345' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%233d4a44' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85rem center;
 }
 
-/* O Manrope fecha as palavras em 10–12px a ponto de ligar ("o usodela",
-   "juntandodinheiro"). 0.05em aqui era 0.6px e sumia no arredondamento — o
-   valor precisa sobreviver à rasterização no tamanho onde o defeito mora. */
-.font-corpo {
-  word-spacing: 0.12em;
-}
-
 /* O calendário nativo era a última superfície que o navegador ainda desenhava
-   no estilo dele: um ícone azul de sistema no meio de creme e limão. */
+   no estilo dele. */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.5;
@@ -149,22 +151,71 @@ input[type="date"]:focus::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
-/* Título que quebra em linhas de tamanhos parecidos, e parágrafo que não
-   deixa palavra órfã na última linha. Duas declarações, e toda a massa de
-   texto do app para de ter aquele recorte torto de página montada. */
+/* A faixa de chips rola na horizontal e a barra do navegador aparecia como um
+   traço escuro colado embaixo dela. `scrollbar-width` sozinho não cobre o
+   WebKit. */
+.sem-barra {
+  /* `scrollbar-width: none` aqui e não só na classe utilitária: a regra
+     global de `*` mora fora de @layer e vence qualquer utility do Tailwind,
+     que mora dentro. */
+  scrollbar-width: none;
+}
+
+.sem-barra::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* O Manrope fecha as palavras em 10–12px a ponto de ligar ("o usodela",
+   "juntandodinheiro"). 0.05em aqui era 0.6px e sumia no arredondamento — o
+   valor precisa sobreviver à rasterização no tamanho onde o defeito mora. */
+.font-corpo {
+  word-spacing: 0.12em;
+  text-wrap: pretty;
+}
+
+/* Título que quebra em linhas de tamanhos parecidos. */
 h1,
 h2,
 h3 {
   text-wrap: balance;
 }
 
-.font-corpo {
-  text-wrap: pretty;
+/* O slider de valor da jornada nova. O nativo vem com a pista azul do sistema
+   e um polegar pequeno demais para dedo; estes são os 24px que o brief pede. */
+input[type="range"] {
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--color-areia);
+  outline-offset: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-verde);
+  border: 4px solid #fff;
+  box-shadow: 0 2px 6px rgb(7 0 1 / 0.22);
+  cursor: grab;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-verde);
+  border: 4px solid #fff;
+  box-shadow: 0 2px 6px rgb(7 0 1 / 0.22);
+  cursor: grab;
 }
 
 /* O único movimento que fala do dinheiro: a barra cresce da esquerda até o
-   que o casal já juntou. Sai do zero e vai ao valor, com desaceleração —
-   a barra chega, não bate. */
+   que o casal já juntou. Sai do zero e vai ao valor, com desaceleração. */
 @keyframes crescer {
   from {
     transform: scaleX(0);
@@ -176,6 +227,22 @@ h3 {
 
 .anima-crescer {
   animation: crescer 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* A troca de cartão no carrossel da home: o novo chega deslizando de baixo. */
+@keyframes chegar {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.anima-chegar {
+  animation: chegar 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Quem pediu menos movimento recebe o estado final, imediato. Vale para tudo
@@ -190,4 +257,35 @@ h3 {
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* A caixa de item comprado.
+   É o próprio <input type=checkbox> desenhado como o quadrado de 44px do
+   design — e não um input escondido com um <span> por cima. Escondido, o
+   alvo de clique vira 1px e a suíte e2e passa a errar o toque; desenhado, o
+   controle nativo continua sendo o controle, com foco e rótulo de verdade. */
+.caixa-item {
+  appearance: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  border-radius: var(--radius-quadro);
+  border: 1px solid var(--color-borda);
+  background-color: var(--color-areia);
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Um círculo de contorno enquanto não está marcado: o quadrado vazio lia
+     como imagem que faltou carregar, que é o defeito que a chapa acabou de
+     perder. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%237e8f84' stroke-width='1.75'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3C/svg%3E");
+  cursor: pointer;
+  transition:
+    background-color 160ms ease-out,
+    border-color 160ms ease-out;
+}
+
+.caixa-item:checked {
+  background-color: var(--color-verde);
+  border-color: var(--color-verde);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' fill='none' stroke='%23e9e0d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 11.5 9 16l9.5-9.5'/%3E%3C/svg%3E");
 }

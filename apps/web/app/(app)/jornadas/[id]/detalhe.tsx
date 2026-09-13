@@ -35,11 +35,13 @@ import { EsqueletoJornada } from "@/components/esqueleto";
 import { Campo, Enviar, Escolha, Perigo, Recado } from "@/components/form-ui";
 import { IconeVoltar } from "@/components/icones";
 import {
+  AvataresDoCasal,
   Bloco,
   Chapa,
   Chip,
-  CartaoLimao,
+  CartaoDestaque,
   DiscoDePessoa,
+  Etiqueta,
   Explica,
   LinhaAporte,
   Polaroide,
@@ -49,9 +51,18 @@ import { Progresso, type Fatia } from "@/components/progresso";
 import { prepararCapa } from "@/lib/capa";
 import { paraCampoData, paraCentavos, paraInstante } from "@/lib/dinheiro";
 
-import { PRIORIDADES } from "../lista";
 
 const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
+/** "março de 2024" — a idade da jornada, dita como gente diz. */
+const desde = (iso: string) =>
+  new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+/** As três respostas de "quanto isso importa", na voz do produto. */
+const PRIORIDADES: [Prioridade, string][] = [
+  ["alta", "É o que a gente mais quer"],
+  ["media", "Importante, sem pressa"],
+  ["baixa", "Um dia"],
+];
+
 const ABAS = ["Itens", "Aportes", "Quem colocou"] as const;
 type Aba = (typeof ABAS)[number];
 
@@ -120,7 +131,17 @@ export function Detalhe({ goalId }: { goalId: string }) {
       : []),
   ].filter((fatia) => fatia.cents > 0);
 
-  const comprados = (itens ?? []).filter((item) => item.status === "comprado").length;
+  const aComprar = (itens ?? []).filter((item) => item.status !== "comprado");
+  const faltaComprarCents = aComprar.reduce(
+    (total, item) => total + (item.estimated_price_cents ?? 0),
+    0,
+  );
+
+  const dupla = ordemEstavel(pessoas).map((pessoa) => ({
+    chave: pessoa.userId,
+    nome: nomePor.get(pessoa.userId) ?? "Sua dupla",
+    cor: cores.get(pessoa.userId) ?? ("fora" as const),
+  }));
 
   async function comErro(acao: () => Promise<unknown>, frase: string) {
     setErro("");
@@ -242,31 +263,27 @@ export function Detalhe({ goalId }: { goalId: string }) {
 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-3xl lg:p-10">
-      <header className="flex items-center gap-2.5">
+      <header className="flex items-center gap-3">
         <Link
           href="/jornadas"
-          className="grid size-9 flex-none place-items-center rounded-full bg-white text-tinta"
+          className="grid size-9 flex-none place-items-center rounded-full border border-borda bg-white text-tinta transition active:scale-95"
         >
           <IconeVoltar className="size-4" />
           <span className="sr-only">Voltar para as jornadas</span>
         </Link>
         {/* Sem kicker: a linha pequena vai ABAIXO do título. Rótulo acima de
-            cabeçalho é proibido pelo piso de craft, e a categoria já aparece
-            no material da chapa. */}
+            cabeçalho é proibido pelo piso de craft. */}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[22px] font-bold leading-tight tracking-[-0.03em] lg:text-3xl">
+          <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[-0.03em] lg:text-2xl">
             {jornada.title}
           </h1>
           <p className="mt-0.5 font-corpo text-[10.5px] text-suave">
-            {rotuloDaCategoria(jornada.category)}
+            {rotuloDaCategoria(jornada.category)} · desde {desde(jornada.created_at)}
             {jornada.deadline_at ? <> · para {dia(jornada.deadline_at)}</> : null}
           </p>
         </div>
-        {itens && itens.length > 0 ? (
-          <span className="flex-none rounded-full bg-tinta px-2.5 py-1.5 font-corpo text-[10.5px] font-bold text-limao">
-            {comprados}/{itens.length} ok
-          </span>
-        ) : null}
+        {/* De quem é esta jornada, sem gastar uma linha de texto. */}
+        <AvataresDoCasal pessoas={dupla} />
       </header>
 
       <div className="flex gap-3">
@@ -275,7 +292,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
             <Chapa
               categoria={jornada.category}
               capaUrl={jornada.cover_path ? capas?.get(jornada.cover_path) : null}
-              className="h-20"
+              className="h-20 rounded-chapa"
             />
             <div className="mt-2">
               <Progresso
@@ -291,7 +308,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
               rótulo associado de verdade (é o mesmo elemento), então continua
               alcançável por teclado e por leitor de tela — e a suíte e2e o
               encontra por getByLabel, que aqui é contrato. */}
-          <label className="mt-2 block cursor-pointer rounded-full border border-tinta/15 bg-white px-3 py-1.5 text-center font-corpo text-[11.5px] text-suave-forte transition-colors hover:border-tinta/30 has-[:focus-visible]:border-tinta">
+          <label className="mt-2 block cursor-pointer rounded-full border border-contorno/60 bg-white px-3 py-1.5 text-center font-corpo text-[11.5px] text-suave-forte transition-colors hover:border-contorno has-[:focus-visible]:border-tinta">
             {enviarCapa.isPending
               ? "Guardando a foto…"
               : jornada.cover_path
@@ -309,15 +326,15 @@ export function Detalhe({ goalId }: { goalId: string }) {
           <Recado erro={erroCapa} />
         </div>
         <div className="flex flex-1 flex-col gap-2.5">
-          <CartaoLimao
+          <CartaoDestaque
             rotulo="faltam"
             valorCents={faltamCents}
             className="flex flex-1 flex-col justify-center"
           />
           {porMesCents === null ? null : (
-            <div className="flex flex-1 flex-col justify-center rounded-bloco bg-white p-3">
+            <div className="flex flex-1 flex-col justify-center rounded-bloco border border-borda bg-white p-3">
               <span className="font-corpo text-[10.5px] text-suave">por mês, a dois</span>
-              <b className="block text-[17px] font-bold tracking-[-0.03em] tabular-nums">
+              <b className="block text-[17px] font-semibold tracking-[-0.03em] tabular-nums">
                 {formatBRL(porMesCents)}
               </b>
             </div>
@@ -329,7 +346,13 @@ export function Detalhe({ goalId }: { goalId: string }) {
 
       <div className="flex gap-1.5">
         {ABAS.map((nome) => (
-          <Chip key={nome} rotulo={nome} ativo={aba === nome} onClick={() => setAba(nome)} />
+          <Chip
+            key={nome}
+            rotulo={nome}
+            quantos={nome === "Itens" && itens && itens.length > 0 ? itens.length : undefined}
+            ativo={aba === nome}
+            onClick={() => setAba(nome)}
+          />
         ))}
       </div>
 
@@ -337,77 +360,85 @@ export function Detalhe({ goalId }: { goalId: string }) {
         <section className="flex flex-col gap-3">
           {itens && itens.length > 0 ? (
             <ul className="flex flex-col gap-2.5">
-              {itens.map((item, indice) => {
+              {itens.map((item) => {
                 const comprado = item.status === "comprado";
                 return (
-                  <li key={item.id}>
-                    <Polaroide indice={indice} endireitada={comprado} sutil className="!p-2">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={comprado}
-                          onChange={(evento) =>
-                            void comErro(
-                              () =>
-                                salvarItem.mutateAsync({
-                                  itemId: item.id,
-                                  status: evento.target.checked ? "comprado" : "desejado",
-                                }),
-                              "Não consegui salvar agora. Tenta de novo?",
-                            )
-                          }
-                          className="size-4 flex-none accent-tinta"
-                          aria-label={`Marcar ${item.name} como comprado`}
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span
-                            className={`block truncate text-[13.5px] font-semibold tracking-[-0.02em] ${
-                              comprado ? "text-suave line-through" : ""
-                            }`}
-                          >
-                            {item.name}
-                          </span>
-                          <span className="block font-corpo text-[10.5px] text-suave">
-                            {item.estimated_price_cents === null
-                              ? "sem preço ainda"
-                              : formatBRL(item.estimated_price_cents)}
-                            {item.url ? (
-                              <>
-                                {" · "}
-                                {/* noreferrer para a loja não descobrir de onde veio a
-                                    visita, que é uma pista sobre o plano do casal. */}
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noreferrer noopener"
-                                  className="underline"
-                                >
-                                  ver na loja
-                                </a>
-                              </>
-                            ) : null}
-                          </span>
-                        </span>
-                        {comprado ? (
-                          <span className="flex-none rounded-full bg-tinta px-2 py-1 font-corpo text-[10.5px] font-bold text-limao">
-                            comprado
-                          </span>
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            void comErro(
-                              () => apagarItem.mutateAsync(item.id),
-                              "Não consegui apagar agora. Tenta de novo?",
-                            )
-                          }
-                          className="flex-none font-corpo text-[11px] text-suave underline"
-                          aria-label={`Tirar ${item.name} da lista`}
-                        >
-                          tirar
-                        </button>
-                      </div>
-                    </Polaroide>
+                  <li
+                    key={item.id}
+                    className="flex items-center gap-3 rounded-cartao border border-borda bg-white p-2.5"
+                  >
+                    {/* O <input> é o próprio quadrado de 44px: é ele que recebe
+                        o clique, o foco e o rótulo. O <label> ao lado estende o
+                        alvo para o nome, que é o gesto do design — tocar no
+                        item marca o item. */}
+                    <input
+                      id={`item-${item.id}`}
+                      type="checkbox"
+                      checked={comprado}
+                      onChange={(evento) =>
+                        void comErro(
+                          () =>
+                            salvarItem.mutateAsync({
+                              itemId: item.id,
+                              status: evento.target.checked ? "comprado" : "desejado",
+                            }),
+                          "Não consegui salvar agora. Tenta de novo?",
+                        )
+                      }
+                      className="caixa-item"
+                      aria-label={`Marcar ${item.name} como comprado`}
+                    />
+                    <label
+                      htmlFor={`item-${item.id}`}
+                      className="min-w-0 flex-1 cursor-pointer"
+                    >
+                      <b
+                        className={`block truncate text-[13.5px] font-semibold tracking-[-0.02em] ${
+                          comprado ? "text-suave line-through" : ""
+                        }`}
+                      >
+                        {item.name}
+                      </b>
+                      <i className="block font-corpo text-[10.5px] not-italic text-suave">
+                        {comprado
+                          ? "comprado, guardado no álbum"
+                          : item.estimated_price_cents === null
+                            ? "sem preço ainda"
+                            : item.url
+                              ? "com link da loja"
+                              : "preço estimado, sem link"}
+                      </i>
+                    </label>
+                    {item.estimated_price_cents === null ? null : (
+                      <Etiqueta forte={comprado}>
+                        {comprado ? "comprado" : formatBRL(item.estimated_price_cents)}
+                      </Etiqueta>
+                    )}
+                    {item.url ? (
+                      /* noreferrer para a loja não descobrir de onde veio a
+                         visita, que é uma pista sobre o plano do casal. */
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="flex-none font-corpo text-[11px] font-semibold text-verde underline"
+                      >
+                        ver na loja
+                      </a>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void comErro(
+                          () => apagarItem.mutateAsync(item.id),
+                          "Não consegui apagar agora. Tenta de novo?",
+                        )
+                      }
+                      className="flex-none font-corpo text-[11px] text-suave underline transition-colors hover:text-alerta"
+                      aria-label={`Tirar ${item.name} da lista`}
+                    >
+                      tirar
+                    </button>
                   </li>
                 );
               })}
@@ -418,6 +449,17 @@ export function Detalhe({ goalId }: { goalId: string }) {
               dinheiro.
             </Explica>
           )}
+
+          {itens && itens.length > 0 ? (
+            <Explica className="px-1">
+              Toque para marcar comprado
+              {/* A soma só entra com dois ou mais itens na frente: com um só,
+                  ela repetiria o número que a etiqueta ao lado já mostra. */}
+              {aComprar.length > 1 && faltaComprarCents > 0 ? (
+                <> · falta comprar {formatBRL(faltaComprarCents)}</>
+              ) : null}
+            </Explica>
+          ) : null}
 
           <Bloco>
             <form onSubmit={adicionarItem} className="flex flex-col gap-3.5">
@@ -436,7 +478,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 inputMode="url"
                 placeholder="https://"
               />
-              <Enviar pendente={criarItem.isPending}>Adicionar item</Enviar>
+              <Enviar pendente={criarItem.isPending} largo>Adicionar item</Enviar>
             </form>
           </Bloco>
         </section>
@@ -513,11 +555,11 @@ export function Detalhe({ goalId }: { goalId: string }) {
             placeholder="0,00"
           />
           <Campo rotulo="Quando" name="quando" type="date" defaultValue={hoje} max={hoje} />
-          <Enviar pendente={registrarAporte.isPending}>Anotar</Enviar>
+          <Enviar pendente={registrarAporte.isPending} largo>Anotar</Enviar>
         </form>
       </Bloco>
 
-      <details className="rounded-cartao bg-white p-4">
+      <details className="rounded-cartao border border-borda bg-white p-4">
         <summary className="cursor-pointer text-[13.5px] font-semibold">
           Editar esta jornada
         </summary>
@@ -556,7 +598,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
               </option>
             ))}
           </Escolha>
-          <Enviar pendente={salvarJornada.isPending}>Salvar</Enviar>
+          <Enviar pendente={salvarJornada.isPending} largo>Salvar</Enviar>
         </form>
       </details>
 

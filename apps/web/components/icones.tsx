@@ -135,3 +135,67 @@ export const MarcaGeral = (props: Props) => (
     <path d="M12 3.2c0 4.4 2.2 8.8 8.8 8.8-6.6 0-8.8 4.4-8.8 8.8 0-4.4-2.2-8.8-8.8-8.8 6.6 0 8.8-4.4 8.8-8.8z" />
   </Base>
 );
+
+/** Mostrar/esconder o que foi digitado. O corte é um traço com opacidade. */
+export const IconeOlho = ({ cortado = false, ...props }: Props & { cortado?: boolean }) => (
+  <Base {...props}>
+    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+    <circle cx="12" cy="12" r="3.1" />
+    {cortado ? <path d="M4 20 20 4" /> : null}
+  </Base>
+);
+
+/** A lista — o segundo destino do dock. Três linhas lê melhor que uma pilha. */
+export const IconeLista = (props: Props) => (
+  <Base {...props}>
+    <path d="M4.5 7.5h15" />
+    <path d="M4.5 12h15" />
+    <path d="M4.5 16.5h9" />
+  </Base>
+);
+
+export const IconeFechar = (props: Props) => (
+  <Base {...props}>
+    <path d="M6.8 6.8 17.2 17.2" />
+    <path d="M17.2 6.8 6.8 17.2" />
+  </Base>
+);
+
+/** Registrar aporte: o dinheiro sobe para dentro da jornada. */
+export const IconeSubir = (props: Props) => (
+  <Base {...props}>
+    <path d="M12 19.5V5.5" />
+    <path d="M6 11.5 12 5.5l6 6" />
+  </Base>
+);
+
+export const IconeCopiar = (props: Props) => (
+  <Base {...props}>
+    <rect x="8.6" y="8.6" width="11.4" height="11.4" rx="2.4" />
+    <path d="M15.4 5.4H6.4a2.4 2.4 0 0 0-2.4 2.4v9" />
+  </Base>
+);
+
+/** O QR: quatro cantos e um miolo. Ninguém precisa ler, só reconhecer. */
+export const IconeQr = (props: Props) => (
+  <Base {...props}>
+    <rect x="4" y="4" width="6.4" height="6.4" rx="1.4" />
+    <rect x="13.6" y="4" width="6.4" height="6.4" rx="1.4" />
+    <rect x="4" y="13.6" width="6.4" height="6.4" rx="1.4" />
+    <path d="M13.6 13.6h3.2v3.2h3.2V20" />
+  </Base>
+);
+
+export const IconeLink = (props: Props) => (
+  <Base {...props}>
+    <path d="M10.2 13.8a3.6 3.6 0 0 0 5.1 0l3-3a3.6 3.6 0 0 0-5.1-5.1l-1.2 1.2" />
+    <path d="M13.8 10.2a3.6 3.6 0 0 0-5.1 0l-3 3a3.6 3.6 0 0 0 5.1 5.1l1.2-1.2" />
+  </Base>
+);
+
+/** Conversa — o convite que sai por mensagem. Não é o logo de ninguém. */
+export const IconeConversa = (props: Props) => (
+  <Base {...props}>
+    <path d="M20.4 12.2c0 3.9-3.8 7-8.4 7-1 0-2-.15-2.9-.43L4 20.4l1.7-4.2A6.6 6.6 0 0 1 3.6 12.2c0-3.9 3.8-7 8.4-7s8.4 3.1 8.4 7Z" />
+  </Base>
+);

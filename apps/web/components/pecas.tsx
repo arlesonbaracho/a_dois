@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { formatBRL, iniciaisDoCasal, rotuloDaCategoria } from "@repo/core";
 
 import {
+  IconeAvancar,
   MarcaBebe,
   MarcaCasa,
   MarcaCasamento,
@@ -14,16 +15,21 @@ import {
 import { Progresso, type Fatia } from "./progresso";
 
 /**
- * As peças do design "Jornada". Burras: recebem pronto e desenham.
+ * As peças do design v2. Burras: recebem pronto e desenham.
+ *
+ * O mundo mudou de superfície: o creme saiu do fundo e virou o texto sobre o
+ * escuro, o limão saiu de cena e o verde assumiu a ação. O que ficou foi a
+ * gramática — pílula em todo controle, uma cor por pessoa, e a foto como
+ * conteúdo principal.
  */
 
 /**
- * A polaroide — a peça-assinatura.
+ * A polaroide.
  *
- * A inclinação vem de um índice, nunca de Math.random: sorteio aqui daria
- * ângulo diferente no servidor e no cliente, e o React reclamaria de
- * hidratação a cada carga. `endireitada` existe para o gesto de "colar no
- * álbum": item comprado para de ser rascunho e assenta em 0°.
+ * O v2 a manteve em dois lugares (dentro da jornada e na jornada nova) e
+ * trocou a home por um cartão reto e grande. Onde ela fica, fica torta: a
+ * inclinação vem de um índice, nunca de Math.random, porque sorteio aqui daria
+ * ângulo diferente no servidor e no cliente e quebraria a hidratação.
  */
 const INCLINACOES = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2"] as const;
 // Linha larga precisa de giro menor: a 690px, 2° cisalham 24px e a linha
@@ -60,59 +66,60 @@ export function Polaroide({
 }
 
 /**
- * A chapa: o plano de imagem da polaroide.
+ * A chapa: o plano de imagem.
  *
- * A hachura anterior lia como imagem quebrada, e a etiqueta `[ categoria ]`
- * lia como token de debug — os dois foram embora. No lugar, um material
- * autoral por categoria: duotone com horizonte, grão fino e a marca da
- * categoria desenhada por cima, tudo em CSS e SVG nosso.
- *
- * A marca não é enfeite: seis retângulos de gradiente lado a lado no álbum
- * liam como galeria de imagem que não carregou, e era o defeito mais visível
- * da tela inteira. Com o desenho dentro, cada polaroide vira um objeto
- * diferente dos outros — que é o que a tese do álbum prometia.
+ * Um duotone autoral por categoria, com a marca da categoria desenhada por
+ * cima. A marca não é enfeite: sem ela um retângulo de gradiente lê como
+ * imagem que não carregou, que foi o defeito mais visível da versão anterior.
  *
  * Com o Storage, a foto de verdade entra por cima — e o material continua
- * aqui, agora no papel que sempre foi o dele: é o que se vê enquanto a foto
- * não chegou, e é o que fica quando a jornada não tem capa. O navegador pinta
- * o fundo antes de baixar a imagem, então a espera sai de graça, sem estado e
- * sem efeito. Polaroide sem foto continua parecendo um objeto, e não uma
- * falha de carregamento.
+ * aqui, no papel que sempre foi o dele: é o que se vê enquanto a foto não
+ * chegou, e é o que fica quando a jornada não tem capa.
  */
 const MATERIAL: Record<
   string,
-  { de: string; para: string; forma: string; Marca: (props: { className?: string }) => ReactNode }
+  { arte: string; Marca: (props: { className?: string }) => ReactNode }
 > = {
-  casa: { de: "#86A98C", para: "#47614F", forma: "circle at 72% 118%", Marca: MarcaCasa },
-  viagem: { de: "#8FB7CE", para: "#476A86", forma: "circle at 28% 120%", Marca: MarcaViagem },
-  reserva: { de: "#D2B478", para: "#8D6F3D", forma: "circle at 50% 125%", Marca: MarcaReserva },
-  casamento: { de: "#D7A6A1", para: "#94595C", forma: "circle at 60% 120%", Marca: MarcaCasamento },
-  bebe: { de: "#BCAAD9", para: "#73629A", forma: "circle at 40% 118%", Marca: MarcaBebe },
-  geral: { de: "#A5AA8F", para: "#686D57", forma: "circle at 55% 120%", Marca: MarcaGeral },
+  casa: {
+    arte: "radial-gradient(120% 100% at 20% 12%, #A8B7AD 0%, #91A398 46%, #6F8179 100%)",
+    Marca: MarcaCasa,
+  },
+  viagem: {
+    arte: "radial-gradient(120% 100% at 78% 16%, #8B6340 0%, #68462B 52%, #4A3120 100%)",
+    Marca: MarcaViagem,
+  },
+  reserva: {
+    arte: "radial-gradient(120% 100% at 30% 18%, #4B7C74 0%, #33605A 50%, #24463F 100%)",
+    Marca: MarcaReserva,
+  },
+  casamento: {
+    arte: "radial-gradient(120% 100% at 68% 14%, #C09C7A 0%, #9D7E58 50%, #74593A 100%)",
+    Marca: MarcaCasamento,
+  },
+  bebe: {
+    arte: "radial-gradient(120% 100% at 26% 16%, #AFBAC4 0%, #8494A1 50%, #5F6E79 100%)",
+    Marca: MarcaBebe,
+  },
+  geral: {
+    arte: "radial-gradient(120% 100% at 50% 14%, #A6B2A8 0%, #7E8F84 50%, #5A6A61 100%)",
+    Marca: MarcaGeral,
+  },
 };
-
-// Grão: um ruído SVG em data URI. Fica no arquivo, não na rede — nenhuma
-// requisição a terceiro, que é a mesma razão das fontes serem self-hosted.
-const GRAO =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23r)' opacity='.22'/%3E%3C/svg%3E\")";
 
 export function Chapa({
   categoria,
   capaUrl,
   className = "",
+  children,
 }: {
   categoria: string;
   capaUrl?: string | null;
   className?: string;
+  children?: ReactNode;
 }) {
   const m = MATERIAL[categoria.trim().toLowerCase()] ?? MATERIAL.geral;
   return (
-    <div
-      className={`relative overflow-hidden rounded-[3px] ${className}`}
-      style={{
-        backgroundImage: `radial-gradient(${m.forma}, ${m.de} 0%, ${m.para} 68%)`,
-      }}
-    >
+    <div className={`relative overflow-hidden ${className}`} style={{ backgroundImage: m.arte }}>
       {capaUrl ? (
         /* alt vazio de propósito: o nome acessível do cartão é o título da
            jornada, logo ali embaixo. Descrever a foto de novo faria o leitor
@@ -130,47 +137,30 @@ export function Chapa({
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <>
-          {/* O grão só existe para o gradiente parecer material. Sobre uma foto
-              de verdade ele vira ruído — num plano de 96px de altura, leria
-              como artefato de compressão. */}
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 mix-blend-overlay"
-            style={{ backgroundImage: GRAO }}
-          />
-          {/* A marca da categoria. Sem ela o plano de imagem é um retângulo de
-              gradiente, e retângulo de gradiente lê como foto que não carregou
-              — foi o defeito mais visível do álbum. Decorativa de propósito:
-              a categoria já é dita por extenso ao lado do título. */}
-          <m.Marca className="absolute -bottom-[12%] -right-[6%] h-[78%] w-auto text-white/35" />
-        </>
+        <m.Marca className="absolute -bottom-[12%] -right-[6%] h-[78%] w-auto text-white/30" />
       )}
-      {/* O brilho oblíquo que uma foto impressa tem sob luz de sala. Fica por
-          cima da foto também: é o que faz a imagem parecer papel revelado e
-          não uma miniatura colada. */}
-      <span
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(118deg, rgb(255 255 255 / 0.16) 0%, transparent 38%, transparent 76%, rgb(22 23 15 / 0.13) 100%)",
-        }}
-      />
+      {children}
     </div>
   );
 }
 
+/** A pílula escura com o total. */
 export function PilulaTotal({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-full bg-tinta px-4 py-2.5 text-center font-corpo text-[11px] font-bold text-limao lg:py-3 lg:text-[13px]">
+    <p className="rounded-full bg-tinta px-4 py-2.5 text-center font-corpo text-[11px] font-bold text-creme lg:max-w-xs lg:py-3 lg:text-[13px]">
       {children}
     </p>
   );
 }
 
-/** O cartão limão: rótulo pequeno, número grande. */
-export function CartaoLimao({
+/**
+ * O cartão de destaque: rótulo pequeno, número grande, fundo verde.
+ *
+ * Era o cartão limão. O verde carrega o mesmo papel — o número que importa —
+ * e o texto dentro dele é creme, porque a tinta sobre o verde mediria 3.4:1 e
+ * o creme mede 5.42:1.
+ */
+export function CartaoDestaque({
   rotulo,
   valorCents,
   rodape,
@@ -184,14 +174,14 @@ export function CartaoLimao({
   children?: ReactNode;
 }) {
   return (
-    <div className={`rounded-bloco bg-limao p-3 ${className}`}>
-      <span className="font-corpo text-[10.5px] text-limao-tinta">{rotulo}</span>
-      <b className="mt-px block text-xl font-extrabold tabular-nums tracking-[-0.04em]">
+    /* creme/90 e não /80 nos rótulos: sobre o verde, 80% mede 4.10:1 e 90%
+       mede 4.73:1 — e estes são 10.5px, que é onde o piso de 4.5:1 vale. */
+    <div className={`rounded-bloco bg-verde p-3.5 text-creme ${className}`}>
+      <span className="font-corpo text-[10.5px] text-creme/90">{rotulo}</span>
+      <b className="mt-px block text-xl font-bold tabular-nums tracking-[-0.035em]">
         {formatBRL(valorCents)}
       </b>
-      {rodape ? (
-        <span className="font-corpo text-[10.5px] text-limao-tinta">{rodape}</span>
-      ) : null}
+      {rodape ? <span className="font-corpo text-[10.5px] text-creme/90">{rodape}</span> : null}
       {children}
     </div>
   );
@@ -212,18 +202,18 @@ export function Chip({
     <button
       type="button"
       aria-pressed={ativo}
-      className={`flex flex-none items-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium transition active:scale-95 ${
+      className={`flex flex-none items-center gap-1.5 rounded-full border px-3.5 py-2.5 text-[12.5px] font-medium transition active:scale-95 ${
         ativo
-          ? "border-tinta bg-tinta text-white"
-          : "border-tinta/10 bg-white text-tinta hover:border-tinta/25"
+          ? "border-tinta bg-tinta text-creme"
+          : "border-contorno/60 bg-white text-tinta hover:border-contorno"
       }`}
       {...props}
     >
       {rotulo}
       {quantos === undefined ? null : (
         <span
-          className={`rounded-full px-1.5 py-px text-[10.5px] ${
-            ativo ? "bg-white/20 text-white" : "bg-areia text-suave"
+          className={`rounded-full px-1.5 py-px text-[10.5px] font-semibold ${
+            ativo ? "bg-creme/25 text-creme" : "bg-areia text-suave"
           }`}
         >
           {quantos}
@@ -233,7 +223,12 @@ export function Chip({
   );
 }
 
-/** Cartão branco comum — o fundo de quase tudo que não é polaroide. */
+/**
+ * Cartão branco comum.
+ *
+ * Borda e nenhuma sombra: o v2 troca elevação por contorno. Quem tem borda não
+ * tem sombra, e vice-versa.
+ */
 export function Bloco({
   className = "",
   children,
@@ -241,15 +236,98 @@ export function Bloco({
   className?: string;
   children: ReactNode;
 }) {
-  return <div className={`rounded-cartao bg-white p-4 ${className}`}>{children}</div>;
+  return (
+    <div className={`rounded-cartao border border-borda bg-white p-4 ${className}`}>{children}</div>
+  );
+}
+
+/** Pílula pequena de estado: "você", "pendente", "no plano", "comprado". */
+export function Etiqueta({ children, forte = false }: { children: ReactNode; forte?: boolean }) {
+  return (
+    <span
+      className={`flex-none rounded-full px-2.5 py-1 font-corpo text-[10.5px] font-semibold ${
+        forte ? "bg-verde text-creme" : "bg-areia text-suave"
+      }`}
+    >
+      {children}
+    </span>
+  );
 }
 
 /**
- * O cartão de uma jornada no álbum.
+ * O cartão grande de uma jornada. É a peça-assinatura do v2.
  *
- * Mora aqui, e não dentro de uma tela, porque a home e a lista mostram o mesmo
- * objeto: duplicar o cartão seria garantir que as duas divergissem na primeira
- * vez que alguém mexesse em uma delas.
+ * A foto ocupa a maior parte e carrega os dois fatos que se leem de relance: a
+ * porcentagem no canto de cima e a categoria no de baixo. O disco de seta
+ * sangra para fora da foto, que é o que faz o cartão parecer um objeto a ser
+ * aberto e não um bloco de painel.
+ */
+export function CartaoHero({
+  id,
+  titulo,
+  categoria,
+  capaUrl,
+  aportadoCents,
+  alvoCents,
+  percentual,
+  fatias,
+}: {
+  id: string;
+  titulo: string;
+  categoria: string;
+  capaUrl?: string | null;
+  aportadoCents: number;
+  alvoCents: number;
+  percentual: number;
+  fatias?: Fatia[];
+}) {
+  return (
+    <Link
+      href={`/jornadas/${id}`}
+      className="group block rounded-cartao border border-borda bg-white p-2.5 pb-1 shadow-peca transition hover:-translate-y-0.5"
+    >
+      {/* O disco sangra para FORA da foto, então ele é irmão da chapa: dentro
+          dela o `overflow-hidden` cortava metade do círculo. */}
+      <div className="relative">
+        <Chapa
+          categoria={categoria}
+          capaUrl={capaUrl}
+          className="h-[268px] rounded-bloco lg:h-[300px]"
+        >
+          <span className="absolute right-3 top-3 rounded-full bg-white px-2.5 py-1.5 font-corpo text-[10.5px] font-semibold tabular-nums">
+            {percentual}%
+          </span>
+          <span className="absolute bottom-3 left-3 rounded-full bg-papel/90 px-2.5 py-1.5 font-corpo text-[10.5px] font-semibold">
+            {rotuloDaCategoria(categoria)}
+          </span>
+        </Chapa>
+        <span className="absolute -bottom-5 right-3.5 grid size-11 place-items-center rounded-full bg-tinta text-creme shadow-disco transition-transform group-hover:scale-105">
+          <IconeAvancar className="size-5" />
+        </span>
+      </div>
+      <div className="px-2.5 pb-3 pt-7">
+        <h2 className="max-w-[20ch] text-[21px] font-semibold leading-tight tracking-[-0.03em]">
+          {titulo}
+        </h2>
+        <div className="mt-2">
+          <Progresso
+            percentual={percentual}
+            aportadoCents={aportadoCents}
+            alvoCents={alvoCents}
+            fatias={fatias}
+          />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+/**
+ * O mesmo objeto em escala de lista.
+ *
+ * O v2 não desenhou a lista — só a home, que mostra uma jornada por vez. Esta
+ * é a derivação: a mesma peça, metade do tamanho, em duas colunas. Sem ela a
+ * lista seria um mundo visual de terceiro tipo.
  */
 export function CartaoJornada({
   id,
@@ -260,7 +338,6 @@ export function CartaoJornada({
   alvoCents,
   percentual,
   fatias,
-  indice,
 }: {
   id: string;
   titulo: string;
@@ -270,27 +347,28 @@ export function CartaoJornada({
   alvoCents: number;
   percentual: number;
   fatias?: Fatia[];
-  indice: number;
+  indice?: number;
 }) {
   return (
     <Link
       href={`/jornadas/${id}`}
-      className="group mb-3 block break-inside-avoid lg:mb-4"
+      className="block rounded-cartao border border-borda bg-white p-2 transition hover:-translate-y-0.5"
     >
-      {/* A peça levanta do papel ao passar o mouse. Translação, nunca sombra
-          nova: a sombra pertence ao objeto, não ao ponteiro. */}
-      <Polaroide
-        indice={indice}
-        className="group-hover:-translate-y-1 group-focus-visible:-translate-y-1"
+      <Chapa
+        categoria={categoria}
+        capaUrl={capaUrl}
+        className="h-28 rounded-quadro lg:h-44"
       >
-        <Chapa categoria={categoria} capaUrl={capaUrl} className="h-24 lg:h-40" />
-        <b className="mt-2 block text-[13.5px] font-semibold tracking-[-0.02em]">
-          {titulo}
-        </b>
-        <span className="mt-px block font-corpo text-[10.5px] text-suave">
+        <span className="absolute right-2 top-2 rounded-full bg-white px-2 py-1 font-corpo text-[10px] font-semibold tabular-nums">
+          {percentual}%
+        </span>
+      </Chapa>
+      <div className="px-1.5 pb-1 pt-2.5">
+        <b className="block truncate text-[14px] font-semibold tracking-[-0.02em]">{titulo}</b>
+        <span className="block font-corpo text-[10.5px] text-suave">
           {rotuloDaCategoria(categoria)}
         </span>
-        <div className="mt-1.5">
+        <div className="mt-2">
           <Progresso
             percentual={percentual}
             aportadoCents={aportadoCents}
@@ -298,7 +376,7 @@ export function CartaoJornada({
             fatias={fatias}
           />
         </div>
-      </Polaroide>
+      </div>
     </Link>
   );
 }
@@ -310,15 +388,9 @@ export function CartaoJornada({
  * que nem era do sistema. Um degrau só, com nome, é o que impede a próxima
  * tela de inventar o quinto.
  */
-export function Secao({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Secao({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <h2 className={`text-[17px] font-bold tracking-[-0.03em] ${className}`}>{children}</h2>
+    <h2 className={`text-[17px] font-semibold tracking-[-0.03em] ${className}`}>{children}</h2>
   );
 }
 
@@ -327,20 +399,11 @@ export function Secao({
  *
  * Toda vez que uma tela escreveu `text-sm text-suave-forte` ela pediu 14px na
  * fonte de display — que é a voz do que o app AFIRMA. Explicação é o app
- * conversando, e conversa é Manrope. A regra das duas vozes cabe num
- * componente.
+ * conversando, e conversa é Manrope.
  */
-export function Explica({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Explica({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <p className={`font-corpo text-[12.5px] leading-relaxed text-suave-forte ${className}`}>
-      {children}
-    </p>
+    <p className={`font-corpo text-[12.5px] leading-relaxed text-suave ${className}`}>{children}</p>
   );
 }
 
@@ -363,7 +426,7 @@ export function DiscoDePessoa({
   return (
     <span
       aria-hidden="true"
-      className={`grid size-8 flex-none place-items-center rounded-full text-[12px] font-bold text-white ${DISCO[cor]} ${className}`}
+      className={`grid size-8 flex-none place-items-center rounded-full text-[12px] font-semibold text-creme ${DISCO[cor]} ${className}`}
     >
       {iniciais || "·"}
     </span>
@@ -372,8 +435,38 @@ export function DiscoDePessoa({
 
 /** O ponto de cor ao lado de um nome, onde o disco de iniciais seria grande demais. */
 export function PontoDePessoa({ cor }: { cor: Fatia["cor"] }) {
+  return <span aria-hidden="true" className={`size-2.5 flex-none rounded-full ${DISCO[cor]}`} />;
+}
+
+/**
+ * Os dois do casal, empilhados.
+ *
+ * Diz de relance de quem é a jornada sem gastar uma linha de texto. A borda da
+ * cor do fundo é o que separa um disco do outro na sobreposição.
+ */
+export function AvataresDoCasal({
+  pessoas,
+}: {
+  pessoas: { chave: string; nome: string; cor: Fatia["cor"] }[];
+}) {
+  if (pessoas.length === 0) return null;
   return (
-    <span aria-hidden="true" className={`size-2.5 flex-none rounded-full ${DISCO[cor]}`} />
+    <span className="flex flex-none">
+      <span className="sr-only">
+        {pessoas.map((pessoa) => pessoa.nome).join(" e ")} dividem esta jornada
+      </span>
+      {pessoas.map((pessoa, indice) => (
+        <span
+          key={pessoa.chave}
+          aria-hidden="true"
+          className={`grid size-7 place-items-center rounded-full border-2 border-papel text-[11px] font-semibold text-creme ${
+            DISCO[pessoa.cor]
+          } ${indice > 0 ? "-ml-2.5" : ""}`}
+        >
+          {iniciaisDoCasal([pessoa.nome]) || "·"}
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -396,13 +489,13 @@ export function LinhaAporte({
   valorCents: number;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-bloco bg-white p-3">
+    <div className="flex items-center gap-3 rounded-cartao border border-borda bg-white p-3">
       <DiscoDePessoa iniciais={iniciaisDoCasal([nome])} cor={cor} />
       <span className="min-w-0 flex-1">
         <b className="block truncate text-[13px] font-semibold">{nome}</b>
         <i className="block font-corpo text-[10.5px] not-italic text-suave">{legenda}</i>
       </span>
-      <b className="flex-none text-[13px] font-bold tabular-nums">{formatBRL(valorCents)}</b>
+      <b className="flex-none text-[13px] font-semibold tabular-nums">{formatBRL(valorCents)}</b>
     </div>
   );
 }

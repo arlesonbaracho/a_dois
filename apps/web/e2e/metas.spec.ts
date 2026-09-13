@@ -14,17 +14,27 @@ test.describe("metas e itens", () => {
 
     await expect(page.getByText("Ainda não tem jornada nenhuma")).toBeVisible();
 
+    // A criação saiu do formulário lateral e virou tela própria, em dois
+    // passos: categoria por chip, valor por controle deslizante MAIS campo, e
+    // o prazo em pílulas. O campo continua existindo porque só o deslizante
+    // deixaria de fora todo valor que não cai num degrau de R$ 500.
+    await page.getByRole("link", { name: "Criar a primeira" }).click();
+    await page.getByRole("button", { name: "Casa", exact: true }).click();
     await page.getByLabel("O que vocês querem").fill("Entrada do apê");
     await page.getByLabel("Quanto vocês querem juntar (R$)").fill("120000");
-    await page.getByLabel("Categoria").fill("casa");
     await page.getByRole("button", { name: "Criar jornada" }).click();
 
+    // Passo 2: a jornada existe, e o que falta é o que a faz valer.
+    await expect(page.getByRole("heading", { name: "Jornada criada" })).toBeVisible();
+    await page.getByRole("link", { name: "Abrir a jornada" }).click();
+    await expect(page.getByRole("heading", { name: "Entrada do apê" })).toBeVisible();
+
+    // E o cartão da lista diz o mesmo que a barra da jornada.
+    await page.goto("/jornadas");
     const cartao = page.getByRole("link", { name: /Entrada do apê/ });
     await expect(cartao).toBeVisible();
     await expect(cartao).toContainText("R$ 0,00 de R$ 120.000,00 · 0%");
-
     await cartao.click();
-    await expect(page.getByRole("heading", { name: "Entrada do apê" })).toBeVisible();
 
     await page.getByLabel("O que", { exact: true }).fill("Geladeira");
     await page.getByLabel("Quanto deve custar (R$, opcional)").fill("4199");

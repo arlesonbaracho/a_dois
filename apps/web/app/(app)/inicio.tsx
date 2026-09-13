@@ -1,23 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { formatBRL, type Passo, rotuloDaCategoria } from "@repo/core";
 
 import { IconePessoa } from "@/components/icones";
-import {
-  CartaoJornada,
-  CartaoLimao,
-  Chip,
-  PilulaTotal,
-  PontoDePessoa,
-} from "@/components/pecas";
+import { CartaoHero, CartaoJornada, Chip, Explica, PilulaTotal } from "@/components/pecas";
 import { PrimeirosPassos } from "@/components/primeiros-passos";
 import type { Fatia } from "@/components/progresso";
 
 type Jornada = {
   id: string;
+  criadaEmISO: string;
   titulo: string;
   categoria: string;
   capaUrl: string | null;
@@ -28,6 +23,7 @@ type Jornada = {
 };
 
 const TUDO = "Tudo";
+const GIRO_MS = 5000;
 
 /** "oi, Lucas e Ana" — e "oi, vocês" quando ninguém preencheu o nome. */
 function saudacao(nomes: (string | null)[]): string {
@@ -42,9 +38,6 @@ export function Inicio({
   iniciais,
   mes,
   totalCents,
-  doMesCents,
-  doMesPorPessoa,
-  porPessoa,
   jornadas,
   temPedido,
 }: {
@@ -54,13 +47,20 @@ export function Inicio({
   iniciais: string;
   mes: string;
   totalCents: number;
-  doMesCents: number;
-  doMesPorPessoa: { chave: string; cents: number }[];
-  porPessoa: { chave: string; nome: string | null; cents: number; cor: Fatia["cor"] }[];
   jornadas: Jornada[];
   temPedido: boolean;
 }) {
-  const [filtro, setFiltro] = useState(TUDO);
+  // Filtro e posição no mesmo estado: trocar o chip zera o carrossel na MESMA
+  // atualização. Em dois estados isso vira um efeito que escreve estado depois
+  // do render — cascata de renderização, e o lint reprova com razão.
+  const [{ filtro, indice }, setCena] = useState({ filtro: TUDO, indice: 0 });
+  const setFiltro = (novo: string) => setCena({ filtro: novo, indice: 0 });
+  const irPara = (nova: number) => setCena((antes) => ({ ...antes, indice: nova }));
+  // Quem tocou num dot assumiu o controle: o giro automático não volta. É o
+  // mecanismo de parada que conteúdo em movimento precisa ter, e sai sem
+  // acrescentar um botão que ninguém entenderia.
+  const [automatico, setAutomatico] = useState(true);
+  const [pausado, setPausado] = useState(false);
 
   // Categorias com contagem, na ordem em que aparecem. Ordenar por nome
   // embaralharia a lista cada vez que alguém criasse uma jornada nova.
@@ -71,36 +71,56 @@ export function Inicio({
 
   const visiveis =
     filtro === TUDO ? jornadas : jornadas.filter((jornada) => jornada.categoria === filtro);
+  const atual = visiveis.length > 0 ? indice % visiveis.length : 0;
+  const emCena = visiveis[atual];
+
+  useEffect(() => {
+    if (!automatico || pausado || visiveis.length < 2) return;
+    // Quem pediu menos movimento não recebe carrossel que anda sozinho.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const relogio = setInterval(
+      () => setCena((antes) => ({ ...antes, indice: antes.indice + 1 })),
+      GIRO_MS,
+    );
+    return () => clearInterval(relogio);
+  }, [automatico, pausado, visiveis.length]);
 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-5xl lg:p-10">
-      <header className="flex items-center justify-between gap-3">
+      <header className="flex items-start justify-between gap-3">
         <div>
           <p className="font-corpo text-[11.5px] text-suave">
             {saudacao(nomes)}
-            <span className="mx-1.5 text-suave">·</span>
-            <span className="font-semibold tracking-[-0.02em] text-suave">{mes}</span>
+            <span className="mx-1.5">·</span>
+            <span className="font-semibold tracking-[-0.02em]">{mes}</span>
           </p>
-          <h1 className="mt-px text-[27px] font-bold tracking-[-0.04em] lg:text-4xl">
+          <h1 className="mt-0.5 text-[28px] font-semibold leading-none tracking-[-0.03em]">
             Nossa jornada
           </h1>
         </div>
         <Link
           href="/perfil"
-          className="grid size-10 flex-none place-items-center rounded-full bg-tinta text-[13px] font-semibold text-white"
+          className="grid size-9 flex-none place-items-center rounded-full bg-verde text-[12px] font-semibold text-creme transition active:scale-95"
         >
           {iniciais ? iniciais : <IconePessoa className="size-5" />}
           <span className="sr-only">Seu perfil</span>
         </Link>
       </header>
 
-      {/* Celular: uma coluna, na ordem do design. Desktop: o álbum ocupa a
-          esquerda e o total sobe para uma coluna fixa à direita — sem isso o
-          desktop era o mobile esticado, com meia tela de creme vazio. */}
-      <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-x-10 lg:gap-y-4">
-      <div className="lg:col-start-1 lg:row-start-1">
-      {jornadas.length > 0 ? (
-        <div className="-mx-5 flex gap-1.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">
+      {temPedido ? (
+        <Link
+          href="/parceiro"
+          className="rounded-cartao bg-tinta p-4 text-[13.5px] font-semibold text-creme transition active:scale-[0.99]"
+        >
+          Alguém pediu para entrar no plano de vocês. Toque para ver quem é.
+        </Link>
+      ) : null}
+
+      {passos ? <PrimeirosPassos passos={passos} /> : null}
+
+      {jornadas.length > 1 ? (
+        <div className="sem-barra -mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">
           <Chip
             rotulo={TUDO}
             quantos={jornadas.length}
@@ -121,104 +141,94 @@ export function Inicio({
           ))}
         </div>
       ) : null}
-      </div>
 
-      <aside className="flex flex-col gap-3 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-10">
-        <PilulaTotal>{formatBRL(totalCents)} juntos</PilulaTotal>
-        {jornadas.length > 0 ? (
-          <CartaoLimao rotulo="este mês" valorCents={doMesCents}>
-            {doMesCents > 0 ? (
-              // As mesmas cores de pessoa das polaroides, e não tinta/branco:
-              // a barra bicolor só quer dizer alguma coisa se verde for a
-              // mesma pessoa em toda tela. E com role/aria, senão a divisão do
-              // mês simplesmente não existe para quem usa leitor de tela.
-              <div
-                role="progressbar"
-                aria-valuenow={Math.round(((doMesPorPessoa[0]?.cents ?? 0) / doMesCents) * 100)}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Quanto cada um colocou este mês"
-                className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-tinta/15"
-              >
-                {doMesPorPessoa.map((pessoa, indice) => (
-                  <i
-                    key={pessoa.chave}
-                    className={`block h-full ${indice === 0 ? "bg-pessoa-1" : "bg-pessoa-2"}`}
-                    style={{ width: `${(pessoa.cents / doMesCents) * 100}%` }}
+      {emCena ? (
+        /* No celular é um cartão por vez, como o design pede. No desktop o
+           mesmo cartão fica em destaque à esquerda e o resto do álbum abre à
+           direita: um único cartão numa tela de 1280px deixava dois terços de
+           superfície vazia, e o design só desenhou o celular. */
+        <div className="lg:grid lg:grid-cols-[27rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <div className="flex flex-col gap-3.5">
+            <div
+              onMouseEnter={() => setPausado(true)}
+              onMouseLeave={() => setPausado(false)}
+              onFocusCapture={() => setPausado(true)}
+              onBlurCapture={() => setPausado(false)}
+            >
+              {/* O carrossel para enquanto o ponteiro está em cima ou algo
+                  dentro tem foco: sem isso, quem lê devagar perde o cartão no
+                  meio da frase, e quem navega por teclado é jogado para fora
+                  do que estava lendo. */}
+              <div key={emCena.id} className="anima-chegar">
+                <CartaoHero {...emCena} />
+              </div>
+            </div>
+
+            {visiveis.length > 1 ? (
+              <div className="flex justify-center gap-2 pt-3 lg:hidden">
+                {visiveis.map((jornada, posicao) => (
+                  <button
+                    key={jornada.id}
+                    type="button"
+                    onClick={() => {
+                      irPara(posicao);
+                      setAutomatico(false);
+                    }}
+                    aria-label={`Ver ${jornada.titulo}`}
+                    aria-current={posicao === atual ? "true" : undefined}
+                    className={`h-1.5 rounded-full transition-all ${
+                      posicao === atual ? "w-5 bg-verde" : "w-1.5 bg-listra hover:bg-contorno"
+                    }`}
                   />
                 ))}
               </div>
             ) : null}
-          </CartaoLimao>
-        ) : null}
 
-        {/* Quem colocou quanto, no plano inteiro. Não é preenchimento: é a
-            pergunta que o casal faz depois de "quanto já temos", e é o que
-            sustenta a coluna da direita no desktop. */}
-        {/* Só no desktop. No celular esta peça empilhava uma terceira caixa de
-            dinheiro antes da primeira polaroide, e o álbum — que é a tese da
-            tela — sumia abaixo dos números. Quem quiser o detalhe no celular
-            tem a mesma conta, inteira, em /aportes. */}
-        {porPessoa.some((pessoa) => pessoa.cents > 0) ? (
-          <div className="hidden rounded-cartao bg-white p-4 lg:block">
-            <h2 className="text-[13.5px] font-bold tracking-[-0.02em]">Quem colocou</h2>
-            <ul className="mt-2.5 flex flex-col gap-2.5">
-              {porPessoa.map((pessoa) => (
-                <li key={pessoa.chave} className="flex items-center gap-2.5">
-                  <PontoDePessoa cor={pessoa.cor} />
-                  <span className="min-w-0 flex-1 truncate font-corpo text-[11.5px] text-suave">
-                    {pessoa.nome ?? "Sua dupla"}
-                  </span>
-                  <b className="flex-none text-[12.5px] font-bold tabular-nums">
-                    {formatBRL(pessoa.cents)}
-                  </b>
-                </li>
-              ))}
-            </ul>
+            <PilulaTotal>{formatBRL(totalCents)} juntos</PilulaTotal>
           </div>
-        ) : null}
-      </aside>
 
-      <div className="flex flex-col gap-3.5 lg:col-start-1 lg:row-start-2">
-      {temPedido ? (
-        <Link
-          href="/parceiro"
-          className="rounded-cartao bg-tinta p-4 text-[14px] font-semibold text-limao transition active:scale-[0.99]"
-        >
-          Alguém pediu para entrar no plano de vocês. Toque para ver quem é.
-        </Link>
-      ) : null}
-
-      {passos ? <PrimeirosPassos passos={passos} /> : null}
-
-      {/* O estado vazio só aparece quando a lista de primeiros passos NÃO
-          está acesa: os dois dizem "criem a primeira jornada", e um deles
-          dizendo já basta. */}
-      {jornadas.length === 0 && !passos ? (
-        <div className="mt-2 flex flex-col items-start gap-4">
-          <p className="max-w-[22ch] text-[22px] font-bold leading-tight tracking-[-0.03em]">
+          {/* O resto do álbum. Só no desktop: no celular ele é o carrossel, e
+              repetir as mesmas jornadas embaixo desfaria a escolha. */}
+          {visiveis.length > 1 ? (
+            <div className="mt-6 hidden grid-cols-2 gap-4 lg:mt-0 lg:grid">
+              {visiveis
+                .filter((jornada) => jornada.id !== emCena.id)
+                .map((jornada) => (
+                  <CartaoJornada key={jornada.id} {...jornada} />
+                ))}
+            </div>
+          ) : null}
+        </div>
+      ) : jornadas.length > 0 ? (
+        /* Filtro que não sobrou nada. Acontece quando a única jornada de uma
+           categoria é apagada com o chip ainda selecionado. */
+        <div className="flex flex-col items-start gap-3 py-6">
+          <Explica>Nenhuma jornada nesta categoria.</Explica>
+          <button
+            type="button"
+            onClick={() => setFiltro(TUDO)}
+            className="rounded-full border border-contorno/60 bg-white px-4 py-2.5 text-[12.5px] font-semibold transition hover:border-contorno active:scale-[0.97]"
+          >
+            Ver todas
+          </button>
+        </div>
+      ) : passos ? null : (
+        <div className="flex flex-col items-start gap-4 py-4">
+          <p className="max-w-[22ch] text-[21px] font-semibold leading-tight tracking-[-0.03em]">
             Vocês ainda não escolheram o que querem conquistar.
           </p>
-          <p className="font-corpo text-[13px] leading-relaxed text-suave-forte">
-            Começa por uma. Pode ser a viagem, a entrada do apê, ou só um fundo
-            do sossego.
-          </p>
+          <Explica className="max-w-[40ch]">
+            Começa por uma. Pode ser a viagem, a entrada do apê, ou só um fundo do
+            sossego.
+          </Explica>
           <Link
-            href="/jornadas"
-            className="rounded-full bg-tinta px-5 py-3 text-[13.5px] font-semibold text-white transition hover:opacity-90 active:scale-[0.97]"
+            href="/jornadas/nova"
+            className="rounded-full bg-tinta px-5 py-3.5 text-[13.5px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.97]"
           >
             Criar a primeira
           </Link>
         </div>
-      ) : (
-        <div className="gap-3 [column-fill:balance] columns-2 lg:columns-3 lg:gap-4">
-          {visiveis.map((jornada, indice) => (
-            <CartaoJornada key={jornada.id} indice={indice} {...jornada} />
-          ))}
-        </div>
       )}
-      </div>
-      </div>
     </main>
   );
 }

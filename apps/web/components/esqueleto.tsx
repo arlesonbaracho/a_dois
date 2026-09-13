@@ -1,13 +1,10 @@
-import { Polaroide } from "./pecas";
-
 /**
  * O que a tela mostra enquanto os dados não chegaram.
  *
  * Antes era a palavra "Carregando…" em cinza claro no canto de uma tela
- * inteira de creme vazio — a primeira coisa que se via em /jornadas, na
- * jornada aberta e no perfil. Agora é a forma do que vem: polaroides em
- * branco, na grade certa, com a chapa listrada. A tela não muda de layout
- * quando os dados chegam, e o carregamento para de parecer erro.
+ * inteira vazia — a primeira coisa que se via em /jornadas, na jornada aberta
+ * e no perfil. Agora é a forma do que vem: os mesmos cartões, na mesma grade,
+ * com a chapa listrada. A tela não muda de layout quando os dados chegam.
  *
  * `aria-live` e não `role="status"`: quem usa leitor de tela ouve "Carregando"
  * uma vez, e as caixas vazias ficam mudas.
@@ -19,7 +16,7 @@ function Barra({ className = "" }: { className?: string }) {
 function ChapaVazia({ className }: { className: string }) {
   return (
     <span
-      className={`block rounded-[3px] bg-[repeating-linear-gradient(115deg,var(--color-areia)_0_7px,var(--color-borda)_7px_14px)] ${className}`}
+      className={`block bg-[repeating-linear-gradient(115deg,var(--color-creme)_0_7px,var(--color-listra)_7px_14px)] ${className}`}
     />
   );
 }
@@ -29,18 +26,18 @@ export function EsqueletoAlbum({ quantos = 4 }: { quantos?: number }) {
     <div
       aria-busy="true"
       aria-live="polite"
-      className="gap-3 columns-2 lg:columns-3 lg:gap-4"
+      className="grid animate-pulse grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4"
     >
       <span className="sr-only">Carregando as jornadas de vocês…</span>
       {Array.from({ length: quantos }, (_, indice) => (
-        <div key={indice} className="mb-3 block break-inside-avoid lg:mb-4">
-          <Polaroide indice={indice} className="animate-pulse">
-            <ChapaVazia className="h-24 lg:h-40" />
-            <Barra className="mt-2 h-3 w-3/4" />
+        <div key={indice} className="rounded-cartao border border-borda bg-white p-2">
+          <ChapaVazia className="h-28 rounded-quadro lg:h-36" />
+          <div className="px-1.5 pb-1 pt-2.5">
+            <Barra className="h-3 w-3/4" />
             <Barra className="mt-1.5 h-2 w-1/3" />
-            <Barra className="mt-2 h-1.5 w-full" />
+            <Barra className="mt-2.5 h-1.5 w-full" />
             <Barra className="mt-1.5 h-2 w-2/3" />
-          </Polaroide>
+          </div>
         </div>
       ))}
     </div>
@@ -52,32 +49,30 @@ export function EsqueletoJornada() {
   return (
     <div aria-busy="true" aria-live="polite" className="flex animate-pulse flex-col gap-3.5">
       <span className="sr-only">Carregando esta jornada…</span>
-      <div className="flex items-center gap-2.5">
-        <span className="size-9 flex-none rounded-full bg-white" />
+      <div className="flex items-center gap-3">
+        <span className="size-9 flex-none rounded-full border border-borda bg-white" />
         <span className="min-w-0 flex-1">
           <Barra className="h-4 w-2/3" />
           <Barra className="mt-1.5 h-2 w-1/3" />
         </span>
       </div>
       <div className="flex gap-3">
-        <div className="flex-1">
-          <Polaroide indice={1}>
-            <ChapaVazia className="h-20" />
-            <Barra className="mt-2 h-1.5 w-full" />
-            <Barra className="mt-1.5 h-2 w-2/3" />
-          </Polaroide>
+        <div className="flex-1 rounded-polaroide bg-white p-2 pb-3 shadow-polaroide">
+          <ChapaVazia className="h-20 rounded-chapa" />
+          <Barra className="mt-2 h-1.5 w-full" />
+          <Barra className="mt-1.5 h-2 w-2/3" />
         </div>
         <div className="flex flex-1 flex-col gap-2.5">
-          <span className="flex-1 rounded-bloco bg-areia" />
-          <span className="flex-1 rounded-bloco bg-white" />
+          <span className="flex-1 rounded-bloco bg-creme" />
+          <span className="flex-1 rounded-bloco border border-borda bg-white" />
         </div>
       </div>
-      <div className="flex gap-1.5">
-        <Barra className="h-8 w-20" />
-        <Barra className="h-8 w-24" />
-        <Barra className="h-8 w-28" />
+      <div className="flex gap-2">
+        <Barra className="h-9 w-20" />
+        <Barra className="h-9 w-24" />
+        <Barra className="h-9 w-28" />
       </div>
-      <span className="h-40 rounded-cartao bg-white" />
+      <span className="h-40 rounded-cartao border border-borda bg-white" />
     </div>
   );
 }

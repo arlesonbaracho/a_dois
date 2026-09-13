@@ -1,5 +1,6 @@
 import { aportes, membrosDoCasal, metas, meuCasal, perfisDoCasal, usuarioAtual } from "@repo/api";
 import {
+  centavosNoMes,
   type CorDePessoa,
   coresDoCasal,
   type Participante,
@@ -97,6 +98,13 @@ export default async function Aportes() {
       nomes={nomes}
       cores={Object.fromEntries(membros.map((m) => [m.user_id, corDe(m.user_id)]))}
       totalDoPlanoCents={totalDoPlanoCents}
+      doMesCents={centavosNoMes(
+        listaAportes.map((aporte) => ({
+          quandoISO: aporte.contributed_at,
+          cents: aporte.amount_cents,
+        })),
+        new Date(),
+      )}
       disponivel={disponivel}
       minhaRegra={regra}
       minhaFaixa={eu?.income_band ?? null}

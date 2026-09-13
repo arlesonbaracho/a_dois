@@ -1,4 +1,5 @@
 export * from "./album";
+export * from "./album-ordem";
 export * from "./capa";
 export * from "./categorias";
 export * from "./constants";

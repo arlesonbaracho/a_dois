@@ -8,8 +8,8 @@ import {
   usuarioAtual,
 } from "@repo/api";
 import {
-  centavosNoMes,
   coresDoCasal,
+  ordemDoAlbum,
   faltaComecar,
   iniciaisDoCasal,
   mesPorExtenso,
@@ -84,6 +84,7 @@ export default async function Home() {
 
     return {
       id: jornada.id,
+      criadaEmISO: jornada.created_at,
       titulo: jornada.title,
       categoria: jornada.category,
       capaUrl: jornada.cover_path ? (capas.get(jornada.cover_path) ?? null) : null,
@@ -94,6 +95,10 @@ export default async function Home() {
     };
   });
 
+  // Mais adiantada primeiro: num carrossel de uma por vez, abrir na jornada
+  // recém-criada (0%) é abrir na que menos tem o que mostrar.
+  const emOrdem = ordemDoAlbum(jornadas);
+
   const nomes = ordemEstavel(
     membros.map((membro) => ({
       userId: membro.user_id,
@@ -102,39 +107,10 @@ export default async function Home() {
     })),
   ).map((membro) => membro.nome);
 
-  const doMesPorPessoa = ordemEstavel(
-    membros.map((membro) => ({ userId: membro.user_id, papel: membro.role })),
-  ).map((membro) => ({
-    chave: membro.userId,
-    cents: centavosNoMes(
-      listaAportes
-        .filter((aporte) => aporte.user_id === membro.userId)
-        .map((aporte) => ({ quandoISO: aporte.contributed_at, cents: aporte.amount_cents })),
-      agora,
-    ),
-  }));
-
-  // Quanto cada pessoa colocou no plano inteiro. Vai para a coluna da direita
-  // no desktop, que antes terminava um terço da tela acima do álbum.
-  const totalPorPessoa = new Map<string, number>();
-  for (const aporte of listaAportes) {
-    const chave = aporte.user_id ?? "fora";
-    totalPorPessoa.set(chave, (totalPorPessoa.get(chave) ?? 0) + aporte.amount_cents);
-  }
-
-  const porPessoa = ordemEstavel(
-    membros.map((membro) => ({
-      userId: membro.user_id,
-      papel: membro.role,
-      nome: membro.display_name,
-    })),
-  ).map((membro) => ({
-    chave: membro.userId,
-    nome: membro.nome,
-    cents: totalPorPessoa.get(membro.userId) ?? 0,
-    cor: cores.get(membro.userId) ?? ("fora" as const),
-  }));
-
+  // "este mês" e "quem colocou quanto" saíram daqui: a home passou a mostrar
+  // UMA jornada por vez, e empilhar duas caixas de dinheiro antes do álbum
+  // enterraria a tese da tela. As duas contas vivem inteiras em /aportes, que
+  // é a tela de dinheiro.
   const totalCents = sumCents(listaAportes.map((aporte) => aporte.amount_cents));
 
   // A faixa de renda sai da MINHA linha em membros — nenhuma consulta a mais,
@@ -152,20 +128,11 @@ export default async function Home() {
   return (
     <Inicio
       passos={faltaComecar(passos) ? passos : null}
-      porPessoa={porPessoa}
       nomes={nomes}
       iniciais={iniciaisDoCasal(nomes)}
       mes={mesPorExtenso(agora)}
       totalCents={totalCents}
-      doMesCents={centavosNoMes(
-        listaAportes.map((aporte) => ({
-          quandoISO: aporte.contributed_at,
-          cents: aporte.amount_cents,
-        })),
-        agora,
-      )}
-      doMesPorPessoa={doMesPorPessoa}
-      jornadas={jornadas}
+      jornadas={emOrdem}
       temPedido={pedidos.length > 0}
     />
   );
