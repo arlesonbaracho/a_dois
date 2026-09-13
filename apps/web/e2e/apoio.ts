@@ -26,6 +26,25 @@ export function chaves(): Record<string, string> {
 
 export const SENHA = "senhamuitolonga123";
 
+/**
+ * O objeto existe no bucket?
+ *
+ * Pela API do Storage, com service role, porque o schema `storage` não é
+ * exposto no PostgREST — `schemas` em config.toml lista só public e
+ * graphql_public. Serve para provar eliminação de verdade: a linha sumir da
+ * tabela não diz nada sobre o arquivo.
+ */
+export async function capaExiste(
+  request: APIRequestContext,
+  caminho: string,
+): Promise<boolean> {
+  const { API_URL, SERVICE_ROLE_KEY } = chaves();
+  const resposta = await request.get(`${API_URL}/storage/v1/object/capas/${caminho}`, {
+    headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
+  });
+  return resposta.ok();
+}
+
 export type Conta = { email: string; senha: string; userId: string };
 
 function cabecalhosDeServico(): Record<string, string> {

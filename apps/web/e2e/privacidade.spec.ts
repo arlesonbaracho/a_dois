@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { comoPessoa, criarConta, entrar, parear } from "./apoio";
+import { comoPessoa, criarConta, entrar, parear, capaExiste } from "./apoio";
 
 /** O que o navegador baixaria, sem escrever nada no disco. */
 async function baixado(page: import("@playwright/test").Page, botao: string): Promise<string> {
@@ -13,6 +13,11 @@ async function baixado(page: import("@playwright/test").Page, botao: string): Pr
   for await (const pedaco of fluxo) pedacos.push(pedaco as Buffer);
   return Buffer.concat(pedacos).toString("utf8");
 }
+
+/** PNG de 8x8 e 74 bytes: pequeno para ser rápido, imagem de verdade para o
+ *  canvas do navegador conseguir decodificar. */
+const PNG_MINUSCULO =
+  "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEUlEQVR4nGM4EaCBFTEMLQkAaplQAc/OcKAAAAAASUVORK5CYII=";
 
 test.describe("privacidade", () => {
   test("o export leva o plano e esconde o que é do parceiro", async ({ page, request }) => {
@@ -175,5 +180,49 @@ test.describe("privacidade", () => {
     await page.getByLabel("Senha").fill(ana.senha);
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page.getByRole("status")).toHaveText("E-mail ou senha inválidos.");
+  });
+
+  /**
+   * O direito de eliminação (Art. 18, VI) vale para a foto também.
+   *
+   * Antes desta rodada a capa ficava no bucket depois de a conta sumir:
+   * inalcançável, porque a policy pergunta por um casal que já não existe —
+   * mas guardada. "Ninguém consegue ver" não é "foi eliminado".
+   */
+  test("apagar a conta sozinha leva a capa da jornada junto", async ({ page, request }) => {
+    const sozinha = await criarConta(request, "sozinha");
+    await entrar(page, sozinha);
+
+    const comoEla = await comoPessoa(request, sozinha);
+    const meta = await (await comoEla.rpc("add_goal", {
+      p_title: "Praia em janeiro",
+      p_target_amount_cents: 800000,
+    })).json();
+
+    await page.goto(`/jornadas/${meta}`);
+    await page.getByLabel("Capa da jornada").setInputFiles({
+      name: "praia.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(PNG_MINUSCULO, "base64"),
+    });
+    await expect(page.locator('img[src*="/capas/"]')).toBeVisible();
+
+    const [linha] = await comoEla.ler<{ cover_path: string }[]>(
+      `goals?select=cover_path&id=eq.${meta}`,
+    );
+    expect(linha.cover_path, "a capa devia estar gravada na jornada").toBeTruthy();
+    expect(await capaExiste(request, linha.cover_path)).toBe(true);
+
+    await page.goto("/perfil");
+    await page.getByLabel(/Se eu for a única pessoa/).check();
+    await page.getByLabel("Para confirmar, escreva EXCLUIR").fill("EXCLUIR");
+    await page.getByRole("button", { name: "Apagar minha conta" }).click();
+    await expect(page).toHaveURL(/\/login/);
+
+    // O arquivo, e não só a linha: é o que separa eliminar de esconder.
+    expect(
+      await capaExiste(request, linha.cover_path),
+      "a capa continuou no bucket depois de a conta ser apagada",
+    ).toBe(false);
   });
 });
