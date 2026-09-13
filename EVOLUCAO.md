@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-12 (varredura de design: chapa desenhada, rampa tipográfica única, esqueletos, dois movimentos)
+**Última atualização:** 2026-09-13 (redesenho v2: paleta nova, home em carrossel, convite com abas, jornada nova em 2 passos)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -64,6 +64,11 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-12 | **Varredura de design em todo o app.** A chapa da polaroide ganha marca de categoria desenhada (mesmo grid de 24 e traço 1.75 dos ícones) e duotone mais quente — seis retângulos de gradiente dessaturado lado a lado liam como galeria de imagem que não carregou. `rotuloDaCategoria` em `packages/core` tira o valor cru do banco da tela ("bebe" virava chip). Peças novas: `Secao`, `Explica`, `Saida`, `Perigo`, `DiscoDePessoa`, `PontoDePessoa`, `LinhaAporte` e `esqueleto.tsx`. `Cartao` passa a carregar a marca | `5ba9371` |
 | 2026-09-12 | **Relatório da varredura de design** em `relatorios/design-2026-09-12.md`: 39 achados, 32 corrigidos, 7 adiados com motivo. Detector do design system de 26 avisos para 1 | `06210af` |
 | 2026-09-12 | **As telas param de inventar tipografia.** `text-sm`/`text-xs`/`text-base` sumiram de `apps/web` — eram a escala do Tailwind, e como o `body` fixa a fonte de display entregavam conversa na voz de afirmação. Em /aportes dava para ver no mesmo formulário. Todo `<select>` vem de `Escolha`. Junto: /parceiro passa a dizer quem divide o plano, /aportes ganha as cores das pessoas e perde os links que duplicavam o dock, /jornadas e a jornada aberta abrem com esqueleto em vez de "Carregando…", a legenda da barra quebra num ponto só, e no desktop a chapa dobra de altura. 41 e2e, RLS e guardas verdes | `89f5bb2` |
+| 2026-09-13 | **Redesenho v2: o mundo visual inteiro.** Paleta trocada pelo protótipo do autor — superfície `#FDFBF7`, tinta `#070001`, verde `#33605A` como ação e primeira pessoa, marrom `#68462B` como segunda. Creme deixa de ser fundo e vira o texto sobre escuro. Grão do papel sai; cartão se separa por contorno, não por sombra. Três contrastes medidos mudaram o brief: sálvia vira só superfície (2.57:1 como texto), texto sobre escuro é creme e nunca verde (2.93:1), e nasce a segunda borda `contorno` #7E8F84 porque a `#EDE5D8` do protótipo mede 1.25:1 e em campo o limite é informação. Rampa enxugada para oito degraus e seis raios. `ordemDoAlbum` em `packages/core`, com teste. DESIGN.md reescrito | `1f76698` |
+| 2026-09-13 | **Home vira carrossel.** Uma jornada por vez no celular, como o v2 desenha: cartão de 268px de foto, porcentagem e categoria em pílula sobre a imagem, disco de seta sangrando para fora. Pausa sob ponteiro e sob foco, para de vez ao toque num ponto, e não começa com `prefers-reduced-motion` — conteúdo que anda sozinho precisa de como parar. No desktop o protótipo não desenhou nada, e um cartão só numa tela de 1280px deixava dois terços vazios: vira destaque à esquerda e o resto do álbum à direita. `/jornadas` vira o segundo destino do dock, que passa a ter três | `1f76698` |
+| 2026-09-13 | **Convite completo.** `/parceiro` ganha as duas abas do protótipo ("No plano" e "Convidar"), etiqueta de estado por pessoa, e o cartão sálvia **"O que essa pessoa vai ver"** — o escopo do acesso dito ANTES de convidar, e não só no cartão de confirmação, que é quando quem lê já decidiu. Compartilhar sai do input `readOnly`: WhatsApp por `wa.me`, folha do sistema por `navigator.share` e copiar por `navigator.clipboard`. A aba que abre é a que tem o que fazer | `(este commit)` |
+| 2026-09-13 | **Nova jornada em dois passos**, em rota própria. Chips de categoria, controle deslizante MAIS campo de texto para o valor, prazo em pílulas, e o cartão verde recalculando ao vivo quanto cabe por mês — que é a pergunta que o casal tem, e que o formulário lateral antigo não respondia. Passo 2 traz a jornada criada e três links de verdade para o que falta. O formulário de `/jornadas` some | `(este commit)` |
+| 2026-09-13 | **Telas de porta e jornada aberta.** Olho de mostrar a senha (com rótulo que NÃO contém a palavra "senha", senão `getByLabel("Senha")` acharia dois controles), rodapé colado embaixo, "Esqueci minha senha" junto do campo, e a promessa do produto dita na porta. Na jornada: avatares do casal empilhados, "desde março de 2024", item com caixa de 44px desenhada no próprio `<input>` e etiqueta de preço | `(este commit)` |
 
 ---
 
@@ -329,6 +334,13 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-12 | Um degrau de 17px com nome (`Secao`) em vez de proibir tamanhos novos | O degrau já existia em quatro variantes; dar nome a ele é o que impede a quinta |
 | 2026-09-12 | `key={aportadoCents}` na barra de progresso | É o que faz a animação repetir quando o valor muda pelo Realtime; sem ele o gesto só rodaria na primeira montagem e o valor mudaria num salto |
 | 2026-09-12 | `prefers-reduced-motion` num bloco global em `globals.css`, não peça a peça | Uma declaração cobre toda animação e transição do app, inclusive as que ainda não existem |
+| 2026-09-13 | Adotar o protótipo v2 inteiro, e não misturar com o creme+limão | Os três protótipos eram três mundos; "igual às três" não existe. A troca custou um arquivo de tokens, que é exatamente o que o DESIGN.md prometia |
+| 2026-09-13 | Duas bordas: `borda` para cartão, `contorno` para controle | A do protótipo mede 1.25:1. Em cartão é decoração; em campo é o que diz onde o controle começa, e aí o piso de 3:1 vale |
+| 2026-09-13 | Carrossel para de vez ao toque num ponto, em vez de ganhar botão de pausa | Conteúdo que anda sozinho precisa de mecanismo de parada; assumir o controle já É a parada, e não custa um botão que ninguém entenderia |
+| 2026-09-13 | Home no desktop: destaque + álbum, e não o carrossel puro | Esconder cinco de seis num espaço que cabe todas não é o mesmo gesto que fazê-lo no celular |
+| 2026-09-13 | O deslizante de valor convive com o campo de texto | Só o deslizante deixaria de fora todo valor que não cai num degrau de R$ 500, e "R$ 12.450" é um alvo tão legítimo quanto os outros |
+| 2026-09-13 | A caixa de item é o próprio `<input>` desenhado, e não um input escondido | Escondido com `sr-only`, o alvo de clique vira 1px e o `check()` do Playwright erra o toque |
+| 2026-09-13 | QR do convite ficou de fora | Exige biblioteca nova, e isso é pergunta, não decisão minha. WhatsApp e folha do sistema cobrem o caso sem dependência |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -398,11 +410,17 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
 | `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
-| tela "Nova jornada" | O design tem uma tela própria em dois passos (chips de categoria, slider de valor, prazo em pílulas, checklist de começo). Não foi construída: o formulário dentro de `/jornadas` cumpre a função com os mesmos campos | Baixa |
-| dock no desktop | O trilho da esquerda é uma pílula de 2 discos mais o botão preto, flutuando sozinha numa faixa de 6rem de creme. Funciona e é o mesmo dock deitado, mas lê como peça solta, não como barra. Não tem conserto óbvio sem inventar elemento novo | Baixa |
+| ~~tela "Nova jornada"~~ | **Fechada em 2026-09-13.** A tela em dois passos existe em `/jornadas/nova`, com chips, deslizante, prazo em pílulas e o checklist do passo 2 | — |
+| dock no desktop | O trilho da esquerda é uma pílula de 3 discos mais o botão verde, flutuando sozinha numa faixa de 6rem. Funciona e é o mesmo dock deitado, mas lê como peça solta, não como barra | Baixa |
 | `iniciaisDoCasal` × "Você" | A mesma pessoa aparece como "Ana" na jornada e como "Você" em /aportes, então o disco colorido mostra "A" numa tela e "V" na outra. O nome está certo nas duas (uma é lista compartilhada, a outra é a conta de cada um), mas o disco é a mesma peça e diverge. Ficou visível justamente porque as duas telas passaram a usar `LinhaAporte` | Baixa |
-| ordem do álbum | As jornadas saem em `created_at desc`, então a mais nova vem primeiro e a principal pode terminar por último. Não há ordenação por prioridade nem por quanto falta, e `goals.priority` é gravada e nunca lida na tela | Baixa |
+| ~~ordem do álbum~~ | **Fechada em 2026-09-13** por `ordemDoAlbum`: mais adiantada primeiro, empate pela mais nova. `goals.priority` continua órfã — ver a linha própria | — |
 | chapa × foto | A marca de categoria tirou o ar de imagem quebrada, mas a tese ainda diz "fotos tortas sobre papel" e o que está lá é desenho. A capa de verdade já entra por cima quando existe; o que falta é o caminho que faz o casal pôr foto em todas — hoje é um clique por jornada, escondido no detalhe | Baixa |
+| home × carrossel | No celular a home mostra UMA jornada de seis. Foi decisão explícita, e a lista cobre o resto — mas é uma aposta: se o casal tiver muitas jornadas, o caminho para a terceira passou a ter dois toques em vez de um | Média |
+| convite × QR | Os três botões do protótipo eram WhatsApp, Link e QR. O QR saiu porque exige biblioteca nova (`qrcode`, que roda em React Native também). Enquanto não entrar, quem está do lado da pessoa precisa mandar o link por algum app | Baixa |
+| `price_quotes` × tela | A tabela existe, a Edge Function existe, os 17 testes de extração existem — e NENHUMA tela mostra histórico de preço. É a peça mais pronta e mais invisível do projeto | Média |
+| aporte × jornada em foco | O "+" do dock leva a `/aportes`, que pede para escolher a jornada. No cartão em destaque a jornada já é conhecida, e registrar ali economizaria dois toques na ação mais frequente do produto | Média |
+| `goals.priority` | Continua gravada e nunca lida. Com `ordemDoAlbum` ordenando por progresso, ela ficou ainda mais órfã: ou vira critério de ordem, ou sai | Baixa |
+| Realtime × recado | O evento do parceiro chega e invalida a consulta, mas nada na tela diz que chegou. "Lucas colocou R$ 400 hoje" é informação que o app já tem em mãos e joga fora | Média |
 
 ---
 
