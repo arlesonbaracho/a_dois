@@ -166,16 +166,138 @@ begin
   perform direito_teste.certo('escolher a faixa registra o consentimento',
     (select consent_income_band_at is not null from public.profiles where user_id = ana));
 
-  perform public.set_consent('income_band', false);
-  perform direito_teste.certo('e revogar apaga o registro',
-    (select consent_income_band_at is null from public.profiles where user_id = ana));
-
-  -- Revogar NÃO apaga a faixa: quem para de usar é o cálculo, em
-  -- packages/core/src/split.ts. Está registrado em Dívidas.
-  perform direito_teste.texto('a faixa continua guardada',
+  -- Revogar o consentimento de OUTRA coisa não pode encostar na faixa. É o
+  -- erro clássico de mexer no `case` errado, e ele passaria despercebido:
+  -- ninguém olha a faixa depois de desligar métricas.
+  perform public.set_consent('analytics', false);
+  perform direito_teste.texto('revogar analytics não apaga a faixa',
     (select income_band::text from public.couple_members where user_id = ana),
     'de_5_a_10_sm');
+
+  perform public.set_consent('income_band', false);
+  perform direito_teste.certo('revogar apaga o registro',
+    (select consent_income_band_at is null from public.profiles where user_id = ana));
+
+  -- O ponto da mudança: revogação é sobre o DADO, não sobre o carimbo.
+  -- Art. 18, IX. Antes daqui o toggle só tirava a data e a faixa ficava no
+  -- banco indefinidamente, sem base legal sustentando a guarda.
+  perform direito_teste.texto('e apaga a faixa junto',
+    (select income_band::text from public.couple_members where user_id = ana),
+    null);
+
+  -- E não reconsente sozinho: o gatilho de escrita só carimba quando a faixa
+  -- NOVA não é nula, então apagá-la não pode acender o consentimento de volta.
+  perform direito_teste.certo('e não reconsente pelo próprio apagamento',
+    (select consent_income_band_at is null from public.profiles where user_id = ana));
+
+  -- Escolher de novo volta a consentir — a revogação não é uma porta trancada.
+  update public.couple_members set income_band = 'ate_2_sm' where user_id = ana;
+  perform direito_teste.certo('escolher de novo reconsente',
+    (select consent_income_band_at is not null from public.profiles where user_id = ana));
 end $$;
+
+
+-- ===========================================================================
+-- 1b. O aporte não pode ser reatribuído para fora do casal
+-- ===========================================================================
+
+-- `contributions_insert` nega e `add_contribution` tira o user_id do JWT — mas
+-- o UPDATE ficava aberto ao casal sem olhar para quem o aporte aponta.
+do $$
+declare
+  ana      constant uuid := 'd1000001-0000-0000-0000-000000000001';
+  -- A Cida, que EXISTE em auth.users e não é do casal da Ana. Um uuid
+  -- inventado passaria o teste pelo motivo errado: quem recusaria seria a
+  -- chave estrangeira, não a policy — e a policy poderia estar aberta.
+  de_fora  constant uuid := 'd1000003-0000-0000-0000-000000000003';
+  aporte   uuid;
+  n integer;
+begin
+  select id into aporte from public.contributions where user_id = ana limit 1;
+  if aporte is null then
+    raise exception 'SEED QUEBRADO: a Ana não tem aporte para este teste';
+  end if;
+
+  perform direito_teste.recusa('reatribuir o aporte para alguém de fora', format($q$
+    update public.contributions set user_id = %L where id = %L
+  $q$, de_fora, aporte));
+
+  -- A varredura sem WHERE é a forma que escapa quando só o `using` segura:
+  -- sem linha citada, o Postgres não exige a policy de select. Armadilha 5.
+  perform direito_teste.recusa('varrer os aportes reatribuindo para fora', format($q$
+    update public.contributions set user_id = %L
+  $q$, de_fora));
+
+  -- `null` continua valendo: é o "ex-membro" que a saída do casal deixa.
+  execute format('update public.contributions set user_id = null where id = %L', aporte);
+  get diagnostics n = row_count;
+  perform direito_teste.igual('mas pode virar ex-membro', n, 1);
+
+  -- E volta a apontar para quem é do casal.
+  execute format('update public.contributions set user_id = %L where id = %L', ana, aporte);
+  get diagnostics n = row_count;
+  perform direito_teste.igual('e volta para quem é do casal', n, 1);
+
+  raise notice 'aporte não é reatribuível para fora do casal';
+end $$;
+
+
+-- ===========================================================================
+-- 1c. Retenção: cotação velha não fica para sempre
+-- ===========================================================================
+
+-- Art. 15 e 16: o dado se elimina quando o tratamento acaba. price_quotes é
+-- append-only e guarda o que o casal olhou em loja — sem prazo, isso vira
+-- rastro de navegação eterno.
+-- As duas cotações entram como postgres, e não como a Ana: `price_quotes` nega
+-- insert direto nas policies, porque o único caminho é `add_price_quote`. Mas
+-- ela carimba com now(), e o que está sendo medido aqui é justamente o prazo —
+-- então a data vai à mão, por fora do RLS.
+reset role;
+insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url, created_at)
+select gi.couple_id, gi.id, 419900, 'https://loja.test/nova', now() - interval '1 day'
+from public.goal_items as gi limit 1;
+insert into public.price_quotes (couple_id, goal_item_id, price_cents, source_url, created_at)
+select gi.couple_id, gi.id, 399000, 'https://loja.test/velha', now() - interval '365 days'
+from public.goal_items as gi limit 1;
+
+set local role authenticated;
+
+do $$
+declare
+  item uuid;
+begin
+  select id into item from public.goal_items limit 1;
+  if item is null then
+    raise exception 'SEED QUEBRADO: sem item para pendurar cotação';
+  end if;
+
+  -- Conta só as deste teste: o seed já pendurou uma cotação nesse item, e
+  -- contar a tabela inteira reprovaria por motivo nenhum (armadilha 6).
+  perform direito_teste.igual('as duas cotações entraram',
+    (select count(*) from public.price_quotes
+      where goal_item_id = item and source_url like 'https://loja.test/%'), 2);
+
+  reset role;
+  perform public.expire_and_purge();
+  execute 'set local role authenticated';
+
+  perform direito_teste.igual('a cotação de ontem fica',
+    (select count(*) from public.price_quotes
+      where goal_item_id = item and source_url = 'https://loja.test/nova'), 1);
+
+  perform direito_teste.igual('a de um ano atrás some',
+    (select count(*) from public.price_quotes
+      where goal_item_id = item and source_url = 'https://loja.test/velha'), 0);
+
+  raise notice 'retenção de cotação: 180 dias';
+end $$;
+
+-- Limpa o que este teste plantou: o export logo abaixo conta o histórico de
+-- preço do item, e uma cotação a mais reprovaria ele por culpa daqui.
+reset role;
+delete from public.price_quotes where source_url like 'https://loja.test/%';
+set local role authenticated;
 
 
 -- ===========================================================================
