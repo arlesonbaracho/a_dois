@@ -344,6 +344,41 @@ begin
   raise notice 'prazo vencido não engessa a meta';
 end $$;
 
+-- ===========================================================================
+-- O link do item não aceita esquema executável, por caminho nenhum
+-- ===========================================================================
+--
+-- A função já recusava. O que este bloco tranca é o OUTRO caminho: o update
+-- direto, que a policy `goal_items_update` libera e o PostgREST expõe. Antes
+-- da constraint na coluna, este PATCH devolvia 200.
+do $$
+declare meta uuid;
+declare item uuid;
+begin
+  meta := public.add_goal('Com link', 100000, 'casa');
+  item := public.add_goal_item(meta, 'Geladeira', 289900, 'https://loja.example/x');
+
+  perform meta_teste.recusa('add_goal_item com javascript:',
+    format('select public.add_goal_item(%L, %L, null, %L)', meta, 'Ruim', 'javascript:alert(1)'));
+
+  perform meta_teste.recusa('update direto para javascript:',
+    format('update public.goal_items set url = %L where id = %L', 'javascript:alert(1)', item));
+
+  perform meta_teste.recusa('update direto para data:',
+    format('update public.goal_items set url = %L where id = %L', 'data:text/html,<script>1</script>', item));
+
+  -- E o que é legítimo continua entrando.
+  update public.goal_items set url = 'https://outra.example/y' where id = item;
+  perform meta_teste.texto('https continua passando',
+    (select url from public.goal_items where id = item), 'https://outra.example/y');
+
+  update public.goal_items set url = null where id = item;
+  perform meta_teste.texto('e nulo é estado legítimo',
+    (select url from public.goal_items where id = item), null);
+
+  raise notice 'link do item: só http(s), em qualquer caminho de escrita';
+end $$;
+
 reset role;
 reset request.jwt.claims;
 

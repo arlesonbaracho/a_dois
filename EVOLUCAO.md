@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-14 (métodos de juntar dinheiro na criação da jornada)
+**Última atualização:** 2026-09-14 (link de item fechado na coluna: o update direto aceitava `javascript:`)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -73,6 +73,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-14 | **O nome da outra pessoa finalmente aparece.** `display_name` mora em duas tabelas e a do vínculo é a incompleta: `confirm_invite` insere em `couple_members` SEM display_name, então quem entra por convite nunca teve o de lá, e `set_profile` grava só em `profiles`, então quem edita o perfil depois do cadastro também não. As quatro telas liam a incompleta — daí "Sua dupla" para sempre e "oi, vocês" com os dois nomes preenchidos. `membrosDoCasal` passa a resolver pelo perfil, com o do vínculo como rede; um lugar, quatro telas, nenhuma migration. Junto: a etiqueta "você" em /parceiro seguia o índice da lista, que começa pelo dono — quem entrou por convite via "você" na linha da outra pessoa | `(este commit)` |
 | 2026-09-14 | **O link da loja sai do formulário de item.** Quem vai preencher a coluna `url` é a indicação de afiliado, não o casal. O campo some; a coluna e a exibição ficam, para os itens que já têm link e para o link de afiliado | `(este commit)` |
 | 2026-09-14 | **Métodos de juntar dinheiro.** O prazo em pílulas vira uma escolha de dois níveis: o método, e só então o tamanho dele. Seis métodos — por mês, por semana, semana crescente (o desafio das 52 semanas), semana decrescente, por dia (o dos envelopes) e "quando der". Todos são a MESMA conta com pesos diferentes, então existe uma função `cronograma` em `packages/core` e não um motor por método; quem fecha é `dividirCentavos`, que já garante que as 52 parcelas somam exatamente o alvo. O cartão verde passa a mostrar a primeira parcela, que é o número que decide, e para onde ela vai ("R$ 8,71 na 1ª semana, subindo até R$ 452,83"). 8 testes unitários, e o e2e cobre a troca de método | `(este commit)` |
+| 2026-09-14 | **O link do item, fechado na coluna.** `add_goal_item` peneirava o esquema da URL desde o começo, mas era UM escritor: a policy `goal_items_update` libera update de qualquer coluna para quem é do casal, e o PostgREST é API pública com a anon key embarcada no cliente. Sonda contra o stack local, com JWT de membro: a função recusa `javascript:` com 400, e o `PATCH` direto **gravava com 200** — e `url` vira `href` na jornada aberta. Uma das duas pessoas grava, a outra clica em "ver na loja", e o script roda na sessão dela. A peneira desceu para `goal_items_url_http`, que pega todo escritor de uma vez. Provado quebrando: sem a constraint, o teste reprova em "update direto para javascript:" | `(este commit)` |
 
 ---
 
@@ -105,10 +106,10 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 
 | Onde | Quantas | Última |
 |---|---|---|
-| Repositório (`supabase/migrations/`) | **16** | `20260912150948_regra_do_casal_contrai` |
+| Repositório (`supabase/migrations/`) | **17** | `20260914183000_link_de_item_so_http` |
 | Produção (`qysekkewsrwtebpiowim`) | **15** | `20260912042341_minha_linha_so_minha` |
 
-**Em dia desde 2026-09-12.** As quatro pendentes subiram pelo
+**Duas pendentes em 2026-09-14:** a destrutiva retida e a `link_de_item_so_http`, que **fecha um buraco em produção** e deve subir na frente. As quatro anteriores subiram pelo
 `scripts/subir-producao.sh`, e o web foi para `2578b5e` na sequência.
 Conferido por `supabase migration list --linked`.
 
@@ -354,6 +355,8 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-14 | Um `cronograma(total, forma, períodos)` com vetor de pesos, e não um método por classe | Parcela igual, crescente e decrescente são o mesmo cálculo com pesos [1,1,…], [1,2,…,n] e [n,…,1]. `dividirCentavos` já existia e já garante soma exata |
 | 2026-09-14 | O método NÃO é persistido: só o prazo que ele gera | `goals` não tem onde guardá-lo, e o cronograma é derivável de alvo + períodos. Guardar exigiria migration, e o valor imediato é a decisão na criação |
 | 2026-09-14 | O plural entra em `nomeDoRitmo`, não na tela | `nomeDoRitmo(ritmo) + "s"` dá "mêss". Foi o e2e que pegou |
+| 2026-09-14 | A peneira da URL do item desce da função para a COLUNA | A função é um escritor; a coluna pega todos. O update direto pelo PostgREST gravava `javascript:` e o app renderiza `url` como `href` |
+| 2026-09-14 | `not valid` + `validate constraint` em comandos separados | A armadilha do `goals_target_amount_cents_teto`: separados, a validação das linhas existentes falha sozinha e diz que é ela |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
