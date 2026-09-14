@@ -443,8 +443,11 @@ dinheiro nem da posse de um objeto, ele não entra.
    em 500ms. É o gesto de colar no álbum.
 
 O carrossel da home tem um terceiro movimento que **não é autoral, é
-navegação**: o cartão novo chega deslizando de baixo em 420ms
-(`.anima-chegar`), e a troca automática acontece a cada 5s.
+navegação**: o trilho desliza 500ms em `ease-out` a cada 5 segundos, levando o
+cartão que sai e o que entra ao mesmo tempo. Um trilho, e não uma entrada por
+opacidade: o cartão precisa *ir embora* para o de trás poder chegar, senão a
+troca lê como pisca. Com uma jornada só não há trilho que mover, e o cartão
+fica parado.
 
 Fora isso: a peça levanta sob o mouse e sob o foco de teclado (translação,
 nunca sombra nova), o disco de ação cresce 5%, e todo controle encolhe ao
@@ -454,10 +457,19 @@ inteiro, num bloco só em `globals.css`.
 ### Named Rules
 
 **A Regra da Parada.** Conteúdo que anda sozinho precisa de como parar. O
-carrossel pausa sob o ponteiro e sob o foco, **para de vez** assim que alguém
-toca num dos pontos, e nem começa quando o sistema pede menos movimento. Sem
-isso, quem lê devagar perde o cartão no meio da frase e quem navega por teclado
-é jogado para fora do que estava lendo.
+carrossel **para de vez** assim que alguém toca num dos pontos — assumir o
+controle já é a parada, e não custa um botão que ninguém entenderia. Ele
+também pausa enquanto houver **foco de teclado** dentro dele, senão o cartão
+trocaria com o foco num link e o foco cairia no vazio. E nem começa quando o
+sistema pede menos movimento.
+
+A pausa **por ponteiro** foi tentada e removida: no desktop o mouse repousa
+sobre o cartão sem intenção nenhuma, e o carrossel ficava parado até alguém
+mexer no mouse — que é indistinguível de estar quebrado.
+
+O cartão fora de cena continua no DOM e leva `inert`, não `aria-hidden`:
+precisa sair do caminho do teclado também, senão a tabulação entra num cartão
+invisível.
 
 ## Components
 
@@ -573,6 +585,15 @@ para a linha quebrar num ponto só.
 `components/esqueleto.tsx`. A forma do que vem: os mesmos cartões, na mesma
 grade, com a chapa listrada. A tela não muda de layout quando os dados chegam.
 `aria-busy` mais um `sr-only`, nunca `role="status"`.
+
+### Jornada nova, passo 2
+A capa entra **aqui**, e não num link para outra tela. O mundo v2 se apoia na
+foto — no cartão da home são 268px de foto contra quarenta de texto — e pedir
+a capa três telas depois é o mesmo que não pedir. A polaroide inteira é o
+alvo: um `<label>` sobre ela abre o seletor do aparelho, e enquanto não há
+foto o convite fica em pílula sobre a chapa. O envio é o mesmo caminho do
+detalhe, com a foto reduzida e reencodada no navegador antes de subir — o que
+tira o EXIF e a coordenada de GPS junto.
 
 ### Tela de porta
 `Cartao`, em `components/form-ui.tsx`, é a moldura de login, cadastro, senha e

@@ -56,11 +56,15 @@ export function Inicio({
   const [{ filtro, indice }, setCena] = useState({ filtro: TUDO, indice: 0 });
   const setFiltro = (novo: string) => setCena({ filtro: novo, indice: 0 });
   const irPara = (nova: number) => setCena((antes) => ({ ...antes, indice: nova }));
-  // Quem tocou num dot assumiu o controle: o giro automático não volta. É o
+  // Quem tocou num ponto assumiu o controle: o giro automático não volta. É o
   // mecanismo de parada que conteúdo em movimento precisa ter, e sai sem
   // acrescentar um botão que ninguém entenderia.
   const [automatico, setAutomatico] = useState(true);
-  const [pausado, setPausado] = useState(false);
+  // Pausa só enquanto alguém tem foco de teclado aqui dentro — se o cartão
+  // trocasse com o foco num link dele, o foco cairia no vazio. A pausa por
+  // ponteiro saiu: no desktop o mouse repousa em cima do cartão sem querer, e
+  // o carrossel parava de girar até alguém mexer no mouse.
+  const [comFoco, setComFoco] = useState(false);
 
   // Categorias com contagem, na ordem em que aparecem. Ordenar por nome
   // embaralharia a lista cada vez que alguém criasse uma jornada nova.
@@ -74,8 +78,9 @@ export function Inicio({
   const atual = visiveis.length > 0 ? indice % visiveis.length : 0;
   const emCena = visiveis[atual];
 
+  // Com uma jornada só, não há o que alternar: o cartão fica parado.
   useEffect(() => {
-    if (!automatico || pausado || visiveis.length < 2) return;
+    if (!automatico || comFoco || visiveis.length < 2) return;
     // Quem pediu menos movimento não recebe carrossel que anda sozinho.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -84,7 +89,7 @@ export function Inicio({
       GIRO_MS,
     );
     return () => clearInterval(relogio);
-  }, [automatico, pausado, visiveis.length]);
+  }, [automatico, comFoco, visiveis.length]);
 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-5xl lg:p-10">
@@ -149,18 +154,39 @@ export function Inicio({
            superfície vazia, e o design só desenhou o celular. */
         <div className="lg:grid lg:grid-cols-[27rem_minmax(0,1fr)] lg:items-start lg:gap-8">
           <div className="flex flex-col gap-3.5">
+            {/* O trilho: todos os cartões lado a lado, e o que muda é o
+                deslocamento. Deslizar o trilho inteiro dá transição de
+                verdade — o que sai e o que entra se movem juntos, em vez de
+                um sumir e outro aparecer no lugar.
+
+                `pb-10 -mb-10` existe para a sombra do cartão caber dentro do
+                recorte: `overflow-hidden` corta no padding, então o padding é
+                o espaço que a sombra ocupa, e a margem negativa devolve esse
+                espaço ao layout. */}
             <div
-              onMouseEnter={() => setPausado(true)}
-              onMouseLeave={() => setPausado(false)}
-              onFocusCapture={() => setPausado(true)}
-              onBlurCapture={() => setPausado(false)}
+              className="-mb-10 overflow-hidden pb-10"
+              onFocusCapture={() => setComFoco(true)}
+              onBlurCapture={() => setComFoco(false)}
             >
-              {/* O carrossel para enquanto o ponteiro está em cima ou algo
-                  dentro tem foco: sem isso, quem lê devagar perde o cartão no
-                  meio da frase, e quem navega por teclado é jogado para fora
-                  do que estava lendo. */}
-              <div key={emCena.id} className="anima-chegar">
-                <CartaoHero {...emCena} />
+              {/* O passo do deslize é a largura de um cartão MAIS o vão
+                  entre eles — com `gap` e só `-100%`, o trilho para meio
+                  cartão adiantado a cada volta. */}
+              <div
+                className="flex gap-4 transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(calc(${-atual * 100}% - ${atual}rem))` }}
+              >
+                {visiveis.map((jornada, posicao) => (
+                  /* `inert` e não `aria-hidden`: o cartão fora de cena
+                     continua no DOM e precisa sair do caminho do teclado
+                     também, senão a tabulação entra num cartão invisível. */
+                  <div
+                    key={jornada.id}
+                    className="w-full flex-none"
+                    inert={posicao !== atual}
+                  >
+                    <CartaoHero {...jornada} />
+                  </div>
+                ))}
               </div>
             </div>
 

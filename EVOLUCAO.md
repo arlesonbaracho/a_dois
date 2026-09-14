@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-13 (redesenho v2: paleta nova, home em carrossel, convite com abas, jornada nova em 2 passos)
+**Última atualização:** 2026-09-13 (a capa entra no passo 2, e o carrossel desliza sozinho a cada 5s)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -69,6 +69,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-13 | **Convite completo.** `/parceiro` ganha as duas abas do protótipo ("No plano" e "Convidar"), etiqueta de estado por pessoa, e o cartão sálvia **"O que essa pessoa vai ver"** — o escopo do acesso dito ANTES de convidar, e não só no cartão de confirmação, que é quando quem lê já decidiu. Compartilhar sai do input `readOnly`: WhatsApp por `wa.me`, folha do sistema por `navigator.share` e copiar por `navigator.clipboard`. A aba que abre é a que tem o que fazer | `(este commit)` |
 | 2026-09-13 | **Nova jornada em dois passos**, em rota própria. Chips de categoria, controle deslizante MAIS campo de texto para o valor, prazo em pílulas, e o cartão verde recalculando ao vivo quanto cabe por mês — que é a pergunta que o casal tem, e que o formulário lateral antigo não respondia. Passo 2 traz a jornada criada e três links de verdade para o que falta. O formulário de `/jornadas` some | `(este commit)` |
 | 2026-09-13 | **Telas de porta e jornada aberta.** Olho de mostrar a senha (com rótulo que NÃO contém a palavra "senha", senão `getByLabel("Senha")` acharia dois controles), rodapé colado embaixo, "Esqueci minha senha" junto do campo, e a promessa do produto dita na porta. Na jornada: avatares do casal empilhados, "desde março de 2024", item com caixa de 44px desenhada no próprio `<input>` e etiqueta de preço | `(este commit)` |
+| 2026-09-13 | **A capa entra no passo 2, e o carrossel desliza.** A foto deixa de ser um link para outra tela: a polaroide inteira do passo 2 é o alvo, o convite fica em pílula sobre a chapa, e o envio é o mesmo caminho do detalhe (reduz e reencoda no navegador, o que tira o EXIF junto). O carrossel virou trilho: todos os cartões lado a lado e o que muda é o deslocamento, 500ms em `ease-out` a cada 5s — o cartão que sai e o que entra se movem juntos, em vez de um sumir e outro aparecer. Com uma jornada só ele fica parado. A pausa por ponteiro saiu, porque no desktop o mouse repousa em cima sem intenção e o giro parava até alguém mexer nele; ficam a pausa por foco de teclado, a parada definitiva ao tocar num ponto e o respeito a `prefers-reduced-motion`. Teste novo no e2e, provado com três sabotagens | `(este commit)` |
 
 ---
 
@@ -341,6 +342,10 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-13 | O deslizante de valor convive com o campo de texto | Só o deslizante deixaria de fora todo valor que não cai num degrau de R$ 500, e "R$ 12.450" é um alvo tão legítimo quanto os outros |
 | 2026-09-13 | A caixa de item é o próprio `<input>` desenhado, e não um input escondido | Escondido com `sr-only`, o alvo de clique vira 1px e o `check()` do Playwright erra o toque |
 | 2026-09-13 | QR do convite ficou de fora | Exige biblioteca nova, e isso é pergunta, não decisão minha. WhatsApp e folha do sistema cobrem o caso sem dependência |
+| 2026-09-13 | O carrossel é trilho deslizante, e não entrada por opacidade | O cartão precisa ir embora para o de trás poder chegar; sem isso a troca lê como pisca. E `gap` no trilho exige somar o vão ao passo, senão ele para meio cartão adiantado a cada volta |
+| 2026-09-13 | Carrossel não pausa mais sob o ponteiro | No desktop o mouse repousa sobre o cartão sem intenção, e o giro ficava parado até alguém mexer nele — indistinguível de estar quebrado. A parada continua existindo pelos pontos, pelo foco e por `prefers-reduced-motion` |
+| 2026-09-13 | Cartão fora de cena leva `inert`, não `aria-hidden` | Ele continua no DOM, e precisa sair do caminho do teclado também; `aria-hidden` num elemento focável é defeito, não conserto |
+| 2026-09-13 | A capa é pedida no passo 2, e não no checklist | O cartão da home é 268px de foto contra quarenta de texto. Pedir a foto três telas depois é não pedir |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -414,7 +419,7 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | dock no desktop | O trilho da esquerda é uma pílula de 3 discos mais o botão verde, flutuando sozinha numa faixa de 6rem. Funciona e é o mesmo dock deitado, mas lê como peça solta, não como barra | Baixa |
 | `iniciaisDoCasal` × "Você" | A mesma pessoa aparece como "Ana" na jornada e como "Você" em /aportes, então o disco colorido mostra "A" numa tela e "V" na outra. O nome está certo nas duas (uma é lista compartilhada, a outra é a conta de cada um), mas o disco é a mesma peça e diverge. Ficou visível justamente porque as duas telas passaram a usar `LinhaAporte` | Baixa |
 | ~~ordem do álbum~~ | **Fechada em 2026-09-13** por `ordemDoAlbum`: mais adiantada primeiro, empate pela mais nova. `goals.priority` continua órfã — ver a linha própria | — |
-| chapa × foto | A marca de categoria tirou o ar de imagem quebrada, mas a tese ainda diz "fotos tortas sobre papel" e o que está lá é desenho. A capa de verdade já entra por cima quando existe; o que falta é o caminho que faz o casal pôr foto em todas — hoje é um clique por jornada, escondido no detalhe | Baixa |
+| chapa × foto | **Encolheu em 2026-09-13:** a capa passou a ser pedida no passo 2 da criação, então toda jornada nova tem a chance de nascer com foto. Fica de pé só para as jornadas ANTIGAS, onde pôr foto continua sendo um clique dentro do detalhe | Baixa |
 | home × carrossel | No celular a home mostra UMA jornada de seis. Foi decisão explícita, e a lista cobre o resto — mas é uma aposta: se o casal tiver muitas jornadas, o caminho para a terceira passou a ter dois toques em vez de um | Média |
 | convite × QR | Os três botões do protótipo eram WhatsApp, Link e QR. O QR saiu porque exige biblioteca nova (`qrcode`, que roda em React Native também). Enquanto não entrar, quem está do lado da pessoa precisa mandar o link por algum app | Baixa |
 | `price_quotes` × tela | A tabela existe, a Edge Function existe, os 17 testes de extração existem — e NENHUMA tela mostra histórico de preço. É a peça mais pronta e mais invisível do projeto | Média |

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { useCriarMeta } from "@repo/api";
+import { useCapas, useCasal, useCriarMeta, useEnviarCapa, useMeta } from "@repo/api";
 import { CATEGORIAS, formatBRL, rotuloDaCategoria } from "@repo/core";
 
 import { Campo, Enviar, Recado } from "@/components/form-ui";
 import { IconeAvancar, IconeFechar } from "@/components/icones";
 import { Chapa, Chip, Explica, Polaroide } from "@/components/pecas";
 import { marcarPrimeiraMeta } from "@/components/pwa";
+import { prepararCapa } from "@/lib/capa";
 import { paraCentavos } from "@/lib/dinheiro";
 
 /**
@@ -222,12 +223,47 @@ export function NovaJornada() {
 /**
  * Passo 2: a jornada existe, e o que falta é o que a faz valer.
  *
- * Os três são links de verdade para a tela certa, e não caixas que se marcam
- * sozinhas — uma lista de tarefas que não leva a lugar nenhum é decoração.
+ * A foto entra AQUI, e não num link para outra tela. O mundo v2 inteiro se
+ * apoia nela — no cartão da home são 268px de foto contra quarenta de texto —
+ * e pedir a capa três telas depois é o mesmo que não pedir. A polaroide toda é
+ * o alvo: tocar em qualquer parte dela abre o seletor do aparelho.
+ *
+ * O envio é o mesmo caminho do detalhe: a foto é reduzida e reencodada no
+ * navegador antes de subir, o que TIRA O EXIF e a coordenada de GPS junto. O
+ * caminho é montado com o couple_id que o app tem em mãos, e o banco confere
+ * de novo pela constraint.
  */
 function Pronto({ id, nome, categoria }: { id: string; nome: string; categoria: string }) {
+  const { data: jornada } = useMeta(id);
+  const { data: casal } = useCasal();
+  const { data: capas } = useCapas([jornada?.cover_path ?? null]);
+  const enviarCapa = useEnviarCapa(id);
+  const [erroCapa, setErroCapa] = useState("");
+
+  const capaUrl = jornada?.cover_path ? (capas?.get(jornada.cover_path) ?? null) : null;
+
+  async function trocarCapa(evento: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = evento.target.files?.[0];
+    // Limpar aqui deixa escolher a MESMA foto de novo depois de um erro —
+    // senão o segundo "change" não dispara.
+    evento.target.value = "";
+    if (!arquivo || !casal) return;
+
+    setErroCapa("");
+    try {
+      const blob = await prepararCapa(arquivo);
+      await enviarCapa.mutateAsync({
+        coupleId: casal.id,
+        blob,
+        id: crypto.randomUUID(),
+        anterior: jornada?.cover_path ?? null,
+      });
+    } catch {
+      setErroCapa("Não consegui usar essa foto. Tenta outra?");
+    }
+  }
+
   const comecos: [string, string, string][] = [
-    [`/jornadas/${id}`, "Subir a capa", "a foto que abre a jornada"],
     [`/jornadas/${id}`, "Adicionar o primeiro item", "com link, dá para acompanhar o preço"],
     ["/parceiro", "Chamar quem divide o plano", "ninguém entra sem você confirmar"],
   ];
@@ -241,11 +277,38 @@ function Pronto({ id, nome, categoria }: { id: string; nome: string; categoria: 
         </h1>
       </header>
 
-      <Polaroide indice={0}>
-        <Chapa categoria={categoria} className="h-[124px] rounded-chapa" />
-        <b className="mt-2.5 block text-[13.5px] font-semibold tracking-[-0.02em]">{nome}</b>
-        <span className="font-corpo text-[11px] text-suave">nada guardado ainda</span>
-      </Polaroide>
+      <label className="block cursor-pointer">
+        <Polaroide indice={0} className="transition-transform hover:-translate-y-1">
+          <div className="relative">
+            <Chapa categoria={categoria} capaUrl={capaUrl} className="h-[124px] rounded-chapa" />
+            {capaUrl ? null : (
+              <span className="absolute inset-0 grid place-items-center">
+                <span className="rounded-full bg-papel/90 px-3.5 py-2 font-corpo text-[11.5px] font-semibold text-tinta">
+                  {enviarCapa.isPending ? "Guardando a foto…" : "Escolher a foto"}
+                </span>
+              </span>
+            )}
+          </div>
+          <b className="mt-2.5 block text-[13.5px] font-semibold tracking-[-0.02em]">{nome}</b>
+          <span className="font-corpo text-[11px] text-suave">
+            {capaUrl
+              ? "toque para trocar a foto"
+              : enviarCapa.isPending
+                ? "guardando…"
+                : "a foto que abre a jornada"}
+          </span>
+        </Polaroide>
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          aria-label="Capa da jornada"
+          disabled={enviarCapa.isPending || !casal}
+          onChange={trocarCapa}
+        />
+      </label>
+
+      <Recado erro={erroCapa} />
 
       <span className="mt-2 font-corpo text-[10.5px] text-suave">para começar</span>
       <ul className="flex flex-col gap-2">

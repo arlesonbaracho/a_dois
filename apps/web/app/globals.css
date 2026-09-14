@@ -229,22 +229,6 @@ input[type="range"]::-moz-range-thumb {
   animation: crescer 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* A troca de cartão no carrossel da home: o novo chega deslizando de baixo. */
-@keyframes chegar {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.anima-chegar {
-  animation: chegar 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
 /* Quem pediu menos movimento recebe o estado final, imediato. Vale para tudo
    que anima no app, e não só para a barra: é a razão de o bloco ficar aqui e
    não em cada peça. */

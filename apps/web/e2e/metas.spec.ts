@@ -26,6 +26,18 @@ test.describe("metas e itens", () => {
 
     // Passo 2: a jornada existe, e o que falta é o que a faz valer.
     await expect(page.getByRole("heading", { name: "Jornada criada" })).toBeVisible();
+
+    // A capa entra AQUI, e não três telas depois: o cartão da home é 268px de
+    // foto contra quarenta de texto, e pedir a foto mais tarde é não pedir.
+    await expect(page.locator('img[src*="/capas/"]')).toHaveCount(0);
+    await page.getByLabel("Capa da jornada").setInputFiles({
+      name: "ape.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(PNG_MINUSCULO, "base64"),
+    });
+    await expect(page.locator('img[src*="/capas/"]')).toBeVisible();
+    await expect(page.getByText("toque para trocar a foto")).toBeVisible();
+
     await page.getByRole("link", { name: "Abrir a jornada" }).click();
     await expect(page.getByRole("heading", { name: "Entrada do apê" })).toBeVisible();
 
@@ -53,6 +65,42 @@ test.describe("metas e itens", () => {
     // estado que só existe no navegador.
     await page.reload();
     await expect(page.getByRole("checkbox", { name: "Marcar Geladeira como comprado" })).toBeChecked();
+  });
+
+  // O cartão da home vira sozinho a cada cinco segundos — mas só quando há o
+  // que alternar. Com uma jornada só ele fica parado, que é o que o produto
+  // pede e o que um carrossel de um item só deveria fazer sempre.
+  test("o cartão da home vira sozinho, e só quando há mais de uma jornada", async ({
+    page,
+    request,
+  }) => {
+    const conta = await criarConta(request, "carrossel");
+    const cliente = await comoPessoa(request, conta);
+    await cliente.rpc("add_goal", { p_title: "Primeira", p_target_amount_cents: 100000 });
+
+    await entrar(page, conta);
+    // No celular é onde a decisão vale: um cartão por vez, com os pontos.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+
+    // Com uma só não há ponto nenhum, e o título não muda.
+    const pontoAtivo = page.locator('[aria-current="true"]');
+    await expect(page.getByRole("heading", { name: "Primeira" })).toBeVisible();
+    await expect(pontoAtivo).toHaveCount(0);
+    await page.waitForTimeout(6500);
+    await expect(page.getByRole("heading", { name: "Primeira" })).toBeVisible();
+
+    // Com duas, vira sozinho. O prazo é folgado porque a rota compila na
+    // primeira visita; o que o teste mede é a TROCA, não o relógio.
+    await cliente.rpc("add_goal", { p_title: "Segunda", p_target_amount_cents: 100000 });
+    await page.reload();
+    await expect(pontoAtivo).toHaveCount(1);
+
+    const primeiro = await pontoAtivo.getAttribute("aria-label");
+    expect(primeiro, "o ponto ativo precisa dizer qual jornada está em cena").toBeTruthy();
+    await expect
+      .poll(() => pontoAtivo.getAttribute("aria-label"), { timeout: 20_000 })
+      .not.toBe(primeiro);
   });
 
   test("a barra de progresso sai dos aportes", async ({ page, request }) => {
