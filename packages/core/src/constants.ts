@@ -14,3 +14,23 @@ export const APP_NAME = "Jornada";
  */
 export const THEME_COLOR = "#FDFBF7";
 export const BACKGROUND_COLOR = "#FDFBF7";
+
+/**
+ * A identificação da publicidade.
+ *
+ * Link de afiliado é publicidade: o CDC (art. 36) exige que o consumidor a
+ * identifique como tal, e o guia do CONAR diz que o link sozinho NÃO basta
+ * para esclarecer a relação comercial. Então a palavra aparece como TEXTO, em
+ * cada sugestão — não como ícone, não como cor, não só na política.
+ *
+ * Vive aqui pelo mesmo motivo que APP_NAME e as cores de marca: a fase 2
+ * precisa do valor cru, e duas telas não podem divergir no que declaram.
+ *
+ * O que a frase NÃO diz, de propósito: "o preço para vocês é o mesmo". É
+ * afirmação de fato sobre o programa de afiliado, e só dá para sustentar
+ * depois de ler os termos dele.
+ */
+export const AVISO_DE_PUBLICIDADE = "Publicidade";
+
+export const EXPLICACAO_DA_COMISSAO =
+  "Estas sugestões são de lojas parceiras. Se vocês comprarem por aqui, a gente ganha uma comissão.";

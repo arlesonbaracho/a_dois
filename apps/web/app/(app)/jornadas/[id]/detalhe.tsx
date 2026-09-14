@@ -17,6 +17,7 @@ import {
   useItens,
   useMembros,
   useMeta,
+  useOfertasParaItem,
   useRegistrarAporte,
   useSalvarItem,
   useSalvarMeta,
@@ -28,6 +29,7 @@ import {
   ordemEstavel,
   parcelaMensalCents,
   progressoPercentual,
+  EXPLICACAO_DA_COMISSAO,
   rotuloDaCategoria,
   sumCents,
 } from "@repo/core";
@@ -45,6 +47,7 @@ import {
   Etiqueta,
   Explica,
   LinhaAporte,
+  LinhaOferta,
   Polaroide,
   Secao,
 } from "@/components/pecas";
@@ -530,6 +533,10 @@ export function Detalhe({ goalId }: { goalId: string }) {
                     {/* `price_quotes` guardava a série desde o prompt 6 e nada
                         no app lia. Some sozinho com menos de duas cotações. */}
                     <PrecoDoItem itemId={item.id} />
+                    {/* Item comprado não precisa de sugestão de compra. */}
+                    {comprado ? null : (
+                      <SugestaoDoItem nome={item.name} categoria={jornada.category} />
+                    )}
                   </li>
                 );
               })}
@@ -540,6 +547,10 @@ export function Detalhe({ goalId }: { goalId: string }) {
               esse dinheiro.
             </Explica>
           )}
+
+          {itens && itens.some((item) => item.status !== "comprado") ? (
+            <Explica className="px-1">{EXPLICACAO_DA_COMISSAO}</Explica>
+          ) : null}
 
           {itens && itens.length > 0 ? (
             <Explica className="px-1">
@@ -733,5 +744,31 @@ function Aviso({ texto }: { texto: string }) {
         Voltar para as jornadas
       </Link>
     </main>
+  );
+}
+
+/**
+ * A sugestão de compra de um item.
+ *
+ * Componente próprio porque o hook é por item, e hook não vive em laço. Some
+ * inteiro quando não há o que sugerir — vitrine vazia é pior que vitrine
+ * nenhuma.
+ *
+ * Uma sugestão, nunca uma lista: o item é do casal, a oferta é convidada.
+ */
+function SugestaoDoItem({ nome, categoria }: { nome: string; categoria: string }) {
+  const { data: ofertas } = useOfertasParaItem(nome, categoria);
+  const oferta = ofertas?.[0];
+  if (!oferta) return null;
+
+  return (
+    <LinhaOferta
+      titulo={oferta.title}
+      categoria={oferta.category}
+      loja={oferta.merchant}
+      precoCents={oferta.price_cents}
+      vistoEmISO={oferta.price_seen_at}
+      url={oferta.target_url}
+    />
   );
 }

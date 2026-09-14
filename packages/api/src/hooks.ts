@@ -13,6 +13,7 @@ import { urlsDasCapas, enviarCapa, type NovaCapa } from "./capas";
 import { buscarPrecoDoLink, cotacoesDoItem, type ResultadoBusca } from "./prices";
 import { aportes, registrarAporte, type Aporte } from "./contributions";
 import { membrosDoCasal, meuCasal, type MembroDoCasal } from "./couple";
+import { ofertasParaItem, type Oferta } from "./offers";
 import { salvarConsentimento, type TipoConsentimento } from "./privacy";
 import { meuPerfil, type Perfil } from "./profiles";
 import {
@@ -43,6 +44,7 @@ import { useSupabase } from "./provider";
  * mais cedo ou mais tarde, um evento que chega e não atualiza nada.
  */
 export const chaves = {
+  ofertas: (termo: string, categoria: string) => ["ofertas", categoria, termo] as const,
   casal: ["casal"] as const,
   membros: ["membros"] as const,
   perfil: (userId: string) => ["perfil", userId] as const,
@@ -149,6 +151,22 @@ export function useCapas(caminhos: (string | null)[]): UseQueryResult<Map<string
  * `enabled` amarrado ao id: a lista de itens monta um hook por linha, e sem
  * isso cada item sem id dispararia uma consulta vazia.
  */
+/**
+ * As ofertas para um item. `staleTime` longo de propósito: oferta não muda por
+ * ação de casal, e o Realtime não assina esta tabela.
+ */
+export function useOfertasParaItem(
+  nomeDoItem: string,
+  categoria: string,
+): UseQueryResult<Oferta[]> {
+  const client = useSupabase();
+  return useQuery({
+    queryKey: chaves.ofertas(nomeDoItem, categoria),
+    queryFn: () => ofertasParaItem(client, nomeDoItem, categoria),
+    staleTime: 10 * 60_000,
+  });
+}
+
 export function useCotacoes(goalItemId: string): UseQueryResult<Cotacao[]> {
   const client = useSupabase();
   return useQuery({

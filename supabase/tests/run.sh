@@ -23,6 +23,7 @@ testes=(
   "$raiz/supabase/tests/aportes.sql"
   "$raiz/supabase/tests/saida.sql"
   "$raiz/supabase/tests/direitos.sql"
+  "$raiz/supabase/tests/ofertas.sql"
 )
 PG="${PGSQL_HOME:-$HOME/.local/pgsql}"
 

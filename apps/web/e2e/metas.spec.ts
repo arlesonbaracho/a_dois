@@ -337,4 +337,82 @@ test.describe("metas e itens", () => {
     expect(titulos[0], "a de prioridade alta devia vir primeiro").toContain("O que mais queremos");
     expect(titulos[titulos.length - 1]).toContain("Um dia quem sabe");
   });
+
+  // A indicação de afiliado: a sugestão nasce colada no item que o casal
+  // anotou, e o que define se ela aparece é a POLICY, não a consulta.
+  test("a sugestão de compra aparece no item, identificada, e a vencida não aparece", async ({
+    page,
+    request,
+  }) => {
+    // Um termo inventado e único: "geladeira" casaria com o que outras rodadas
+    // deixaram na tabela, e o teste passaria a depender de qual oferta o banco
+    // devolve primeiro.
+    const termo = `Panelax${Date.now()}`;
+    const conta = await criarConta(request, "oferta");
+    const cliente = await comoPessoa(request, conta);
+
+    const meta = await (await cliente.rpc("add_goal", {
+      p_title: "Mobiliar",
+      p_target_amount_cents: 1400000,
+      p_category: "casa",
+    })).json();
+    await cliente.rpc("add_goal_item", {
+      p_goal_id: meta,
+      p_name: termo,
+      p_estimated_price_cents: 289900,
+    });
+
+    // Escrita com a service role de propósito: nenhum cliente escreve em
+    // `offers`, e é isso que supabase/tests/ofertas.sql prova.
+    //
+    // Conferir o status não é zelo: sem isto, um lote recusado com 400
+    // (PGRST102, "All object keys must match", quando os objetos têm formatos
+    // diferentes) passaria batido e o teste procuraria na tela uma oferta que
+    // nunca foi gravada.
+    const { API_URL, SERVICE_ROLE_KEY } = chaves();
+    const agora = Date.now();
+    const resposta = await request.post(`${API_URL}/rest/v1/offers`, {
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      data: [
+        {
+          category: "casa",
+          title: `${termo} de pressão`,
+          merchant: "Loja Teste",
+          price_cents: 268900,
+          target_url: "https://loja.example/no-ar",
+          published_at: new Date(agora - 864e5).toISOString(),
+          expires_at: null,
+        },
+        {
+          category: "casa",
+          title: `${termo} que venceu`,
+          merchant: "Loja Teste",
+          price_cents: 100,
+          target_url: "https://loja.example/vencida",
+          published_at: new Date(agora - 10 * 864e5).toISOString(),
+          expires_at: new Date(agora - 864e5).toISOString(),
+        },
+      ],
+    });
+    expect(resposta.ok(), await resposta.text()).toBeTruthy();
+
+    await entrar(page, conta);
+    await page.goto(`/jornadas/${meta}`);
+
+    const sugestao = page.getByRole("link", { name: new RegExp(`${termo} de pressão`) });
+    await expect(sugestao).toBeVisible();
+
+    // Link de afiliado é publicidade, e o CDC pede que se identifique como tal.
+    await expect(sugestao).toContainText("Publicidade");
+    await expect(sugestao).toContainText("Loja Teste");
+    await expect(sugestao).toHaveAttribute("rel", /sponsored/);
+    await expect(sugestao).toHaveAttribute("rel", /noreferrer/);
+
+    // A vencida é escondida pela policy, não por filtro de tela.
+    await expect(page.getByText(`${termo} que venceu`)).toHaveCount(0);
+  });
 });

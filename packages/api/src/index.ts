@@ -8,6 +8,7 @@ export * from "./goals";
 export * from "./hooks";
 export * from "./invites";
 export * from "./prices";
+export * from "./offers";
 export * from "./privacy";
 export * from "./profiles";
 export * from "./provider";

@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { formatBRL, iniciaisDoCasal, rotuloDaCategoria } from "@repo/core";
+import {
+  AVISO_DE_PUBLICIDADE,
+  formatBRL,
+  iniciaisDoCasal,
+  rotuloDaCategoria,
+} from "@repo/core";
 
 import {
   IconeAvancar,
@@ -497,5 +502,57 @@ export function LinhaAporte({
       </span>
       <b className="flex-none text-[13px] font-semibold tabular-nums">{formatBRL(valorCents)}</b>
     </div>
+  );
+}
+
+/**
+ * A sugestão de compra, colada no item que o casal anotou.
+ *
+ * Linha e não cartão: o item é deles, a oferta é convidada. Se a sugestão
+ * empurrar o item para fora da vista, a aba deixou de ser a lista do casal e
+ * virou vitrine.
+ *
+ * A imagem é a chapa da categoria, e não a foto da loja: um `<img>` apontando
+ * para o CDN do parceiro entregaria a ele o IP e o horário de quem só ABRIU a
+ * tela, sem clicar em nada.
+ *
+ * `rel="sponsored"` é a declaração nativa de link pago; `noreferrer` fica
+ * porque o referrer contaria à loja de qual jornada a visita saiu, e a
+ * atribuição de afiliado é por parâmetro na URL, não por referrer.
+ */
+export function LinhaOferta({
+  titulo,
+  categoria,
+  loja,
+  precoCents,
+  vistoEmISO,
+  url,
+}: {
+  titulo: string;
+  categoria: string;
+  loja: string;
+  precoCents: number;
+  vistoEmISO: string;
+  url: string;
+}) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="sponsored noopener noreferrer"
+      className="mt-2 flex items-center gap-3 rounded-bloco border border-borda bg-papel p-2.5 transition hover:border-contorno/60 active:scale-[0.99]"
+    >
+      <Chapa categoria={categoria} className="size-10 flex-none rounded-quadro" />
+      <span className="min-w-0 flex-1">
+        <b className="block truncate text-[12.5px] font-semibold tracking-[-0.02em]">{titulo}</b>
+        <i className="block truncate font-corpo text-[10.5px] not-italic text-suave">
+          {/* A palavra vem primeiro e é texto: quem usa leitor de tela ouve
+              "Publicidade" antes do nome da loja e do preço. */}
+          {AVISO_DE_PUBLICIDADE} · {loja} · visto em{" "}
+          {new Date(vistoEmISO).toLocaleDateString("pt-BR")}
+        </i>
+      </span>
+      <b className="flex-none text-[12.5px] font-semibold tabular-nums">{formatBRL(precoCents)}</b>
+    </a>
   );
 }

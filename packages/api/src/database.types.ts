@@ -306,6 +306,48 @@ export type Database = {
           },
         ]
       }
+      offers: {
+        Row: {
+          category: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          merchant: string
+          price_cents: number
+          price_seen_at: string
+          published_at: string
+          target_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          merchant: string
+          price_cents: number
+          price_seen_at?: string
+          published_at?: string
+          target_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          merchant?: string
+          price_cents?: number
+          price_seen_at?: string
+          published_at?: string
+          target_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       price_quotes: {
         Row: {
           couple_id: string
