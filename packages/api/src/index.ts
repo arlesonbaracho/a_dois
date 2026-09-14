@@ -7,6 +7,7 @@ export * from "./goal-items";
 export * from "./goals";
 export * from "./hooks";
 export * from "./invites";
+export * from "./prices";
 export * from "./privacy";
 export * from "./profiles";
 export * from "./provider";

@@ -9,7 +9,17 @@ import { OPCOES_COOKIE, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/c
 // e não aparece na URL — a lista viraria algo que alguém esquece de atualizar
 // ao criar uma tela nova, e o esquecimento publicaria a tela. Esta lista falha
 // para o outro lado: esquecer de incluir uma rota pública só pede login demais.
-const PUBLICAS = ["/login", "/cadastro", "/recuperar-senha", "/nova-senha", "/auth", "/offline"];
+// /privacidade entra aqui, e não em SO_DESLOGADO: política que exige login
+// não está publicada, e quem já tem conta precisa poder voltar a ela.
+const PUBLICAS = [
+  "/login",
+  "/cadastro",
+  "/recuperar-senha",
+  "/nova-senha",
+  "/auth",
+  "/offline",
+  "/privacidade",
+];
 
 // Dessas, as que não fazem sentido para quem já está dentro. /nova-senha fica
 // de fora: chega-se nela justamente com uma sessão de recuperação no bolso.

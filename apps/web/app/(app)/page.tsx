@@ -85,6 +85,7 @@ export default async function Home() {
     return {
       id: jornada.id,
       criadaEmISO: jornada.created_at,
+      prioridade: jornada.priority,
       titulo: jornada.title,
       categoria: jornada.category,
       capaUrl: jornada.cover_path ? (capas.get(jornada.cover_path) ?? null) : null,

@@ -6,6 +6,7 @@ export * from "./constants";
 export * from "./csv";
 export * from "./metodos";
 export * from "./money";
+export * from "./precos";
 export * from "./primeiros-passos";
 export * from "./schemas";
 export * from "./split";

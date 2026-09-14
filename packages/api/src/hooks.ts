@@ -1,5 +1,6 @@
 "use client";
 
+import type { Cotacao } from "@repo/core";
 import {
   useMutation,
   useQuery,
@@ -9,6 +10,7 @@ import {
 } from "@tanstack/react-query";
 
 import { urlsDasCapas, enviarCapa, type NovaCapa } from "./capas";
+import { buscarPrecoDoLink, cotacoesDoItem, type ResultadoBusca } from "./prices";
 import { aportes, registrarAporte, type Aporte } from "./contributions";
 import { membrosDoCasal, meuCasal, type MembroDoCasal } from "./couple";
 import { salvarConsentimento, type TipoConsentimento } from "./privacy";
@@ -61,6 +63,7 @@ export const chaves = {
   // muda o caminho, a chave muda junto e a assinatura é refeita sozinha. Sem
   // isso, a tela mostraria a capa velha até alguém recarregar.
   capas: (caminhos: string[]) => ["capas", caminhos.join(",")] as const,
+  cotacoes: (itemId: string) => ["cotacoes", itemId] as const,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -140,6 +143,21 @@ export function useCapas(caminhos: (string | null)[]): UseQueryResult<Map<string
   });
 }
 
+/**
+ * O histórico de preço de um item.
+ *
+ * `enabled` amarrado ao id: a lista de itens monta um hook por linha, e sem
+ * isso cada item sem id dispararia uma consulta vazia.
+ */
+export function useCotacoes(goalItemId: string): UseQueryResult<Cotacao[]> {
+  const client = useSupabase();
+  return useQuery({
+    queryKey: chaves.cotacoes(goalItemId),
+    queryFn: () => cotacoesDoItem(client, goalItemId),
+    enabled: Boolean(goalItemId),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Escrita
 // ---------------------------------------------------------------------------
@@ -191,6 +209,31 @@ export function useEnviarCapa(
     onSuccess: async () => {
       await cache.invalidateQueries({ queryKey: chaves.meta(goalId) });
       await cache.invalidateQueries({ queryKey: chaves.metas });
+    },
+  });
+}
+
+/**
+ * Vai à loja, lê o preço e guarda a cotação.
+ *
+ * Invalida as cotações do item e a lista de itens: a função grava uma linha
+ * nova em `price_quotes`, e a tela mostra a variação a partir dela.
+ */
+export function useBuscarPreco(
+  goalId: string,
+): UseMutationResult<ResultadoBusca, Error, { itemId: string; url: string }> {
+  const client = useSupabase();
+  const cache = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, url }: { itemId: string; url: string }) =>
+      buscarPrecoDoLink(client, itemId, url),
+    onSuccess: async (resultado, { itemId }) => {
+      // Recusa da loja não mexeu em nada: invalidar aqui faria a tela
+      // recarregar para mostrar exatamente o que já estava lá.
+      if (!resultado.ok) return;
+      await cache.invalidateQueries({ queryKey: chaves.cotacoes(itemId) });
+      await cache.invalidateQueries({ queryKey: chaves.itens(goalId) });
     },
   });
 }

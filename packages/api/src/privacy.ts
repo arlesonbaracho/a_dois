@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { apagarCapasDoPlano, oPlanoVaiMorrer } from "./couple";
 import type { Database } from "./database.types";
 
 type Client = SupabaseClient<Database>;
@@ -50,6 +51,20 @@ export async function excluirConta(
   confirmacao: string,
   confirmoApagarPlano = false,
 ): Promise<ResultadoExclusao> {
+  // `delete_account` chama o `leave_couple` do BANCO, não o `sairDoCasal`
+  // daqui — então a remoção das capas precisa acontecer nesta função também.
+  //
+  // As três condições importam, e a do meio é a que eu errei primeiro: com
+  // parceiro no casal o plano SOBREVIVE à saída de um, e apagar as capas ali
+  // seria destruir foto de quem fica. E a palavra vem antes de tudo, para não
+  // apagar nada de quem digitou errado e vai receber `confirmacao_invalida`.
+  if (
+    confirmacao === PALAVRA_DE_EXCLUSAO &&
+    (await oPlanoVaiMorrer(client, confirmoApagarPlano))
+  ) {
+    await apagarCapasDoPlano(client);
+  }
+
   const { data, error } = await client.rpc("delete_account", {
     p_confirmacao: confirmacao,
     p_confirmo_apagar: confirmoApagarPlano,

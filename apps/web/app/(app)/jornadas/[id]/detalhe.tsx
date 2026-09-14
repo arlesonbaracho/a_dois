@@ -9,6 +9,7 @@ import {
   useAportes,
   useApagarItem,
   useApagarMeta,
+  useBuscarPreco,
   useCapas,
   useCasal,
   useCriarItem,
@@ -48,9 +49,9 @@ import {
   Secao,
 } from "@/components/pecas";
 import { Progresso, type Fatia } from "@/components/progresso";
+import { PrecoDoItem } from "@/components/preco-do-item";
 import { prepararCapa } from "@/lib/capa";
 import { paraCampoData, paraCentavos, paraInstante } from "@/lib/dinheiro";
-
 
 const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 /** "março de 2024" — a idade da jornada, dita como gente diz. */
@@ -78,6 +79,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
 
   const salvarJornada = useSalvarMeta(goalId);
   const enviarCapa = useEnviarCapa(goalId);
+  const buscarPreco = useBuscarPreco(goalId);
   const apagarJornada = useApagarMeta(goalId);
   const criarItem = useCriarItem(goalId);
   const salvarItem = useSalvarItem(goalId);
@@ -92,7 +94,8 @@ export function Detalhe({ goalId }: { goalId: string }) {
   // puro, e o instante precisa ser o mesmo em toda re-renderização.
   const [agora] = useState(() => new Date());
 
-  if (isError) return <Aviso texto="Não consegui carregar essa jornada agora." />;
+  if (isError)
+    return <Aviso texto="Não consegui carregar essa jornada agora." />;
   if (isPending) {
     return (
       <main className="mx-auto max-w-sm p-5 lg:max-w-3xl lg:p-10">
@@ -103,16 +106,28 @@ export function Detalhe({ goalId }: { goalId: string }) {
   if (!jornada) return <Aviso texto="Essa jornada não existe mais." />;
 
   const aportadoCents = sumCents((aportes ?? []).map((a) => a.amount_cents));
-  const percentual = progressoPercentual(aportadoCents, jornada.target_amount_cents);
+  const percentual = progressoPercentual(
+    aportadoCents,
+    jornada.target_amount_cents,
+  );
   const faltamCents = Math.max(0, jornada.target_amount_cents - aportadoCents);
 
   // Quanto ainda cabe por mês até o prazo. Repetir aqui o total já aportado,
   // que a barra acima diz por extenso, não acrescentaria nada.
-  const porMesCents = parcelaMensalCents(faltamCents, jornada.deadline_at, agora);
+  const porMesCents = parcelaMensalCents(
+    faltamCents,
+    jornada.deadline_at,
+    agora,
+  );
 
-  const pessoas = (membros ?? []).map((m) => ({ userId: m.user_id, papel: m.role }));
+  const pessoas = (membros ?? []).map((m) => ({
+    userId: m.user_id,
+    papel: m.role,
+  }));
   const cores = coresDoCasal(pessoas);
-  const nomePor = new Map((membros ?? []).map((m) => [m.user_id, m.display_name]));
+  const nomePor = new Map(
+    (membros ?? []).map((m) => [m.user_id, m.display_name]),
+  );
 
   const porPessoa = new Map<string, number>();
   for (const aporte of aportes ?? []) {
@@ -127,7 +142,13 @@ export function Detalhe({ goalId }: { goalId: string }) {
       cor: cores.get(p.userId) ?? ("fora" as const),
     })),
     ...(porPessoa.has("fora")
-      ? [{ chave: "fora", cents: porPessoa.get("fora") ?? 0, cor: "fora" as const }]
+      ? [
+          {
+            chave: "fora",
+            cents: porPessoa.get("fora") ?? 0,
+            cor: "fora" as const,
+          },
+        ]
       : []),
   ].filter((fatia) => fatia.cents > 0);
 
@@ -181,6 +202,38 @@ export function Detalhe({ goalId }: { goalId: string }) {
       });
     } catch {
       setErroCapa("Não consegui usar essa foto. Tenta outra?");
+    }
+  }
+
+  /**
+   * Vai à loja pelo link do item e guarda o preço.
+   *
+   * Os motivos de recusa viram frase em pt-BR aqui, e não no `packages/api`:
+   * lá eles são código, porque a camada de dados não sabe em que idioma a tela
+   * fala. Nenhuma das frases repete o detalhe técnico — "url_recusada" é sobre
+   * a nossa infraestrutura, não sobre o que a pessoa fez.
+   */
+  async function verPreco(itemId: string, url: string) {
+    setErro("");
+    try {
+      const resultado = await buscarPreco.mutateAsync({ itemId, url });
+      if (resultado.ok) {
+        setErro(
+          resultado.precoCents === null
+            ? "Achei a página, mas ela não diz o preço em lugar nenhum."
+            : "",
+        );
+        return;
+      }
+      setErro(
+        resultado.motivo === "endereco_recusado"
+          ? "Esse endereço a gente não abre. Tenta o link direto do produto?"
+          : resultado.motivo === "loja_nao_respondeu"
+            ? "A loja não respondeu agora. Tenta de novo daqui a pouco?"
+            : "Não consegui ler essa página. Tenta outro link?",
+      );
+    } catch {
+      setErro("Não consegui buscar o preço agora. Tenta de novo?");
     }
   }
 
@@ -280,8 +333,11 @@ export function Detalhe({ goalId }: { goalId: string }) {
             {jornada.title}
           </h1>
           <p className="mt-0.5 font-corpo text-[10.5px] text-suave">
-            {rotuloDaCategoria(jornada.category)} · desde {desde(jornada.created_at)}
-            {jornada.deadline_at ? <> · para {dia(jornada.deadline_at)}</> : null}
+            {rotuloDaCategoria(jornada.category)} · desde{" "}
+            {desde(jornada.created_at)}
+            {jornada.deadline_at ? (
+              <> · para {dia(jornada.deadline_at)}</>
+            ) : null}
           </p>
         </div>
         {/* De quem é esta jornada, sem gastar uma linha de texto. */}
@@ -293,7 +349,9 @@ export function Detalhe({ goalId }: { goalId: string }) {
           <Polaroide indice={1}>
             <Chapa
               categoria={jornada.category}
-              capaUrl={jornada.cover_path ? capas?.get(jornada.cover_path) : null}
+              capaUrl={
+                jornada.cover_path ? capas?.get(jornada.cover_path) : null
+              }
               className="h-20 rounded-chapa"
             />
             <div className="mt-2">
@@ -335,7 +393,9 @@ export function Detalhe({ goalId }: { goalId: string }) {
           />
           {porMesCents === null ? null : (
             <div className="flex flex-1 flex-col justify-center rounded-bloco border border-borda bg-white p-3">
-              <span className="font-corpo text-[10.5px] text-suave">por mês, a dois</span>
+              <span className="font-corpo text-[10.5px] text-suave">
+                por mês, a dois
+              </span>
               <b className="block text-[17px] font-semibold tracking-[-0.03em] tabular-nums">
                 {formatBRL(porMesCents)}
               </b>
@@ -351,7 +411,11 @@ export function Detalhe({ goalId }: { goalId: string }) {
           <Chip
             key={nome}
             rotulo={nome}
-            quantos={nome === "Itens" && itens && itens.length > 0 ? itens.length : undefined}
+            quantos={
+              nome === "Itens" && itens && itens.length > 0
+                ? itens.length
+                : undefined
+            }
             ativo={aba === nome}
             onClick={() => setAba(nome)}
           />
@@ -367,89 +431,113 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 return (
                   <li
                     key={item.id}
-                    className="flex items-center gap-3 rounded-cartao border border-borda bg-white p-2.5"
+                    className="rounded-cartao border border-borda bg-white p-2.5"
                   >
-                    {/* O <input> é o próprio quadrado de 44px: é ele que recebe
+                    <div className="flex items-center gap-3">
+                      {/* O <input> é o próprio quadrado de 44px: é ele que recebe
                         o clique, o foco e o rótulo. O <label> ao lado estende o
                         alvo para o nome, que é o gesto do design — tocar no
                         item marca o item. */}
-                    <input
-                      id={`item-${item.id}`}
-                      type="checkbox"
-                      checked={comprado}
-                      onChange={(evento) =>
-                        void comErro(
-                          () =>
-                            salvarItem.mutateAsync({
-                              itemId: item.id,
-                              status: evento.target.checked ? "comprado" : "desejado",
-                            }),
-                          "Não consegui salvar agora. Tenta de novo?",
-                        )
-                      }
-                      className="caixa-item"
-                      aria-label={`Marcar ${item.name} como comprado`}
-                    />
-                    <label
-                      htmlFor={`item-${item.id}`}
-                      className="min-w-0 flex-1 cursor-pointer"
-                    >
-                      <b
-                        className={`block truncate text-[13.5px] font-semibold tracking-[-0.02em] ${
-                          comprado ? "text-suave line-through" : ""
-                        }`}
+                      <input
+                        id={`item-${item.id}`}
+                        type="checkbox"
+                        checked={comprado}
+                        onChange={(evento) =>
+                          void comErro(
+                            () =>
+                              salvarItem.mutateAsync({
+                                itemId: item.id,
+                                status: evento.target.checked
+                                  ? "comprado"
+                                  : "desejado",
+                              }),
+                            "Não consegui salvar agora. Tenta de novo?",
+                          )
+                        }
+                        className="caixa-item"
+                        aria-label={`Marcar ${item.name} como comprado`}
+                      />
+                      <label
+                        htmlFor={`item-${item.id}`}
+                        className="min-w-0 flex-1 cursor-pointer"
                       >
-                        {item.name}
-                      </b>
-                      <i className="block font-corpo text-[10.5px] not-italic text-suave">
-                        {comprado
-                          ? "comprado, guardado no álbum"
-                          : item.estimated_price_cents === null
-                            ? "sem preço ainda"
-                            : "preço estimado"}
-                      </i>
-                    </label>
-                    {item.estimated_price_cents === null ? null : (
-                      <Etiqueta forte={comprado}>
-                        {comprado ? "comprado" : formatBRL(item.estimated_price_cents)}
-                      </Etiqueta>
-                    )}
-                    {/* ponytail: fica para os itens que já têm link e para a
+                        <b
+                          className={`block truncate text-[13.5px] font-semibold tracking-[-0.02em] ${
+                            comprado ? "text-suave line-through" : ""
+                          }`}
+                        >
+                          {item.name}
+                        </b>
+                        <i className="block font-corpo text-[10.5px] not-italic text-suave">
+                          {comprado
+                            ? "comprado, guardado no álbum"
+                            : item.estimated_price_cents === null
+                              ? "sem preço ainda"
+                              : "preço estimado"}
+                        </i>
+                      </label>
+                      {item.estimated_price_cents === null ? null : (
+                        <Etiqueta forte={comprado}>
+                          {comprado
+                            ? "comprado"
+                            : formatBRL(item.estimated_price_cents)}
+                        </Etiqueta>
+                      )}
+                      {/* ponytail: fica para os itens que já têm link e para a
                         indicação de afiliado, que é quem vai preencher a
                         coluna daqui em diante. Ninguém digita mais.
                         noreferrer para a loja não descobrir de onde veio a
                         visita, que é uma pista sobre o plano do casal. */}
-                    {item.url ? (
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="flex-none font-corpo text-[11px] font-semibold text-verde underline"
+                      {item.url ? (
+                        <>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="flex-none font-corpo text-[11px] font-semibold text-verde underline"
+                          >
+                            ver na loja
+                          </a>
+                          {/* Quem vai à loja é a Edge Function, com o guard
+                            anti-SSRF em cada salto — nunca o navegador de quem
+                            está olhando. */}
+                          <button
+                            type="button"
+                            disabled={buscarPreco.isPending}
+                            onClick={() =>
+                              void verPreco(item.id, item.url as string)
+                            }
+                            className="flex-none font-corpo text-[11px] font-semibold text-verde underline disabled:opacity-50"
+                          >
+                            {buscarPreco.isPending ? "buscando…" : "ver preço"}
+                          </button>
+                        </>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void comErro(
+                            () => apagarItem.mutateAsync(item.id),
+                            "Não consegui apagar agora. Tenta de novo?",
+                          )
+                        }
+                        className="flex-none font-corpo text-[11px] text-suave underline transition-colors hover:text-alerta"
+                        aria-label={`Tirar ${item.name} da lista`}
                       >
-                        ver na loja
-                      </a>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        void comErro(
-                          () => apagarItem.mutateAsync(item.id),
-                          "Não consegui apagar agora. Tenta de novo?",
-                        )
-                      }
-                      className="flex-none font-corpo text-[11px] text-suave underline transition-colors hover:text-alerta"
-                      aria-label={`Tirar ${item.name} da lista`}
-                    >
-                      tirar
-                    </button>
+                        tirar
+                      </button>
+                    </div>
+                    {/* `price_quotes` guardava a série desde o prompt 6 e nada
+                        no app lia. Some sozinho com menos de duas cotações. */}
+                    <PrecoDoItem itemId={item.id} />
                   </li>
                 );
               })}
             </ul>
           ) : (
             <Explica>
-              Nada anotado ainda. Vale listar o que vocês querem comprar com esse
-              dinheiro.
+              Nada anotado ainda. Vale listar o que vocês querem comprar com
+              esse dinheiro.
             </Explica>
           )}
 
@@ -474,7 +562,9 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 inputMode="decimal"
                 placeholder="0,00"
               />
-              <Enviar pendente={criarItem.isPending} largo>Adicionar item</Enviar>
+              <Enviar pendente={criarItem.isPending} largo>
+                Adicionar item
+              </Enviar>
             </form>
           </Bloco>
         </section>
@@ -484,7 +574,9 @@ export function Detalhe({ goalId }: { goalId: string }) {
         <section className="flex flex-col gap-2">
           {aportes && aportes.length > 0 ? (
             aportes.map((aporte) => {
-              const cor = aporte.user_id ? (cores.get(aporte.user_id) ?? "fora") : "fora";
+              const cor = aporte.user_id
+                ? (cores.get(aporte.user_id) ?? "fora")
+                : "fora";
               const nome = aporte.user_id
                 ? (nomePor.get(aporte.user_id) ?? "Sua dupla")
                 : "Ex-membro";
@@ -518,12 +610,20 @@ export function Detalhe({ goalId }: { goalId: string }) {
                   fatia.chave === "fora"
                     ? "Quem já saiu do plano"
                     : (nomePor.get(fatia.chave) ?? "Sua dupla");
-                const parte = aportadoCents > 0 ? Math.round((fatia.cents / aportadoCents) * 100) : 0;
+                const parte =
+                  aportadoCents > 0
+                    ? Math.round((fatia.cents / aportadoCents) * 100)
+                    : 0;
                 return (
                   <div key={fatia.chave} className="flex items-center gap-3">
-                    <DiscoDePessoa iniciais={iniciaisDoCasal([nome])} cor={fatia.cor} />
+                    <DiscoDePessoa
+                      iniciais={iniciaisDoCasal([nome])}
+                      cor={fatia.cor}
+                    />
                     <span className="min-w-0 flex-1">
-                      <b className="block truncate text-[13px] font-semibold">{nome}</b>
+                      <b className="block truncate text-[13px] font-semibold">
+                        {nome}
+                      </b>
                       <i className="block font-corpo text-[10.5px] not-italic text-suave">
                         {parte}% do que já entrou
                       </i>
@@ -550,8 +650,16 @@ export function Detalhe({ goalId }: { goalId: string }) {
             inputMode="decimal"
             placeholder="0,00"
           />
-          <Campo rotulo="Quando" name="quando" type="date" defaultValue={hoje} max={hoje} />
-          <Enviar pendente={registrarAporte.isPending} largo>Anotar</Enviar>
+          <Campo
+            rotulo="Quando"
+            name="quando"
+            type="date"
+            defaultValue={hoje}
+            max={hoje}
+          />
+          <Enviar pendente={registrarAporte.isPending} largo>
+            Anotar
+          </Enviar>
         </form>
       </Bloco>
 
@@ -587,20 +695,29 @@ export function Detalhe({ goalId }: { goalId: string }) {
             type="date"
             defaultValue={paraCampoData(jornada.deadline_at)}
           />
-          <Escolha rotulo="Quanto isso importa" name="prioridade" defaultValue={jornada.priority}>
+          <Escolha
+            rotulo="Quanto isso importa"
+            name="prioridade"
+            defaultValue={jornada.priority}
+          >
             {PRIORIDADES.map(([valor, rotulo]) => (
               <option key={valor} value={valor}>
                 {rotulo}
               </option>
             ))}
           </Escolha>
-          <Enviar pendente={salvarJornada.isPending} largo>Salvar</Enviar>
+          <Enviar pendente={salvarJornada.isPending} largo>
+            Salvar
+          </Enviar>
         </form>
       </details>
 
       <div className="flex flex-col gap-2">
         <Recado aviso={avisoApagar} />
-        <Perigo onClick={() => void tentarApagar()} disabled={apagarJornada.isPending}>
+        <Perigo
+          onClick={() => void tentarApagar()}
+          disabled={apagarJornada.isPending}
+        >
           {avisoApagar ? "Apagar mesmo assim" : "Apagar esta jornada"}
         </Perigo>
       </div>

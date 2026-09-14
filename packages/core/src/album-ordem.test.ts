@@ -2,14 +2,30 @@ import { describe, expect, it } from "vitest";
 
 import { ordemDoAlbum } from "./album-ordem";
 
-const j = (id: string, percentual: number, criadaEmISO: string) => ({
+const j = (id: string, percentual: number, criadaEmISO: string, prioridade = "media") => ({
   id,
   percentual,
   criadaEmISO,
+  prioridade,
 });
 
 describe("ordemDoAlbum", () => {
-  it("põe a mais adiantada na frente", () => {
+  it("a prioridade declarada vem antes do progresso", () => {
+    // A de 90% é baixa; a de 10% é alta. Quem o casal disse que importa ganha.
+    const fora = [j("quase", 90, "2026-01-01", "baixa"), j("importa", 10, "2026-01-01", "alta")];
+    expect(ordemDoAlbum(fora).map((x) => x.id)).toEqual(["importa", "quase"]);
+  });
+
+  it("prioridade desconhecida cai no meio, e não na frente", () => {
+    const fora = [
+      j("estranha", 0, "2026-01-01", "sei-la"),
+      j("alta", 0, "2026-01-01", "alta"),
+      j("baixa", 0, "2026-01-01", "baixa"),
+    ];
+    expect(ordemDoAlbum(fora).map((x) => x.id)).toEqual(["alta", "estranha", "baixa"]);
+  });
+
+  it("dentro da mesma prioridade, põe a mais adiantada na frente", () => {
     const fora = [j("a", 10, "2026-01-01"), j("b", 80, "2026-01-01"), j("c", 45, "2026-01-01")];
     expect(ordemDoAlbum(fora).map((x) => x.id)).toEqual(["b", "c", "a"]);
   });

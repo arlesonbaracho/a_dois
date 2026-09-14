@@ -2,7 +2,8 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-14 (link de item fechado na coluna: o update direto aceitava `javascript:`)
+**Última atualização:** 2026-09-13 (LGPD no banco, a promessa ligada, papelada)
+**Última atualização:** 2026-09-14 (merge do branch de LGPD e preço; link de item fechado na coluna)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -61,6 +62,10 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-12 | **A regra de divisão passa a ser do casal.** `split_rule` sobe de `couple_members` para `couples`, com backfill fazendo uma vez em SQL a escolha que `regraDoCasal` fazia a cada render. A função some, e com ela `Participante.papel` e `Participante.regra`. `salvarMinhaDivisao` vira duas escritas em duas tabelas | `cc692c5` |
 | 2026-09-12 | **Cada um edita só a própria linha de vínculo.** `couple_members_update` ganha `user_id = auth.uid()` no `with check`; o `using` segue o casal inteiro, porque ler a linha do par é legítimo. Teste dentro do MESMO casal, com a varredura sem WHERE incluída | `5c41f6b` |
 | 2026-09-12 | **Produção em dia.** As quatro migrations aditivas aplicadas no hospedado e o web em `2578b5e`. O `drop column` foi isolado numa quinta migration retida, e foi isso que tirou a necessidade de janela coordenada: `db push` e deploy deixaram de precisar acontecer juntos. Provado antes por `scripts/subir-producao.sh` (ensaio contra o estado exato de produção, com dados) e conferido depois por `migration list --linked`. Fica provado também que `postgres` cria policy em `storage.objects` no hospedado — era o único ponto que não dava para verificar local | `—` |
+| 2026-09-13 | **LGPD no banco.** Revogar o consentimento da faixa de renda passa a APAGAR a faixa, não só o carimbo (Art. 18, IX); `price_quotes` ganha retenção de 180 dias no expurgo que já existia (Art. 15/16); e `contributions_update` deixa de aceitar `user_id` de fora do casal. Seis sabotagens, seis reprovações — duas delas acharam teste cego meu | `de074cb` |
+| 2026-09-13 | **A capa sai junto com a conta.** Foto é dado pessoal e ficava no bucket depois de a conta sumir: inalcançável, mas guardada. Removida ANTES da RPC (depois a policy nega), nos dois caminhos que destroem o plano, e só quando ele vai mesmo morrer. O e2e confere pela API do Storage, não pela tabela | `6d663b9` |
+| 2026-09-13 | **A promessa ligada.** O botão "buscar preço" chama a Edge Function que existia sem chamador desde o prompt 6; o histórico de `price_quotes` aparece no item; e a prioridade passa a ordenar o álbum (`.order` no banco, que o enum já vem na ordem certa). Três coisas construídas e desligadas, agora em uso | `20d6c89` |
+| 2026-09-13 | **Papelada da LGPD.** `docs/ROPA.md` (Art. 37) tirado do schema real, `docs/SECURITY.md` com o plano de resposta a incidente e o prazo da ANPD, e a política de privacidade como PÁGINA pública do app, linkada do cadastro e do perfil. O que depende do controlador vai marcado `<<PREENCHER>>` | `(este commit)` |
 | 2026-09-12 | **Varredura de design em todo o app.** A chapa da polaroide ganha marca de categoria desenhada (mesmo grid de 24 e traço 1.75 dos ícones) e duotone mais quente — seis retângulos de gradiente dessaturado lado a lado liam como galeria de imagem que não carregou. `rotuloDaCategoria` em `packages/core` tira o valor cru do banco da tela ("bebe" virava chip). Peças novas: `Secao`, `Explica`, `Saida`, `Perigo`, `DiscoDePessoa`, `PontoDePessoa`, `LinhaAporte` e `esqueleto.tsx`. `Cartao` passa a carregar a marca | `5ba9371` |
 | 2026-09-12 | **Relatório da varredura de design** em `relatorios/design-2026-09-12.md`: 39 achados, 32 corrigidos, 7 adiados com motivo. Detector do design system de 26 avisos para 1 | `06210af` |
 | 2026-09-12 | **As telas param de inventar tipografia.** `text-sm`/`text-xs`/`text-base` sumiram de `apps/web` — eram a escala do Tailwind, e como o `body` fixa a fonte de display entregavam conversa na voz de afirmação. Em /aportes dava para ver no mesmo formulário. Todo `<select>` vem de `Escolha`. Junto: /parceiro passa a dizer quem divide o plano, /aportes ganha as cores das pessoas e perde os links que duplicavam o dock, /jornadas e a jornada aberta abrem com esqueleto em vez de "Carregando…", a legenda da barra quebra num ponto só, e no desktop a chapa dobra de altura. 41 e2e, RLS e guardas verdes | `89f5bb2` |
@@ -74,6 +79,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-14 | **O link da loja sai do formulário de item.** Quem vai preencher a coluna `url` é a indicação de afiliado, não o casal. O campo some; a coluna e a exibição ficam, para os itens que já têm link e para o link de afiliado | `(este commit)` |
 | 2026-09-14 | **Métodos de juntar dinheiro.** O prazo em pílulas vira uma escolha de dois níveis: o método, e só então o tamanho dele. Seis métodos — por mês, por semana, semana crescente (o desafio das 52 semanas), semana decrescente, por dia (o dos envelopes) e "quando der". Todos são a MESMA conta com pesos diferentes, então existe uma função `cronograma` em `packages/core` e não um motor por método; quem fecha é `dividirCentavos`, que já garante que as 52 parcelas somam exatamente o alvo. O cartão verde passa a mostrar a primeira parcela, que é o número que decide, e para onde ela vai ("R$ 8,71 na 1ª semana, subindo até R$ 452,83"). 8 testes unitários, e o e2e cobre a troca de método | `(este commit)` |
 | 2026-09-14 | **O link do item, fechado na coluna.** `add_goal_item` peneirava o esquema da URL desde o começo, mas era UM escritor: a policy `goal_items_update` libera update de qualquer coluna para quem é do casal, e o PostgREST é API pública com a anon key embarcada no cliente. Sonda contra o stack local, com JWT de membro: a função recusa `javascript:` com 400, e o `PATCH` direto **gravava com 200** — e `url` vira `href` na jornada aberta. Uma das duas pessoas grava, a outra clica em "ver na loja", e o script roda na sessão dela. A peneira desceu para `goal_items_url_http`, que pega todo escritor de uma vez. Provado quebrando: sem a constraint, o teste reprova em "update direto para javascript:" | `(este commit)` |
+| 2026-09-14 | **Merge do branch `claude/gallant-jones-20abbc`**, que estava parado desde 12/09 com trabalho real. Entram: a política de privacidade como **página** (`/privacidade`, não arquivo em `docs/` — política que o titular não consegue abrir não está publicada), `docs/ROPA.md` e `docs/SECURITY.md`, `price_quotes` finalmente com leitor (`prices.ts`, `precos.ts` e a peça `PrecoDoItem`), a Edge Function `extract-product-link` com o primeiro chamador da vida dela, revogar consentimento apagando a faixa de renda, e a capa saindo junto com a conta. Quatro conflitos, todos resolvidos mantendo o mundo v2 e enxertando o que o branch trouxe. Dois consertos no caminho: `prices.ts` tipava `Response` (DOM) dentro de `packages/api`, que compila sem DOM por portabilidade; e a página `/privacidade` nasceu antes do v2, com dois degraus da rampa antiga | `(este commit)` |
+| 2026-09-14 | **A ordem do álbum concilia os dois critérios.** O branch ordenava por prioridade no SQL; `main` ordenava por progresso no cliente, desfazendo. Agora `ordemDoAlbum` respeita a prioridade declarada primeiro e usa o progresso como desempate — fecha a dívida de `goals.priority` ser gravada e nunca lida, sem perder o motivo de existir da ordenação por progresso (num carrossel de uma por vez, abrir na recém-criada é abrir na que tem 0%) | `(este commit)` |
 
 ---
 
@@ -106,10 +113,10 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 
 | Onde | Quantas | Última |
 |---|---|---|
-| Repositório (`supabase/migrations/`) | **17** | `20260914183000_link_de_item_so_http` |
+| Repositório (`supabase/migrations/`) | **18** | `20260914183000_link_de_item_so_http` |
 | Produção (`qysekkewsrwtebpiowim`) | **15** | `20260912042341_minha_linha_so_minha` |
 
-**Duas pendentes em 2026-09-14:** a destrutiva retida e a `link_de_item_so_http`, que **fecha um buraco em produção** e deve subir na frente. As quatro anteriores subiram pelo
+**Três pendentes em 2026-09-14:** a destrutiva retida, a `lgpd_revogar_e_reter` (veio do merge) e a `link_de_item_so_http`, que **fecha um buraco em produção** e deve subir na frente. As quatro anteriores subiram pelo
 `scripts/subir-producao.sh`, e o web foi para `2578b5e` na sequência.
 Conferido por `supabase migration list --linked`.
 
@@ -178,11 +185,9 @@ Sabemos que precisa existir, mas ainda não entrou na fila.
 - [ ] Build via EAS e publicação nas lojas
 
 ### Conformidade e operação
-- [ ] `docs/ROPA.md` preenchido
-- [ ] `docs/PRIVACY.md` publicado e linkado no rodapé
-- [ ] Plano de resposta a incidente escrito (prazo ANPD: 3 dias úteis)
-- [ ] Canal `privacidade@` ativo
-- [ ] Retenção automática de `price_quotes` via `pg_cron`
+- [ ] Canal `privacidade@` ativo — é o que fecha os `<<PREENCHER>>` do ROPA,
+      do plano de incidente e da página de privacidade
+- [ ] Identificação do controlador e do encarregado (DPO), Art. 41
 - [ ] Backup com restauração testada de verdade
 - [ ] Sentry com `beforeSend` removendo PII
 - [ ] Revisão com especialista em proteção de dados antes de monetizar
@@ -335,6 +340,11 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-12 | `split_rule` sai de `couple_members` e vai para `couples` | Substitui a decisão de 2026-09-10: com uma coluna por casal não há o que desempatar, e `regraDoCasal` deixa de existir |
 | 2026-09-12 | `salvarRegraDoCasal` busca o casal em vez de recebê-lo | PostgREST recusa update sem WHERE (`21000`), e couple_id vindo do cliente é a regra 3 do CLAUDE.md. Buscar por `meuCasal` resolve os dois |
 | 2026-09-12 | O e2e espera a resposta da Server Action, não o recado na tela | O recado do salvamento anterior continua visível enquanto o novo não volta: esperar por ele passa na hora e não espera nada |
+| 2026-09-13 | Revogar consentimento apaga o DADO, não só o carimbo | Art. 18, IX. Guardar a faixa de renda depois da revogação é guardar sem base legal — e o app já parava de usar, o que dava a impressão de estar resolvido |
+| 2026-09-13 | Retenção de cotação em 180 dias, dentro do expurgo existente | Curto demais mata o histórico de preço, que é a razão de a tabela ser append-only; e um job a menos é um agendamento a menos para descobrir que parou |
+| 2026-09-13 | A política de privacidade é PÁGINA do app, não arquivo em `docs/` | Política que o titular não consegue abrir não está publicada. `docs/` fica com o que é interno: ROPA e plano de incidente |
+| 2026-09-13 | A prioridade ordena pelo `.order` do banco, sem função em `core` | O enum `goal_priority` foi declarado ('baixa','media','alta') e o Postgres ordena enum pela ordem de declaração. Uma função de comparação no cliente seria código para repetir o que o banco já sabe |
+| 2026-09-13 | O mapeamento de código de erro da Edge Function mora em `packages/core` | É regra de negócio (quais falhas o produto distingue) e é a única forma de testá-la sem subir o runtime de Edge Functions |
 | 2026-09-12 | A marca de categoria dentro da chapa, em vez de esperar a foto do Storage | O gradiente sozinho lia como imagem quebrada; a capa de verdade continua entrando por cima quando existe, e o desenho é o que fica quando não existe |
 | 2026-09-12 | Um degrau de 17px com nome (`Secao`) em vez de proibir tamanhos novos | O degrau já existia em quatro variantes; dar nome a ele é o que impede a quinta |
 | 2026-09-12 | `key={aportadoCents}` na barra de progresso | É o que faz a animação repetir quando o valor muda pelo Realtime; sem ele o gesto só rodaria na primeira montagem e o valor mudaria num salto |
@@ -357,6 +367,8 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-14 | O plural entra em `nomeDoRitmo`, não na tela | `nomeDoRitmo(ritmo) + "s"` dá "mêss". Foi o e2e que pegou |
 | 2026-09-14 | A peneira da URL do item desce da função para a COLUNA | A função é um escritor; a coluna pega todos. O update direto pelo PostgREST gravava `javascript:` e o app renderiza `url` como `href` |
 | 2026-09-14 | `not valid` + `validate constraint` em comandos separados | A armadilha do `goals_target_amount_cents_teto`: separados, a validação das linhas existentes falha sozinha e diz que é ela |
+| 2026-09-14 | A ordem do álbum é prioridade primeiro, progresso como desempate | Os dois critérios são legítimos e vinham de lados diferentes do merge. Prioridade é o que o casal declarou; progresso é o que decide qual cartão abre o carrossel |
+| 2026-09-14 | `prices.ts` tipa o contexto do erro pela FORMA, não como `Response` | `packages/api` compila com `lib: ["ES2022"]` sem DOM, porque a fase 2 roda o mesmo código no React Native |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -422,6 +434,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
 | desktop com pouca jornada | A chapa dobrando de altura no `lg` resolveu o caso de seis jornadas — a composição ia até 45% da altura e agora enche a tela. Com uma ou duas jornadas continua visivelmente vazio, e aí o conserto é outro: a coluna da direita teria que descer para junto do álbum | Baixa |
 | `contributions_update` | Mesma classe do `couple_members_update` que acabou de fechar: o update segue aberto ao casal, então dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Custa uma cláusula no `with check` | Baixa |
+| `<<PREENCHER>>` na papelada | ROPA, plano de incidente e página de privacidade estão escritos e **não valem como documento** até o controlador, o encarregado e o canal de contato serem preenchidos. A página já está no ar com as lacunas visíveis em vermelho — é melhor que lacuna escondida, e pior que documento pronto | **Alta** |
+| busca de preço × e2e | O caminho feliz do botão não é exercido de ponta a ponta: o runtime de Edge Functions não sobe com `supabase start` neste ambiente e, servido à mão, não resolve o host interno do Supabase. O mapeamento de erro tem teste puro em `core`, e a função tem 17 unitários — falta a emenda | Média |
 | capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |

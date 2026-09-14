@@ -50,7 +50,13 @@ export default function Cadastro() {
 
         <p className="mt-auto pt-6 font-corpo text-[11px] leading-relaxed text-suave">
           A gente não pede CPF, endereço nem data de nascimento. Nunca pediu, e
-          não é por esquecimento.
+          não é por esquecimento.{" "}
+          {/* Aqui, e não só no perfil: é neste instante que a pessoa decide
+              entregar o e-mail dela, e é antes de decidir que ela precisa
+              poder ler o que a gente guarda. */}
+          <Link href="/privacidade">
+            <Saida>O que a gente guarda</Saida>
+          </Link>
         </p>
         <Enviar largo>Criar conta</Enviar>
         <p className="pb-2 text-center font-corpo text-[12px] text-suave">

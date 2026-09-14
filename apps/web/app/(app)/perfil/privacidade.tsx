@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -13,7 +14,7 @@ import {
 } from "@repo/api";
 import { paraCsv } from "@repo/core";
 
-import { Campo, Interruptor, Recado, Secundario } from "@/components/form-ui";
+import { Campo, Interruptor, Recado, Saida, Secundario } from "@/components/form-ui";
 import { Explica, Secao } from "@/components/pecas";
 import { baixar, nomeDoArquivo } from "@/lib/baixar";
 
@@ -158,6 +159,11 @@ export function Privacidade({ userId }: { userId: string }) {
             Cada um destes é independente. Desligar um não desliga os outros, e
             desligar qualquer um não tira nenhuma função do app.
           </Explica>
+          {/* O link mora aqui porque é aqui que a pessoa está decidindo sobre
+              os dados dela — e não num rodapé que ninguém lê. */}
+          <Link href="/privacidade" className="mt-1.5 inline-block">
+            <Saida>O que a gente guarda, e o que não guarda</Saida>
+          </Link>
         </div>
 
         {CONSENTIMENTOS.map((item) => {
