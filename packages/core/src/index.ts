@@ -4,6 +4,7 @@ export * from "./capa";
 export * from "./categorias";
 export * from "./constants";
 export * from "./csv";
+export * from "./metodos";
 export * from "./money";
 export * from "./primeiros-passos";
 export * from "./schemas";

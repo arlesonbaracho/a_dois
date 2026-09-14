@@ -20,6 +20,15 @@ test.describe("metas e itens", () => {
     // deixaria de fora todo valor que não cai num degrau de R$ 500.
     await page.getByRole("link", { name: "Criar a primeira" }).click();
     await page.getByRole("button", { name: "Casa", exact: true }).click();
+
+    // O método escolhido troca os tamanhos oferecidos abaixo dele: semana não
+    // oferece meses, e o que sobrou do método anterior não pode sobreviver.
+    await page.getByRole("button", { name: "Por semana" }).click();
+    await expect(page.getByRole("button", { name: "52 semanas" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "24 meses" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Por mês" }).click();
+    await expect(page.getByRole("button", { name: "24 meses" })).toBeVisible();
+
     await page.getByLabel("O que vocês querem").fill("Entrada do apê");
     await page.getByLabel("Quanto vocês querem juntar (R$)").fill("120000");
     await page.getByRole("button", { name: "Criar jornada" }).click();

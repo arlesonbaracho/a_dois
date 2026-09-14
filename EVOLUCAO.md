@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-14 (o nome da outra pessoa aparece, e o link da loja sai do formulário de item)
+**Última atualização:** 2026-09-14 (métodos de juntar dinheiro na criação da jornada)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -72,6 +72,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-13 | **A capa entra no passo 2, e o carrossel desliza.** A foto deixa de ser um link para outra tela: a polaroide inteira do passo 2 é o alvo, o convite fica em pílula sobre a chapa, e o envio é o mesmo caminho do detalhe (reduz e reencoda no navegador, o que tira o EXIF junto). O carrossel virou trilho: todos os cartões lado a lado e o que muda é o deslocamento, 500ms em `ease-out` a cada 5s — o cartão que sai e o que entra se movem juntos, em vez de um sumir e outro aparecer. Com uma jornada só ele fica parado. A pausa por ponteiro saiu, porque no desktop o mouse repousa em cima sem intenção e o giro parava até alguém mexer nele; ficam a pausa por foco de teclado, a parada definitiva ao tocar num ponto e o respeito a `prefers-reduced-motion`. Teste novo no e2e, provado com três sabotagens | `(este commit)` |
 | 2026-09-14 | **O nome da outra pessoa finalmente aparece.** `display_name` mora em duas tabelas e a do vínculo é a incompleta: `confirm_invite` insere em `couple_members` SEM display_name, então quem entra por convite nunca teve o de lá, e `set_profile` grava só em `profiles`, então quem edita o perfil depois do cadastro também não. As quatro telas liam a incompleta — daí "Sua dupla" para sempre e "oi, vocês" com os dois nomes preenchidos. `membrosDoCasal` passa a resolver pelo perfil, com o do vínculo como rede; um lugar, quatro telas, nenhuma migration. Junto: a etiqueta "você" em /parceiro seguia o índice da lista, que começa pelo dono — quem entrou por convite via "você" na linha da outra pessoa | `(este commit)` |
 | 2026-09-14 | **O link da loja sai do formulário de item.** Quem vai preencher a coluna `url` é a indicação de afiliado, não o casal. O campo some; a coluna e a exibição ficam, para os itens que já têm link e para o link de afiliado | `(este commit)` |
+| 2026-09-14 | **Métodos de juntar dinheiro.** O prazo em pílulas vira uma escolha de dois níveis: o método, e só então o tamanho dele. Seis métodos — por mês, por semana, semana crescente (o desafio das 52 semanas), semana decrescente, por dia (o dos envelopes) e "quando der". Todos são a MESMA conta com pesos diferentes, então existe uma função `cronograma` em `packages/core` e não um motor por método; quem fecha é `dividirCentavos`, que já garante que as 52 parcelas somam exatamente o alvo. O cartão verde passa a mostrar a primeira parcela, que é o número que decide, e para onde ela vai ("R$ 8,71 na 1ª semana, subindo até R$ 452,83"). 8 testes unitários, e o e2e cobre a troca de método | `(este commit)` |
 
 ---
 
@@ -350,6 +351,9 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-13 | A capa é pedida no passo 2, e não no checklist | O cartão da home é 268px de foto contra quarenta de texto. Pedir a foto três telas depois é não pedir |
 | 2026-09-14 | O nome de exibição é resolvido em `membrosDoCasal`, e não com migration | O dado certo já estava em `profiles` e a policy já o entregava; corrigir a leitura na única função por onde as quatro telas passam custou oito linhas, contra uma migration em função `security definer` mais backfill |
 | 2026-09-14 | `profiles.display_name` ganha do `couple_members.display_name` | O perfil é o que a pessoa edita e o único preenchido nos dois caminhos de entrada. O do vínculo continua sendo a rede quando o perfil está vazio, e é ele que a saída do casal apaga |
+| 2026-09-14 | Um `cronograma(total, forma, períodos)` com vetor de pesos, e não um método por classe | Parcela igual, crescente e decrescente são o mesmo cálculo com pesos [1,1,…], [1,2,…,n] e [n,…,1]. `dividirCentavos` já existia e já garante soma exata |
+| 2026-09-14 | O método NÃO é persistido: só o prazo que ele gera | `goals` não tem onde guardá-lo, e o cronograma é derivável de alvo + períodos. Guardar exigiria migration, e o valor imediato é a decisão na criação |
+| 2026-09-14 | O plural entra em `nomeDoRitmo`, não na tela | `nomeDoRitmo(ritmo) + "s"` dá "mêss". Foi o e2e que pegou |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -432,6 +436,7 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | Realtime × recado | O evento do parceiro chega e invalida a consulta, mas nada na tela diz que chegou. "Lucas colocou R$ 400 hoje" é informação que o app já tem em mãos e joga fora | Média |
 | `display_name` em duas tabelas | A leitura foi corrigida, mas as duas colunas continuam existindo e podendo divergir. O conserto de raiz é `set_profile` propagar para `couple_members`, ou `couple_members.display_name` sumir — as duas exigem migration, e a segunda mexe em `leave_couple`, `delete_account` e no export | Média |
 | `goal_items.url` × afiliado | O campo saiu do formulário e a coluna ficou esperando a indicação de afiliado. Enquanto ela não chega, nenhum item novo tem link e o "ver na loja" só aparece para os itens antigos | Baixa |
+| método × jornada aberta | O método escolhido na criação não é guardado: a jornada nasce só com o prazo que ele gerou. A tabela semana a semana com os quadradinhos — que é o que a referência mostra — precisa que o método seja persistido, e os quadradinhos já são os aportes. Migration de uma coluna em `goals` mais uma tela | Média |
 
 ---
 

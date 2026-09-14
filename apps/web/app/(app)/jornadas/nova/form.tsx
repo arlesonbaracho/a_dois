@@ -4,7 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { useCapas, useCasal, useCriarMeta, useEnviarCapa, useMeta } from "@repo/api";
-import { CATEGORIAS, formatBRL, rotuloDaCategoria } from "@repo/core";
+import {
+  CATEGORIAS,
+  cronograma,
+  fimDoPrazo,
+  formatBRL,
+  METODOS,
+  nomeDoRitmo,
+  rotuloDaCategoria,
+} from "@repo/core";
 
 import { Campo, Enviar, Recado } from "@/components/form-ui";
 import { IconeAvancar, IconeFechar } from "@/components/icones";
@@ -22,24 +30,9 @@ import { paraCentavos } from "@/lib/dinheiro";
  * cada toque, porque o cartão verde recalcula quanto cabe por mês enquanto o
  * valor e o prazo mudam.
  */
-const PRAZOS: [number | null, string][] = [
-  [12, "12 meses"],
-  [24, "24 meses"],
-  [36, "36 meses"],
-  [null, "quando der"],
-];
-
 const MINIMO = 50000; // R$ 500
 const MAXIMO = 10000000; // R$ 100.000
 const PASSO = 50000; // R$ 500
-
-/** A data que um prazo em meses vira, no fim do dia, em ISO. */
-function prazoParaISO(meses: number | null): string | null {
-  if (meses === null) return null;
-  const quando = new Date();
-  quando.setMonth(quando.getMonth() + meses);
-  return quando.toISOString();
-}
 
 export function NovaJornada() {
   const criar = useCriarMeta();
@@ -47,12 +40,24 @@ export function NovaJornada() {
   const [categoria, setCategoria] = useState<string>("casa");
   const [titulo, setTitulo] = useState("");
   const [alvoTexto, setAlvoTexto] = useState("12.000,00");
-  const [meses, setMeses] = useState<number | null>(24);
+  // Método e períodos no mesmo estado: trocar de método zera a escolha de
+  // tamanho na MESMA atualização, senão "52" sobreviveria a uma troca para
+  // "Por mês" e viraria 52 meses.
+  const [plano, setPlano] = useState({ metodo: METODOS[0], periodos: 24 });
   const [erro, setErro] = useState("");
   const [criada, setCriada] = useState<string | null>(null);
 
   const alvoCents = paraCentavos(alvoTexto) ?? 0;
-  const porMesCents = meses && meses > 0 ? Math.ceil(alvoCents / meses) : null;
+  const { metodo, periodos } = plano;
+  const temPrazo = metodo.opcoes.length > 0;
+
+  // As parcelas do método escolhido. Igual devolve tudo igual; crescente e
+  // decrescente devolvem a curva — e a primeira parcela é o número que decide,
+  // porque é o que precisa existir no bolso já.
+  const parcelas =
+    temPrazo && alvoCents > 0 ? cronograma(alvoCents, metodo.forma, periodos) : [];
+  const primeira = parcelas[0] ?? null;
+  const ultima = parcelas[parcelas.length - 1] ?? null;
   // O nome cai no rótulo da categoria enquanto ninguém digitar o próprio.
   const nome = titulo.trim() || rotuloDaCategoria(categoria);
 
@@ -71,7 +76,7 @@ export function NovaJornada() {
         titulo: nome,
         alvoCents: alvo,
         categoria,
-        prazoISO: prazoParaISO(meses),
+        prazoISO: temPrazo ? fimDoPrazo(metodo.ritmo, periodos).toISOString() : null,
         prioridade: "media",
       });
       // Libera o convite de instalar o PWA.
@@ -113,21 +118,30 @@ export function NovaJornada() {
               {nome}
             </b>
             <span className="font-corpo text-[10.5px] text-suave">
-              {meses === null ? "sem prazo" : `em ${meses} meses`}
+              {temPrazo
+                ? `em ${periodos} ${nomeDoRitmo(metodo.ritmo, periodos > 1)}`
+                : "sem prazo"}
             </span>
           </Polaroide>
         </div>
-        {/* Responde "dá pra fazer?" a cada toque no valor e no prazo. É a peça
-            que o formulário antigo não tinha, e é por ela que a tela existe. */}
+        {/* Responde "dá pra fazer?" a cada toque no valor, no método e no
+            tamanho. É a peça que o formulário antigo não tinha, e é por ela
+            que a tela existe. */}
         <div className="flex flex-1 flex-col justify-center rounded-bloco bg-verde p-3.5 text-creme">
           <span className="font-corpo text-[10.5px] text-creme/90">
-            {porMesCents === null ? "vocês querem juntar" : "precisam guardar"}
+            {temPrazo ? "precisam guardar" : "vocês querem juntar"}
           </span>
           <b className="mt-0.5 block text-[21px] font-semibold tabular-nums tracking-[-0.035em]">
-            {formatBRL(porMesCents ?? alvoCents)}
+            {formatBRL(primeira ?? alvoCents)}
           </b>
           <span className="font-corpo text-[10.5px] text-creme/90">
-            {porMesCents === null ? "quando der" : "por mês, a dois"}
+            {!temPrazo
+              ? "quando der"
+              : metodo.forma === "igual"
+                ? `por ${nomeDoRitmo(metodo.ritmo)}, a dois`
+                : `na 1ª ${nomeDoRitmo(metodo.ritmo)}, ${
+                    metodo.forma === "crescente" ? "subindo até" : "caindo até"
+                  } ${formatBRL(ultima ?? 0)}`}
           </span>
         </div>
       </div>
@@ -190,23 +204,43 @@ export function NovaJornada() {
             placeholder="0,00"
           />
         </div>
-        <div className="mt-3.5 flex gap-2">
-          {PRAZOS.map(([valor, rotulo]) => (
-            <button
-              key={rotulo}
-              type="button"
-              aria-pressed={meses === valor}
-              onClick={() => setMeses(valor)}
-              className={`flex-1 whitespace-nowrap rounded-full border px-1 py-2.5 text-[11.5px] font-semibold transition active:scale-95 ${
-                meses === valor
-                  ? "border-tinta bg-tinta text-creme"
-                  : "border-contorno/60 bg-white text-suave-forte hover:border-contorno"
-              }`}
-            >
-              {rotulo}
-            </button>
+        <span className="mt-4 block font-corpo text-[10.5px] text-suave">como vão juntar</span>
+        {/* Dois níveis: o método, e só então o tamanho dele. Um nível só
+            obrigaria a listar "12 meses, 26 semanas, 52 semanas crescente…"
+            numa faixa que ninguém leria até o fim. */}
+        <div className="sem-barra -mx-4 mt-2 flex gap-2 overflow-x-auto px-4">
+          {METODOS.map((opcao) => (
+            <Chip
+              key={opcao.id}
+              rotulo={opcao.rotulo}
+              ativo={metodo.id === opcao.id}
+              onClick={() =>
+                setPlano({ metodo: opcao, periodos: opcao.opcoes.at(-1) ?? 0 })
+              }
+            />
           ))}
         </div>
+        <Explica className="mt-2">{metodo.dica}</Explica>
+
+        {temPrazo ? (
+          <div className="mt-3 flex gap-2">
+            {metodo.opcoes.map((quantos) => (
+              <button
+                key={quantos}
+                type="button"
+                aria-pressed={periodos === quantos}
+                onClick={() => setPlano({ metodo, periodos: quantos })}
+                className={`flex-1 whitespace-nowrap rounded-full border px-1 py-2.5 text-[11.5px] font-semibold transition active:scale-95 ${
+                  periodos === quantos
+                    ? "border-tinta bg-tinta text-creme"
+                    : "border-contorno/60 bg-white text-suave-forte hover:border-contorno"
+                }`}
+              >
+                {quantos} {nomeDoRitmo(metodo.ritmo, quantos > 1)}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <Recado erro={erro} />
