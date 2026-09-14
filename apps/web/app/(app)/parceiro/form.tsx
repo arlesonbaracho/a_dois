@@ -26,7 +26,7 @@ const NOME_DO_CANAL: Record<CanalConvite, string> = {
   link: "por link",
 };
 
-type Membro = { chave: string; nome: string; papel: string; cor: CorDePessoa };
+type Membro = { chave: string; souEu: boolean; nome: string; papel: string; cor: CorDePessoa };
 
 /**
  * O cartão de confirmação.
@@ -390,7 +390,9 @@ export function TelaParceiro({
                     {membro.papel}
                   </i>
                 </span>
-                {indice === 0 ? <Etiqueta>você</Etiqueta> : <Etiqueta forte>no plano</Etiqueta>}
+                {/* Quem está olhando, e não quem está no topo da lista: a
+                    ordem começa pelo dono, que nem sempre é você. */}
+                {membro.souEu ? <Etiqueta>você</Etiqueta> : <Etiqueta forte>no plano</Etiqueta>}
               </div>
             ))}
           </Bloco>

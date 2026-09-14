@@ -218,10 +218,12 @@ export function Detalhe({ goalId }: { goalId: string }) {
       await criarItem.mutateAsync({
         nome: campo("nome"),
         precoCents: paraCentavos(campo("preco")),
-        url: campo("url") || null,
+        // Sem campo de link: quem vai pôr o endereço da loja é a indicação de
+        // afiliado, não o casal. A coluna continua, e é onde esse link entra.
+        url: null,
       });
       formulario.reset();
-    }, "Não consegui adicionar. O link precisa começar com http ou https.");
+    }, "Não consegui adicionar agora. Tenta de novo?");
   }
 
   async function adicionarAporte(evento: React.FormEvent<HTMLFormElement>) {
@@ -404,9 +406,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                           ? "comprado, guardado no álbum"
                           : item.estimated_price_cents === null
                             ? "sem preço ainda"
-                            : item.url
-                              ? "com link da loja"
-                              : "preço estimado, sem link"}
+                            : "preço estimado"}
                       </i>
                     </label>
                     {item.estimated_price_cents === null ? null : (
@@ -414,9 +414,12 @@ export function Detalhe({ goalId }: { goalId: string }) {
                         {comprado ? "comprado" : formatBRL(item.estimated_price_cents)}
                       </Etiqueta>
                     )}
+                    {/* ponytail: fica para os itens que já têm link e para a
+                        indicação de afiliado, que é quem vai preencher a
+                        coluna daqui em diante. Ninguém digita mais.
+                        noreferrer para a loja não descobrir de onde veio a
+                        visita, que é uma pista sobre o plano do casal. */}
                     {item.url ? (
-                      /* noreferrer para a loja não descobrir de onde veio a
-                         visita, que é uma pista sobre o plano do casal. */
                       <a
                         href={item.url}
                         target="_blank"
@@ -470,13 +473,6 @@ export function Detalhe({ goalId }: { goalId: string }) {
                 type="text"
                 inputMode="decimal"
                 placeholder="0,00"
-              />
-              <Campo
-                rotulo="Link da loja (opcional)"
-                name="url"
-                type="url"
-                inputMode="url"
-                placeholder="https://"
               />
               <Enviar pendente={criarItem.isPending} largo>Adicionar item</Enviar>
             </form>

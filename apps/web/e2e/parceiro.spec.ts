@@ -54,6 +54,17 @@ test.describe("quem divide o plano", () => {
     await expect(page.getByText("Alguém pediu para entrar no plano de vocês")).toBeVisible();
     await page.getByRole("button", { name: "Confirmar" }).click();
 
+    // O nome que o Beto digitou foi para `profiles`; `confirm_invite` cria o
+    // vínculo SEM display_name. Se a tela ler só o do vínculo, ele vira
+    // "Sua dupla" para sempre — que foi exatamente o defeito relatado.
+    await expect(page.getByText("Beto")).toBeVisible();
+    await expect(page.getByText("Sua dupla")).toHaveCount(0);
+
+    // E a etiqueta "você" segue quem está olhando, não quem abre a lista: a
+    // ordem começa pelo dono, e do lado do Beto o dono é a outra pessoa.
+    await betoPage.goto("/parceiro");
+    await expect(betoPage.getByText("Beto").locator("xpath=../..")).toContainText("você");
+
     // ---- Agora sim ----
     await betoPage.goto("/jornadas");
     await expect(betoPage.getByText("Entrada do apê")).toBeVisible();

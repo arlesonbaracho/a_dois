@@ -2,7 +2,7 @@
 
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
-**Última atualização:** 2026-09-13 (a capa entra no passo 2, e o carrossel desliza sozinho a cada 5s)
+**Última atualização:** 2026-09-14 (o nome da outra pessoa aparece, e o link da loja sai do formulário de item)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -70,6 +70,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-13 | **Nova jornada em dois passos**, em rota própria. Chips de categoria, controle deslizante MAIS campo de texto para o valor, prazo em pílulas, e o cartão verde recalculando ao vivo quanto cabe por mês — que é a pergunta que o casal tem, e que o formulário lateral antigo não respondia. Passo 2 traz a jornada criada e três links de verdade para o que falta. O formulário de `/jornadas` some | `(este commit)` |
 | 2026-09-13 | **Telas de porta e jornada aberta.** Olho de mostrar a senha (com rótulo que NÃO contém a palavra "senha", senão `getByLabel("Senha")` acharia dois controles), rodapé colado embaixo, "Esqueci minha senha" junto do campo, e a promessa do produto dita na porta. Na jornada: avatares do casal empilhados, "desde março de 2024", item com caixa de 44px desenhada no próprio `<input>` e etiqueta de preço | `(este commit)` |
 | 2026-09-13 | **A capa entra no passo 2, e o carrossel desliza.** A foto deixa de ser um link para outra tela: a polaroide inteira do passo 2 é o alvo, o convite fica em pílula sobre a chapa, e o envio é o mesmo caminho do detalhe (reduz e reencoda no navegador, o que tira o EXIF junto). O carrossel virou trilho: todos os cartões lado a lado e o que muda é o deslocamento, 500ms em `ease-out` a cada 5s — o cartão que sai e o que entra se movem juntos, em vez de um sumir e outro aparecer. Com uma jornada só ele fica parado. A pausa por ponteiro saiu, porque no desktop o mouse repousa em cima sem intenção e o giro parava até alguém mexer nele; ficam a pausa por foco de teclado, a parada definitiva ao tocar num ponto e o respeito a `prefers-reduced-motion`. Teste novo no e2e, provado com três sabotagens | `(este commit)` |
+| 2026-09-14 | **O nome da outra pessoa finalmente aparece.** `display_name` mora em duas tabelas e a do vínculo é a incompleta: `confirm_invite` insere em `couple_members` SEM display_name, então quem entra por convite nunca teve o de lá, e `set_profile` grava só em `profiles`, então quem edita o perfil depois do cadastro também não. As quatro telas liam a incompleta — daí "Sua dupla" para sempre e "oi, vocês" com os dois nomes preenchidos. `membrosDoCasal` passa a resolver pelo perfil, com o do vínculo como rede; um lugar, quatro telas, nenhuma migration. Junto: a etiqueta "você" em /parceiro seguia o índice da lista, que começa pelo dono — quem entrou por convite via "você" na linha da outra pessoa | `(este commit)` |
+| 2026-09-14 | **O link da loja sai do formulário de item.** Quem vai preencher a coluna `url` é a indicação de afiliado, não o casal. O campo some; a coluna e a exibição ficam, para os itens que já têm link e para o link de afiliado | `(este commit)` |
 
 ---
 
@@ -346,6 +348,8 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-13 | Carrossel não pausa mais sob o ponteiro | No desktop o mouse repousa sobre o cartão sem intenção, e o giro ficava parado até alguém mexer nele — indistinguível de estar quebrado. A parada continua existindo pelos pontos, pelo foco e por `prefers-reduced-motion` |
 | 2026-09-13 | Cartão fora de cena leva `inert`, não `aria-hidden` | Ele continua no DOM, e precisa sair do caminho do teclado também; `aria-hidden` num elemento focável é defeito, não conserto |
 | 2026-09-13 | A capa é pedida no passo 2, e não no checklist | O cartão da home é 268px de foto contra quarenta de texto. Pedir a foto três telas depois é não pedir |
+| 2026-09-14 | O nome de exibição é resolvido em `membrosDoCasal`, e não com migration | O dado certo já estava em `profiles` e a policy já o entregava; corrigir a leitura na única função por onde as quatro telas passam custou oito linhas, contra uma migration em função `security definer` mais backfill |
+| 2026-09-14 | `profiles.display_name` ganha do `couple_members.display_name` | O perfil é o que a pessoa edita e o único preenchido nos dois caminhos de entrada. O do vínculo continua sendo a rede quando o perfil está vazio, e é ele que a saída do casal apaga |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -426,6 +430,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | aporte × jornada em foco | O "+" do dock leva a `/aportes`, que pede para escolher a jornada. No cartão em destaque a jornada já é conhecida, e registrar ali economizaria dois toques na ação mais frequente do produto | Média |
 | `goals.priority` | Continua gravada e nunca lida. Com `ordemDoAlbum` ordenando por progresso, ela ficou ainda mais órfã: ou vira critério de ordem, ou sai | Baixa |
 | Realtime × recado | O evento do parceiro chega e invalida a consulta, mas nada na tela diz que chegou. "Lucas colocou R$ 400 hoje" é informação que o app já tem em mãos e joga fora | Média |
+| `display_name` em duas tabelas | A leitura foi corrigida, mas as duas colunas continuam existindo e podendo divergir. O conserto de raiz é `set_profile` propagar para `couple_members`, ou `couple_members.display_name` sumir — as duas exigem migration, e a segunda mexe em `leave_couple`, `delete_account` e no export | Média |
+| `goal_items.url` × afiliado | O campo saiu do formulário e a coluna ficou esperando a indicação de afiliado. Enquanto ela não chega, nenhum item novo tem link e o "ver na loja" só aparece para os itens antigos | Baixa |
 
 ---
 

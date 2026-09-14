@@ -30,14 +30,28 @@ export type MembroDoCasal = Database["public"]["Tables"]["couple_members"]["Row"
  * select já reduz a tabela aos casais do auth.uid().
  */
 export async function membrosDoCasal(client: Client): Promise<MembroDoCasal[]> {
-  const { data, error } = await client
-    .from("couple_members")
-    .select("*")
-    .is("left_at", null)
-    .order("created_at");
+  // O nome de exibição mora em DUAS tabelas, e a do vínculo é a incompleta:
+  // `confirm_invite` insere em `couple_members` SEM display_name, então quem
+  // entra por convite nunca tem o de lá; e `set_profile` grava só em
+  // `profiles`, então quem edita o perfil depois do cadastro também não. Ler
+  // só o do vínculo é o que fazia a outra pessoa aparecer como "Sua dupla"
+  // para sempre, e a home dizer "oi, vocês" com os dois nomes preenchidos.
+  //
+  // O perfil ganha, e o do vínculo é a rede: ele existe para os casos em que
+  // o perfil está vazio, e é o que a saída do casal apaga.
+  const [membros, perfis] = await Promise.all([
+    client.from("couple_members").select("*").is("left_at", null).order("created_at"),
+    client.from("profiles").select("user_id, display_name"),
+  ]);
 
-  if (error) throw error;
-  return data ?? [];
+  if (membros.error) throw membros.error;
+  if (perfis.error) throw perfis.error;
+
+  const doPerfil = new Map((perfis.data ?? []).map((perfil) => [perfil.user_id, perfil.display_name]));
+  return (membros.data ?? []).map((membro) => ({
+    ...membro,
+    display_name: doPerfil.get(membro.user_id) ?? membro.display_name,
+  }));
 }
 
 export type ResultadoSaida = "ok" | "plano_apagado" | "precisa_confirmar_apagar" | "sem_plano";

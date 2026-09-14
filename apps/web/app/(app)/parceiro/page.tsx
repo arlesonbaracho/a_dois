@@ -30,7 +30,8 @@ export default async function Parceiro() {
     })),
   ).map((membro) => ({
     chave: membro.userId,
-    nome: membro.userId === usuario?.id ? "Você" : (membro.nome ?? "Sua dupla"),
+    souEu: membro.userId === usuario?.id,
+    nome: membro.nome ?? (membro.userId === usuario?.id ? "Você" : "Sua dupla"),
     papel: membro.papel === "dono" ? "criou o plano" : "entrou por convite",
     cor: (cores.get(membro.userId) ?? "fora") as CorDePessoa,
   }));
