@@ -32,5 +32,16 @@ export const BACKGROUND_COLOR = "#FDFBF7";
  */
 export const AVISO_DE_PUBLICIDADE = "Publicidade";
 
-export const EXPLICACAO_DA_COMISSAO =
-  "Estas sugestões são de lojas parceiras. Se vocês comprarem por aqui, a gente ganha uma comissão.";
+/**
+ * O convite das sugestões.
+ *
+ * Não diz "as melhores ofertas": a gente mostra o que encontrou na nossa
+ * tabela, não o menor preço do mercado — e afirmar superioridade que não dá
+ * para provar é publicidade enganosa (CDC, art. 37), o que sairia mais caro
+ * que a frase.
+ *
+ * A identificação obrigatória não está aqui: ela é a palavra "Publicidade" em
+ * CADA sugestão, onde ela é lida junto com o preço.
+ */
+export const CONVITE_DAS_OFERTAS =
+  "Estas são as ofertas que a gente encontrou para os itens de vocês.";

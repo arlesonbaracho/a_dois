@@ -79,10 +79,15 @@ export function Inicio({
   const emCena = visiveis[atual];
 
   // Com uma jornada só, não há o que alternar: o cartão fica parado.
+  //
+  // `prefers-reduced-motion` NÃO para o relógio, e isso é de propósito: a
+  // regra proíbe movimento, não mudança de conteúdo. Quem pediu menos
+  // movimento continua vendo as jornadas alternarem — o que some é o deslize,
+  // porque o bloco de `globals.css` já zera toda transição. Parar o relógio
+  // também deixava o cartão congelado no aparelho de quem tem "Reduzir
+  // movimento" ligado, que é o padrão de muita gente no iPhone.
   useEffect(() => {
     if (!automatico || comFoco || visiveis.length < 2) return;
-    // Quem pediu menos movimento não recebe carrossel que anda sozinho.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const relogio = setInterval(
       () => setCena((antes) => ({ ...antes, indice: antes.indice + 1 })),

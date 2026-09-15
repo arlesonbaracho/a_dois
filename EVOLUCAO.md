@@ -3,7 +3,7 @@
 Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
 **Última atualização:** 2026-09-13 (LGPD no banco, a promessa ligada, papelada)
-**Última atualização:** 2026-09-14 (indicação de afiliado colada no item; merge do branch de LGPD e preço)
+**Última atualização:** 2026-09-15 (carrossel volta a girar com "Reduzir movimento" ligado)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -82,6 +82,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-14 | **Merge do branch `claude/gallant-jones-20abbc`**, que estava parado desde 12/09 com trabalho real. Entram: a política de privacidade como **página** (`/privacidade`, não arquivo em `docs/` — política que o titular não consegue abrir não está publicada), `docs/ROPA.md` e `docs/SECURITY.md`, `price_quotes` finalmente com leitor (`prices.ts`, `precos.ts` e a peça `PrecoDoItem`), a Edge Function `extract-product-link` com o primeiro chamador da vida dela, revogar consentimento apagando a faixa de renda, e a capa saindo junto com a conta. Quatro conflitos, todos resolvidos mantendo o mundo v2 e enxertando o que o branch trouxe. Dois consertos no caminho: `prices.ts` tipava `Response` (DOM) dentro de `packages/api`, que compila sem DOM por portabilidade; e a página `/privacidade` nasceu antes do v2, com dois degraus da rampa antiga | `(este commit)` |
 | 2026-09-14 | **A ordem do álbum concilia os dois critérios.** O branch ordenava por prioridade no SQL; `main` ordenava por progresso no cliente, desfazendo. Agora `ordemDoAlbum` respeita a prioridade declarada primeiro e usa o progresso como desempate — fecha a dívida de `goals.priority` ser gravada e nunca lida, sem perder o motivo de existir da ordenação por progresso (num carrossel de uma por vez, abrir na recém-criada é abrir na que tem 0%) | `(este commit)` |
 | 2026-09-14 | **A indicação de afiliado, colada no item.** Tabela `offers` — conteúdo global, **sem `couple_id`**, com a exceção declarada no cabeçalho da migration (precedente: `couples` e `rate_limit_hits`). A policy de leitura **não é `using (true)`**: ela carrega a janela de publicação, então oferta agendada ou vencida não vaza nem por consulta direta ao PostgREST. As três de escrita negam por escrito, mais `revoke`. O casamento é pelo NOME do item, com `to_tsquery` OU e o dicionário `portuguese` nativo — sem serviço de busca e sem dependência nova; a categoria da jornada é a rede. `termosDeBusca` em `packages/core`, com teste: `plainto_tsquery` liga com E, e "Geladeira 375L" exigiria os dois tokens. **Sem coluna de imagem de propósito**: `<img>` para o CDN da loja entregaria a ela o IP e o horário de quem só ABRIU a tela. **Sem tabela de cliques**: o painel do afiliado já conta, e um `subId` por oferta separa. Divulgação em texto na própria linha (CDC art. 36; o guia CONAR diz que o link sozinho não basta), e `rel="sponsored noopener noreferrer"` | `(este commit)` |
+| 2026-09-15 | **O carrossel voltou a girar em quem tem "Reduzir movimento" ligado.** O relógio parava com `prefers-reduced-motion: reduce`, e no iPhone isso é ajuste comum — o cartão ficava congelado para sempre. A regra proíbe **movimento**, não troca de conteúdo: o relógio segue, e o deslize some sozinho porque o bloco de `globals.css` já zera toda transição. O e2e do carrossel passou a rodar com `reducedMotion: "reduce"`, que é justamente o caso que falhava, num `describe` próprio para a opção não vazar para os testes vizinhos. Provado quebrando: repondo o `return`, o teste reprova | `(este commit)` |
+| 2026-09-15 | **A frase sob as sugestões deixa de falar de comissão.** Vira "Estas são as ofertas que a gente encontrou para os itens de vocês" — sem "as melhores", que seria afirmação de superioridade sem como provar (CDC, art. 37). A identificação obrigatória não estava nessa frase e continua onde estava: a palavra **Publicidade** em cada sugestão, lida junto com o preço | `(este commit)` |
 
 ---
 
@@ -375,6 +377,7 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | 2026-09-14 | Busca com `to_tsquery` OU, e não `plainto_tsquery` | `plainto` liga com E: "Geladeira 375L" exigiria os dois tokens e não acharia "geladeira frost free 375 litros", que é justamente o que a pessoa quer ver |
 | 2026-09-14 | Nenhuma tabela de cliques | O painel do programa de afiliado já conta clique, conversão e comissão. Medir de novo seria duplicar o trabalho do parceiro e guardar dado de comportamento sem precisar |
 | 2026-09-14 | `offers` sem coluna de imagem | Hotlink do CDN da loja entrega a ela o IP e o horário de quem só abriu a tela, sem clicar. A coluna entra quando houver cópia no nosso bucket |
+| 2026-09-15 | `prefers-reduced-motion` não para o carrossel, só o deslize | A regra é sobre movimento, não sobre conteúdo. Parar o relógio congelava o cartão em quem tem o ajuste ligado, que no iPhone é comum — e o CSS já zera a transição sozinho |
 
 ### Limitações de PWA no iOS que aceitamos na fase 1
 
@@ -463,6 +466,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `offers` sem fonte automática | A tabela é o contrato e as linhas entram à mão, com a service role, até haver conta aprovada em programa de afiliado. Nenhuma linha do lado de leitura muda quando a API entrar — mas até lá não monetiza nada | Média |
 | oferta × home | A faixa de ofertas na home não foi construída: só a sugestão colada no item. Na jornada o casal já declarou o que quer; na home seria anúncio sem contexto, e o custo em confiança é maior | Baixa |
 | política × publicidade | A página `/privacidade` veio do merge e diz que os consentimentos "não fazem nada". Com a indicação de afiliado no ar, ela precisa declarar a relação comercial, que a comissão fica com o app, e o que NÃO sai daqui. `perfil/privacidade.tsx` ainda diz "Nada de propaganda de terceiro" | **Alta** |
+| sugestão × texto do casal | A oferta põe título de produto no meio da lista de itens, e isso já quebrou três asserções de e2e que casavam por substring ("Geladeira" achava o item E "Geladeira frost free 375L"). Consertado com `exact`, mas é sinal: conteúdo de terceiro na lista deles tem custo, e a próxima busca por texto nessa tela precisa ser específica | Baixa |
+| comissão × termos do afiliado | A frase que mencionava a comissão saiu a pedido. Vários programas exigem redação específica de divulgação no material do afiliado — quando a conta for aprovada, os termos precisam ser lidos e a frase pode ter que voltar | Média |
 
 ---
 

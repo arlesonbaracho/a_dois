@@ -426,7 +426,7 @@ test.describe("4.7 tempo real", () => {
     // B volta. Sem tocar em nada, ele tem que convergir.
     await page.context().setOffline(false);
     await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25", { timeout: 30_000 });
-    await expect(page.getByText("Geladeira")).toBeVisible();
+    await expect(page.getByText("Geladeira", { exact: true })).toBeVisible();
   });
 });
 

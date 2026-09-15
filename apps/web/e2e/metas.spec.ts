@@ -24,7 +24,9 @@ test.describe("metas e itens", () => {
     // O método escolhido troca os tamanhos oferecidos abaixo dele: semana não
     // oferece meses, e o que sobrou do método anterior não pode sobreviver.
     await page.getByRole("button", { name: "Por semana" }).click();
-    await expect(page.getByRole("button", { name: "52 semanas" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "52 semanas" }),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "24 meses" })).toHaveCount(0);
     await page.getByRole("button", { name: "Por mês" }).click();
     await expect(page.getByRole("button", { name: "24 meses" })).toBeVisible();
@@ -34,7 +36,9 @@ test.describe("metas e itens", () => {
     await page.getByRole("button", { name: "Criar jornada" }).click();
 
     // Passo 2: a jornada existe, e o que falta é o que a faz valer.
-    await expect(page.getByRole("heading", { name: "Jornada criada" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Jornada criada" }),
+    ).toBeVisible();
 
     // A capa entra AQUI, e não três telas depois: o cartão da home é 268px de
     // foto contra quarenta de texto, e pedir a foto mais tarde é não pedir.
@@ -48,7 +52,9 @@ test.describe("metas e itens", () => {
     await expect(page.getByText("toque para trocar a foto")).toBeVisible();
 
     await page.getByRole("link", { name: "Abrir a jornada" }).click();
-    await expect(page.getByRole("heading", { name: "Entrada do apê" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Entrada do apê" }),
+    ).toBeVisible();
 
     // E o cartão da lista diz o mesmo que a barra da jornada.
     await page.goto("/jornadas");
@@ -61,55 +67,80 @@ test.describe("metas e itens", () => {
     await page.getByLabel("Quanto deve custar (R$, opcional)").fill("4199");
     await page.getByRole("button", { name: "Adicionar item" }).click();
 
-    await expect(page.getByText("Geladeira")).toBeVisible();
+    await expect(page.getByText("Geladeira", { exact: true })).toBeVisible();
     await expect(page.getByText("R$ 4.199,00")).toBeVisible();
 
     // check(), e não click(): o check do Playwright exige que a caixa mude de
     // estado no MESMO instante do clique. Ele falhava antes do estado otimista
     // — é essa a diferença que este teste agora tranca.
-    const comprado = page.getByRole("checkbox", { name: "Marcar Geladeira como comprado" });
+    const comprado = page.getByRole("checkbox", {
+      name: "Marcar Geladeira como comprado",
+    });
     await comprado.check();
 
     // E tem que sobreviver ao recarregar: sem isso, o teste passaria com um
     // estado que só existe no navegador.
     await page.reload();
-    await expect(page.getByRole("checkbox", { name: "Marcar Geladeira como comprado" })).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: "Marcar Geladeira como comprado" }),
+    ).toBeChecked();
   });
 
   // O cartão da home vira sozinho a cada cinco segundos — mas só quando há o
   // que alternar. Com uma jornada só ele fica parado, que é o que o produto
   // pede e o que um carrossel de um item só deveria fazer sempre.
-  test("o cartão da home vira sozinho, e só quando há mais de uma jornada", async ({
-    page,
-    request,
-  }) => {
-    const conta = await criarConta(request, "carrossel");
-    const cliente = await comoPessoa(request, conta);
-    await cliente.rpc("add_goal", { p_title: "Primeira", p_target_amount_cents: 100000 });
+  // Um describe próprio porque `test.use` vale para todos os testes dali em
+  // diante, e só este precisa de "Reduzir movimento" ligado — que era o caso
+  // que travava o carrossel. A regra proíbe movimento, não troca de conteúdo:
+  // o deslize some (o CSS zera a transição), a alternância fica.
+  test.describe("carrossel com movimento reduzido", () => {
+    test.use({ reducedMotion: "reduce" });
 
-    await entrar(page, conta);
-    // No celular é onde a decisão vale: um cartão por vez, com os pontos.
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
+    test("o cartão da home vira sozinho, e só quando há mais de uma jornada", async ({
+      page,
+      request,
+    }) => {
+      const conta = await criarConta(request, "carrossel");
+      const cliente = await comoPessoa(request, conta);
+      await cliente.rpc("add_goal", {
+        p_title: "Primeira",
+        p_target_amount_cents: 100000,
+      });
 
-    // Com uma só não há ponto nenhum, e o título não muda.
-    const pontoAtivo = page.locator('[aria-current="true"]');
-    await expect(page.getByRole("heading", { name: "Primeira" })).toBeVisible();
-    await expect(pontoAtivo).toHaveCount(0);
-    await page.waitForTimeout(6500);
-    await expect(page.getByRole("heading", { name: "Primeira" })).toBeVisible();
+      await entrar(page, conta);
+      // No celular é onde a decisão vale: um cartão por vez, com os pontos.
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto("/");
 
-    // Com duas, vira sozinho. O prazo é folgado porque a rota compila na
-    // primeira visita; o que o teste mede é a TROCA, não o relógio.
-    await cliente.rpc("add_goal", { p_title: "Segunda", p_target_amount_cents: 100000 });
-    await page.reload();
-    await expect(pontoAtivo).toHaveCount(1);
+      // Com uma só não há ponto nenhum, e o título não muda.
+      const pontoAtivo = page.locator('[aria-current="true"]');
+      await expect(
+        page.getByRole("heading", { name: "Primeira" }),
+      ).toBeVisible();
+      await expect(pontoAtivo).toHaveCount(0);
+      await page.waitForTimeout(6500);
+      await expect(
+        page.getByRole("heading", { name: "Primeira" }),
+      ).toBeVisible();
 
-    const primeiro = await pontoAtivo.getAttribute("aria-label");
-    expect(primeiro, "o ponto ativo precisa dizer qual jornada está em cena").toBeTruthy();
-    await expect
-      .poll(() => pontoAtivo.getAttribute("aria-label"), { timeout: 20_000 })
-      .not.toBe(primeiro);
+      // Com duas, vira sozinho. O prazo é folgado porque a rota compila na
+      // primeira visita; o que o teste mede é a TROCA, não o relógio.
+      await cliente.rpc("add_goal", {
+        p_title: "Segunda",
+        p_target_amount_cents: 100000,
+      });
+      await page.reload();
+      await expect(pontoAtivo).toHaveCount(1);
+
+      const primeiro = await pontoAtivo.getAttribute("aria-label");
+      expect(
+        primeiro,
+        "o ponto ativo precisa dizer qual jornada está em cena",
+      ).toBeTruthy();
+      await expect
+        .poll(() => pontoAtivo.getAttribute("aria-label"), { timeout: 20_000 })
+        .not.toBe(primeiro);
+    });
   });
 
   test("a barra de progresso sai dos aportes", async ({ page, request }) => {
@@ -117,42 +148,62 @@ test.describe("metas e itens", () => {
     await entrar(page, ana);
 
     const comoAna = await comoPessoa(request, ana);
-    const meta = await (await comoAna.rpc("add_goal", {
-      p_title: "Viagem",
-      p_target_amount_cents: 800000,
-    })).json();
+    const meta = await (
+      await comoAna.rpc("add_goal", {
+        p_title: "Viagem",
+        p_target_amount_cents: 800000,
+      })
+    ).json();
 
     await page.goto(`/jornadas/${meta}`);
-    await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+    await expect(page.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
 
     await page.getByLabel("Quanto (R$)").fill("2000");
     await page.getByRole("button", { name: "Anotar" }).click();
 
     // 2.000 de 8.000 é um quarto, e a barra tem que dizer isso para quem
     // enxerga E para quem usa leitor de tela.
-    await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
-    await expect(page.getByText("R$ 2.000,00 de R$ 8.000,00 · 25%")).toBeVisible();
+    await expect(page.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "25",
+    );
+    await expect(
+      page.getByText("R$ 2.000,00 de R$ 8.000,00 · 25%"),
+    ).toBeVisible();
   });
 
   // O que faz o plano ser compartilhado: sem F5, e sem recarregar a página.
-  test("o que o parceiro escreve aparece sozinho", async ({ page, request }) => {
+  test("o que o parceiro escreve aparece sozinho", async ({
+    page,
+    request,
+  }) => {
     const ana = await criarConta(request, "ana");
     const beto = await criarConta(request, "beto");
     await parear(request, ana, beto);
 
     const comoAna = await comoPessoa(request, ana);
-    const meta = await (await comoAna.rpc("add_goal", {
-      p_title: "Cozinha",
-      p_target_amount_cents: 1000000,
-    })).json();
-    const item = await (await comoAna.rpc("add_goal_item", {
-      p_goal_id: meta,
-      p_name: "Geladeira",
-    })).json();
+    const meta = await (
+      await comoAna.rpc("add_goal", {
+        p_title: "Cozinha",
+        p_target_amount_cents: 1000000,
+      })
+    ).json();
+    const item = await (
+      await comoAna.rpc("add_goal_item", {
+        p_goal_id: meta,
+        p_name: "Geladeira",
+      })
+    ).json();
 
     await entrar(page, ana);
     await page.goto(`/jornadas/${meta}`);
-    await expect(page.getByText("Geladeira")).toBeVisible();
+    // `exact` porque a sugestão de afiliado põe título de produto na mesma
+    // tela: "Geladeira" sozinho casa com o item E com "Geladeira frost free
+    // 375L" da oferta.
+    await expect(page.getByText("Geladeira", { exact: true })).toBeVisible();
 
     // Marcador que só sobrevive se a página NÃO recarregar. Sem ele, o teste
     // passaria igual se alguém trocasse o Realtime por um refresh burro.
@@ -162,15 +213,23 @@ test.describe("metas e itens", () => {
 
     const comoBeto = await comoPessoa(request, beto);
     await comoBeto.rpc("add_goal_item", { p_goal_id: meta, p_name: "Cooktop" });
-    await comoBeto.rpc("add_contribution", { p_goal_id: meta, p_amount_cents: 250000 });
+    await comoBeto.rpc("add_contribution", {
+      p_goal_id: meta,
+      p_amount_cents: 250000,
+    });
     await comoBeto.apagar(`goal_items?id=eq.${item}`);
 
-    await expect(page.getByText("Cooktop")).toBeVisible();
-    await expect(page.getByText("Geladeira")).toHaveCount(0);
-    await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
+    await expect(page.getByText("Cooktop", { exact: true })).toBeVisible();
+    await expect(page.getByText("Geladeira", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "25",
+    );
 
     expect(
-      await page.evaluate(() => (window as unknown as { __vivo?: boolean }).__vivo),
+      await page.evaluate(
+        () => (window as unknown as { __vivo?: boolean }).__vivo,
+      ),
       "a página recarregou; isto devia ser Realtime",
     ).toBe(true);
   });
@@ -181,23 +240,32 @@ test.describe("metas e itens", () => {
     await entrar(page, ana);
 
     const comoAna = await comoPessoa(request, ana);
-    const meta = await (await comoAna.rpc("add_goal", {
-      p_title: "Meta com dinheiro",
-      p_target_amount_cents: 100000,
-    })).json();
-    await comoAna.rpc("add_contribution", { p_goal_id: meta, p_amount_cents: 50000 });
+    const meta = await (
+      await comoAna.rpc("add_goal", {
+        p_title: "Meta com dinheiro",
+        p_target_amount_cents: 100000,
+      })
+    ).json();
+    await comoAna.rpc("add_contribution", {
+      p_goal_id: meta,
+      p_amount_cents: 50000,
+    });
 
     await page.goto(`/jornadas/${meta}`);
     await page.getByRole("button", { name: "Apagar esta jornada" }).click();
 
     await expect(page.getByText(/já tem dinheiro dentro/)).toBeVisible();
     await expect(page).toHaveURL(`/jornadas/${meta}`);
-    expect(await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`)).toHaveLength(1);
+    expect(
+      await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`),
+    ).toHaveLength(1);
 
     await page.getByRole("button", { name: "Apagar mesmo assim" }).click();
 
     await expect(page).toHaveURL("/jornadas");
-    expect(await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`)).toHaveLength(0);
+    expect(
+      await comoAna.ler<unknown[]>(`goals?select=id&id=eq.${meta}`),
+    ).toHaveLength(0);
   });
 
   /**
@@ -208,15 +276,20 @@ test.describe("metas e itens", () => {
    * a tela volta com a foto. Cada pedaço tem prova própria em outro lugar; a
    * emenda entre eles só existe aqui.
    */
-  test("pôr uma capa, e a capa é do nosso bucket", async ({ page, request }) => {
+  test("pôr uma capa, e a capa é do nosso bucket", async ({
+    page,
+    request,
+  }) => {
     const ana = await criarConta(request, "capa");
     await entrar(page, ana);
 
     const comoAna = await comoPessoa(request, ana);
-    const meta = await (await comoAna.rpc("add_goal", {
-      p_title: "Praia em janeiro",
-      p_target_amount_cents: 800000,
-    })).json();
+    const meta = await (
+      await comoAna.rpc("add_goal", {
+        p_title: "Praia em janeiro",
+        p_target_amount_cents: 800000,
+      })
+    ).json();
 
     await page.goto(`/jornadas/${meta}`);
 
@@ -246,7 +319,9 @@ test.describe("metas e itens", () => {
       `goals?select=cover_path&id=eq.${meta}`,
     );
     expect(linha.cover_path).not.toContain("http");
-    expect(linha.cover_path).toMatch(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/);
+    expect(linha.cover_path).toMatch(
+      /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.jpg$/,
+    );
 
     // Tem que sobreviver ao recarregar: senão o teste passaria com uma foto
     // que só existe nesta aba.
@@ -264,14 +339,18 @@ test.describe("metas e itens", () => {
     await entrar(page, ana);
 
     const comoAna = await comoPessoa(request, ana);
-    const meta = await (await comoAna.rpc("add_goal", {
-      p_title: "Cozinha nova",
-      p_target_amount_cents: 2000000,
-    })).json();
-    const item = await (await comoAna.rpc("add_goal_item", {
-      p_goal_id: meta,
-      p_name: "Geladeira",
-    })).json();
+    const meta = await (
+      await comoAna.rpc("add_goal", {
+        p_title: "Cozinha nova",
+        p_target_amount_cents: 2000000,
+      })
+    ).json();
+    const item = await (
+      await comoAna.rpc("add_goal_item", {
+        p_goal_id: meta,
+        p_name: "Geladeira",
+      })
+    ).json();
 
     await page.goto(`/jornadas/${meta}`);
     // Uma cotação só não é histórico: a linha não pode aparecer ainda.
@@ -334,7 +413,9 @@ test.describe("metas e itens", () => {
       .allInnerTexts();
     expect(titulos, "as três jornadas deviam estar na tela").toHaveLength(3);
 
-    expect(titulos[0], "a de prioridade alta devia vir primeiro").toContain("O que mais queremos");
+    expect(titulos[0], "a de prioridade alta devia vir primeiro").toContain(
+      "O que mais queremos",
+    );
     expect(titulos[titulos.length - 1]).toContain("Um dia quem sabe");
   });
 
@@ -351,11 +432,13 @@ test.describe("metas e itens", () => {
     const conta = await criarConta(request, "oferta");
     const cliente = await comoPessoa(request, conta);
 
-    const meta = await (await cliente.rpc("add_goal", {
-      p_title: "Mobiliar",
-      p_target_amount_cents: 1400000,
-      p_category: "casa",
-    })).json();
+    const meta = await (
+      await cliente.rpc("add_goal", {
+        p_title: "Mobiliar",
+        p_target_amount_cents: 1400000,
+        p_category: "casa",
+      })
+    ).json();
     await cliente.rpc("add_goal_item", {
       p_goal_id: meta,
       p_name: termo,
@@ -403,7 +486,9 @@ test.describe("metas e itens", () => {
     await entrar(page, conta);
     await page.goto(`/jornadas/${meta}`);
 
-    const sugestao = page.getByRole("link", { name: new RegExp(`${termo} de pressão`) });
+    const sugestao = page.getByRole("link", {
+      name: new RegExp(`${termo} de pressão`),
+    });
     await expect(sugestao).toBeVisible();
 
     // Link de afiliado é publicidade, e o CDC pede que se identifique como tal.

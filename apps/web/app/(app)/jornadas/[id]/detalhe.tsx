@@ -29,7 +29,7 @@ import {
   ordemEstavel,
   parcelaMensalCents,
   progressoPercentual,
-  EXPLICACAO_DA_COMISSAO,
+  CONVITE_DAS_OFERTAS,
   rotuloDaCategoria,
   sumCents,
 } from "@repo/core";
@@ -549,7 +549,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
           )}
 
           {itens && itens.some((item) => item.status !== "comprado") ? (
-            <Explica className="px-1">{EXPLICACAO_DA_COMISSAO}</Explica>
+            <Explica className="px-1">{CONVITE_DAS_OFERTAS}</Explica>
           ) : null}
 
           {itens && itens.length > 0 ? (
