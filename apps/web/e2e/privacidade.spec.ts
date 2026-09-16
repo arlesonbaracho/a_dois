@@ -225,4 +225,17 @@ test.describe("privacidade", () => {
       "a capa continuou no bucket depois de a conta ser apagada",
     ).toBe(false);
   });
+
+  // A política é a única coisa do app que fica desatualizada em silêncio: ela
+  // não quebra, não dá erro, e continua servindo a frase antiga. Este teste é
+  // o alarme — a página dizia "Não há propaganda no app" com a sugestão de
+  // afiliado já na tela da jornada.
+  test("a política declara a publicidade, e não nega mais que ela existe", async ({ page }) => {
+    await page.goto("/privacidade");
+
+    const corpo = page.locator("main");
+    await expect(corpo).not.toContainText("Não há propaganda no app");
+    await expect(corpo).toContainText("a gente ganha comissão");
+    await expect(corpo).toContainText("nunca é por comissão");
+  });
 });

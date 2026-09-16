@@ -38,7 +38,11 @@ const CONSENTIMENTOS: {
     coluna: "consent_marketing_at",
     rotulo: "Novidades por e-mail",
     descricao:
-      "Receber e-mail quando algo novo entrar no app. Nada de propaganda de terceiro, e seu e-mail não vai para lugar nenhum. Hoje isto está só guardado: a gente ainda não manda e-mail nenhum.",
+      // A frase dizia "Nada de propaganda de terceiro", sem dizer de quê — e
+      // desde que a sugestão de loja entrou na jornada isso lia como promessa
+      // do app inteiro, que é falsa. Agora ela fala só do e-mail, que é o que
+      // este interruptor decide.
+      "Receber e-mail quando algo novo entrar no app. O e-mail não leva anúncio de loja, e seu endereço não vai para lugar nenhum. Hoje isto está só guardado: a gente ainda não manda e-mail nenhum.",
   },
   {
     tipo: "income_band",

@@ -86,6 +86,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-15 | **A frase sob as sugestões deixa de falar de comissão.** Vira "Estas são as ofertas que a gente encontrou para os itens de vocês" — sem "as melhores", que seria afirmação de superioridade sem como provar (CDC, art. 37). A identificação obrigatória não estava nessa frase e continua onde estava: a palavra **Publicidade** em cada sugestão, lida junto com o preço | `(este commit)` |
 
 ---
+| 2026-09-16 | **A política para de negar a publicidade que o app já mostra.** A página dizia, publicada, *"Não há propaganda no app"* com a sugestão de afiliado na tela da jornada; `perfil/privacidade.tsx` prometia "Nada de propaganda de terceiro" sem dizer de quê. Seção nova declarando a comissão, que a busca roda no nosso banco, que a loja só sabe de alguém no clique, e que a ordem nunca é por comissão; a promessa do interruptor ficou restrita ao e-mail. Teste e2e que reprova se a frase antiga voltar, provado por sabotagem | `(este commit)` |
 
 ## Pendente
 
@@ -118,6 +119,14 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 |---|---|---|
 | Repositório (`supabase/migrations/`) | **19** | `20260914210000_ofertas_de_parceiro` |
 | Produção (`qysekkewsrwtebpiowim`) | **15** | `20260912042341_minha_linha_so_minha` |
+
+> **A ordem mudou em 2026-09-16.** O `9fa8a74` (vitrine de afiliado) **já
+> está no `origin/main`**, contra um banco sem a tabela `offers`. Não quebra
+> tela — `detalhe.tsx:762` cai em `return null` — mas é a armadilha 9 já
+> acionada, com a feature morta em produção. O efeito colateral é que as
+> frases da política sobre propaganda continuavam **verdade** lá, e virariam
+> mentira no instante do push. Por isso o texto foi corrigido **antes**
+> (2026-09-16). Agora o push está liberado.
 
 **Quatro pendentes em 2026-09-14:** a destrutiva retida, a `lgpd_revogar_e_reter` (veio do merge), a `ofertas_de_parceiro` e a `link_de_item_so_http`, que **fecha um buraco em produção** e deve subir na frente de todas. As quatro anteriores subiram pelo
 `scripts/subir-producao.sh`, e o web foi para `2578b5e` na sequência.
@@ -186,6 +195,14 @@ Sabemos que precisa existir, mas ainda não entrou na fila.
 - [ ] Push notification (sem valor no corpo)
 - [ ] `FLAG_SECURE` no Android e blur em background
 - [ ] Build via EAS e publicação nas lojas
+- [ ] **Reescrever as 13 Server Actions como mutations.** Expo não tem
+      Server Action, `FormData` de formulário nem `revalidatePath`. São 476
+      linhas em 5 `actions.ts` mais 8 telas com `useActionState` — a maior
+      portagem do lote, e a que não estava escrita em lugar nenhum
+- [ ] **Trocar o `radial-gradient` do `Chapa` por `react-native-svg`.** Ver
+      Dívidas: é o bloqueador visual real da fase 2
+- [ ] Componente para os acordeões: `<details>`/`summary::before` não existe
+      em RN (4 pontos no `globals.css`)
 
 ### Conformidade e operação
 - [ ] Canal `privacidade@` ativo — é o que fecha os `<<PREENCHER>>` do ROPA,
@@ -448,6 +465,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
+| `apps/web/components/pecas.tsx` × fase 2 | **`Chapa` desenha com `radial-gradient` dentro de `style={{ backgroundImage }}` — React Native não tem nenhum dos dois.** São os seis duotones de categoria, o miolo da identidade v2, e aparecem em toda polaroide, cartão e linha de oferta. `expo-linear-gradient` só faz linear; o caminho é `react-native-svg` com `radialGradient`. **É maior que a dívida do NativeWind, e foi descoberto só em 2026-09-16.** A boa notícia ao lado: os ícones de `icones.tsx` são `circle`/`path` escritos à mão e portam quase literalmente | **Alta** |
+| `apps/web/lib` × fase 2 | `mensagemDoBanco` (`erro.ts`, lógica pura) e a regra do meio-dia UTC (`dinheiro.ts:17`) moram no `apps/web` e serão reimplementadas no Expo. A do meio-dia **já está duplicada hoje**: `aportes/actions.ts:48` escreve `${quando}T12:00:00Z` na mão em vez de chamar `paraInstante`. ~30 linhas para mover ao `core` | Média |
 | `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
 | ~~tela "Nova jornada"~~ | **Fechada em 2026-09-13.** A tela em dois passos existe em `/jornadas/nova`, com chips, deslizante, prazo em pílulas e o checklist do passo 2 | — |
 | dock no desktop | O trilho da esquerda é uma pílula de 3 discos mais o botão verde, flutuando sozinha numa faixa de 6rem. Funciona e é o mesmo dock deitado, mas lê como peça solta, não como barra | Baixa |
@@ -465,7 +484,7 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | método × jornada aberta | O método escolhido na criação não é guardado: a jornada nasce só com o prazo que ele gerou. A tabela semana a semana com os quadradinhos — que é o que a referência mostra — precisa que o método seja persistido, e os quadradinhos já são os aportes. Migration de uma coluna em `goals` mais uma tela | Média |
 | `offers` sem fonte automática | A tabela é o contrato e as linhas entram à mão, com a service role, até haver conta aprovada em programa de afiliado. Nenhuma linha do lado de leitura muda quando a API entrar — mas até lá não monetiza nada | Média |
 | oferta × home | A faixa de ofertas na home não foi construída: só a sugestão colada no item. Na jornada o casal já declarou o que quer; na home seria anúncio sem contexto, e o custo em confiança é maior | Baixa |
-| política × publicidade | A página `/privacidade` veio do merge e diz que os consentimentos "não fazem nada". Com a indicação de afiliado no ar, ela precisa declarar a relação comercial, que a comissão fica com o app, e o que NÃO sai daqui. `perfil/privacidade.tsx` ainda diz "Nada de propaganda de terceiro" | **Alta** |
+| ~~política × publicidade~~ | **Fechada em 2026-09-16.** A página declara a relação comercial numa seção própria, e o interruptor de e-mail promete só sobre e-mail. O que sobrou na seção "Métricas e e-mail" — "hoje eles não fazem nada" — segue verdade: nenhum dos dois consentimentos é lido por nada | — |
 | sugestão × texto do casal | A oferta põe título de produto no meio da lista de itens, e isso já quebrou três asserções de e2e que casavam por substring ("Geladeira" achava o item E "Geladeira frost free 375L"). Consertado com `exact`, mas é sinal: conteúdo de terceiro na lista deles tem custo, e a próxima busca por texto nessa tela precisa ser específica | Baixa |
 | comissão × termos do afiliado | A frase que mencionava a comissão saiu a pedido. Vários programas exigem redação específica de divulgação no material do afiliado — quando a conta for aprovada, os termos precisam ser lidos e a frase pode ter que voltar | Média |
 

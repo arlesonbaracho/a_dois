@@ -54,7 +54,7 @@ export default function Privacidade() {
           O que a gente guarda, e o que não guarda
         </h1>
         <p className="font-corpo text-[13.5px] leading-relaxed text-suave-forte">
-          Atualizada em 13 de setembro de 2026. Escrita para ser lida, não para
+          Atualizada em 16 de setembro de 2026. Escrita para ser lida, não para
           proteger a gente de você.
         </p>
       </header>
@@ -132,8 +132,36 @@ export default function Privacidade() {
           que roda a cada mudança.
         </p>
         <p>
-          <strong>A gente não vende, não compartilha e não usa seus dados para
-          anúncio.</strong> Não há propaganda no app.
+          <strong>A gente não vende e não compartilha seus dados, e nenhum
+          anúncio é escolhido pelo que você é.</strong> Existe propaganda no
+          app — sugestão de loja para os itens que vocês anotaram — e a seção
+          seguinte conta exatamente como ela funciona.
+        </p>
+      </Secao>
+
+      <Secao titulo="As sugestões de loja, e a nossa comissão">
+        <p>
+          Dentro de uma jornada, embaixo de cada item, o app pode mostrar uma
+          sugestão de loja parceira. Ela vem marcada com a palavra{" "}
+          <strong>Publicidade</strong> e com o nome da loja, sempre.{" "}
+          <strong>É publicidade, e a gente ganha comissão</strong> se vocês
+          comprarem por ali. O preço para vocês é o mesmo.
+        </p>
+        <p>
+          <strong>A busca roda dentro do nosso banco, aqui no Brasil.</strong>{" "}
+          O nome do item não sai daqui, e a loja não fica sabendo de você
+          enquanto ninguém clicar — nem o seu endereço de internet. É por isso
+          que o cartão não tem foto do produto: imagem buscada no servidor da
+          loja entregaria o seu IP a ela só por você ter aberto a tela.
+        </p>
+        <p>
+          Quando alguém clica, aí sim vira uma visita comum à loja, e o link
+          vai <strong>sem dizer de onde você veio</strong>.
+        </p>
+        <p>
+          A ordem do que aparece <strong>nunca é por comissão</strong>: a
+          sugestão casa pelo nome que vocês escreveram, e nada do plano —
+          quanto já juntaram, quanto falta, quem colocou — entra nessa conta.
         </p>
       </Secao>
 
