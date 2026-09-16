@@ -86,7 +86,7 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-15 | **A frase sob as sugestões deixa de falar de comissão.** Vira "Estas são as ofertas que a gente encontrou para os itens de vocês" — sem "as melhores", que seria afirmação de superioridade sem como provar (CDC, art. 37). A identificação obrigatória não estava nessa frase e continua onde estava: a palavra **Publicidade** em cada sugestão, lida junto com o preço | `(este commit)` |
 
 ---
-| 2026-09-16 | **A política para de negar a publicidade que o app já mostra.** A página dizia, publicada, *"Não há propaganda no app"* com a sugestão de afiliado na tela da jornada; `perfil/privacidade.tsx` prometia "Nada de propaganda de terceiro" sem dizer de quê. Seção nova declarando a comissão, que a busca roda no nosso banco, que a loja só sabe de alguém no clique, e que a ordem nunca é por comissão; a promessa do interruptor ficou restrita ao e-mail. Teste e2e que reprova se a frase antiga voltar, provado por sabotagem | `(este commit)` |
+| 2026-09-16 | **A política para de negar a publicidade que o app já mostra.** A página dizia, publicada, *"Não há propaganda no app"* com a sugestão de afiliado na tela da jornada; `perfil/privacidade.tsx` prometia "Nada de propaganda de terceiro" sem dizer de quê. Seção nova declarando a comissão, que a busca roda no nosso banco, que a loja só sabe de alguém no clique, e que a ordem nunca é por comissão; a promessa do interruptor ficou restrita ao e-mail. Teste e2e que reprova se a frase antiga voltar, provado por sabotagem | `3ce9a66` |
 
 ## Pendente
 
