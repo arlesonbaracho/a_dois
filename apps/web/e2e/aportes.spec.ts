@@ -94,7 +94,7 @@ test.describe("aportes e divisão", () => {
     await page.goto("/aportes");
 
     // Ponto, e não vírgula: o campo é <input type="number">, e o Chromium
-    // simplesmente RECUSA a vírgula ali dentro. paraCentavos sabe ler vírgula,
+    // simplesmente RECUSA a vírgula ali dentro. centavosDeTexto sabe ler vírgula,
     // mas o campo não deixa ela chegar — quem digita "1250,50", que é como se
     // escreve dinheiro em português, não consegue. Está em Dívidas.
     await page.getByLabel("Quanto (R$)").fill("1250.50");

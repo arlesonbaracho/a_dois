@@ -1,5 +1,6 @@
 export * from "./album";
 export * from "./album-ordem";
+export * from "./borda";
 export * from "./busca";
 export * from "./capa";
 export * from "./categorias";

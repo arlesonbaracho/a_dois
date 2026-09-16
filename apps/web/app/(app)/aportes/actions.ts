@@ -8,11 +8,16 @@ import {
   salvarRegraDoCasal,
   usuarioAtual,
 } from "@repo/api";
-import { type FaixaRenda, PESO_FAIXA, type RegraDivisao } from "@repo/core";
+import {
+  centavosDeTexto,
+  type FaixaRenda,
+  mensagemDoBanco,
+  paraInstante,
+  PESO_FAIXA,
+  type RegraDivisao,
+} from "@repo/core";
 
 import type { EstadoForm } from "@/components/form-ui";
-import { paraCentavos } from "@/lib/dinheiro";
-import { mensagemDoBanco } from "@/lib/erro";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 // Estreitam string solta em união, sem cast: PESO_FAIXA é a lista de faixas
@@ -27,7 +32,7 @@ function texto(form: FormData, campo: string): string {
 }
 
 function centavos(form: FormData, campo: string): number | null {
-  return paraCentavos(texto(form, campo));
+  return centavosDeTexto(texto(form, campo));
 }
 
 export async function acaoRegistrarAporte(
@@ -37,17 +42,13 @@ export async function acaoRegistrarAporte(
   const valor = centavos(form, "valor");
   if (valor === null) return { erro: "Escreva quanto você colocou, em reais." };
 
-  const quando = texto(form, "quando");
-
   const supabase = await criarClienteServidor();
 
   try {
     await registrarAporte(supabase, {
       goalId: texto(form, "meta"),
       valorCents: valor,
-      // Meio-dia em UTC: qualquer fuso do Brasil cai no mesmo dia que a pessoa
-      // escolheu no calendário, e nenhum aporte "anda" um dia para trás.
-      quandoISO: quando ? `${quando}T12:00:00Z` : undefined,
+      quandoISO: paraInstante(texto(form, "quando")) ?? undefined,
     });
   } catch (erro) {
     return { erro: mensagemDoBanco(erro, "Não consegui registrar agora. Tenta de novo?") };

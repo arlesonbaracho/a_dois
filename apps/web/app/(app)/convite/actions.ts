@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 
 import { reivindicarConvite, salvarPerfil, type ResultadoReivindicacao } from "@repo/api";
+import { mensagemDoBanco } from "@repo/core";
 
 import type { EstadoForm } from "@/components/form-ui";
-import { mensagemDoBanco } from "@/lib/erro";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 // Recusa e revogação chegam aqui como "indisponivel", igual a token inventado

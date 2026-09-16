@@ -14,9 +14,9 @@ import {
   type CanalConvite,
   type ResultadoCriacao,
 } from "@repo/api";
+import { mensagemDoBanco } from "@repo/core";
 
 import type { EstadoForm } from "@/components/form-ui";
-import { mensagemDoBanco } from "@/lib/erro";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 /** O link só existe nesta resposta: depois dela, o banco só tem o hash. */

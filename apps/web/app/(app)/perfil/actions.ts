@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import { excluirConta, sair, type ResultadoExclusao } from "@repo/api";
 import { salvarPerfil } from "@repo/api";
+import { mensagemDoBanco } from "@repo/core";
 
 import type { EstadoForm } from "@/components/form-ui";
-import { mensagemDoBanco } from "@/lib/erro";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 export async function acaoSalvarPerfil(

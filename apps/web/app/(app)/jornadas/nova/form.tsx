@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useCapas, useCasal, useCriarMeta, useEnviarCapa, useMeta } from "@repo/api";
 import {
   CATEGORIAS,
+  centavosDeTexto,
   cronograma,
   fimDoPrazo,
   formatBRL,
@@ -19,7 +20,6 @@ import { IconeAvancar, IconeFechar } from "@/components/icones";
 import { Chapa, Chip, Explica, Polaroide } from "@/components/pecas";
 import { marcarPrimeiraMeta } from "@/components/pwa";
 import { prepararCapa } from "@/lib/capa";
-import { paraCentavos } from "@/lib/dinheiro";
 
 /**
  * Criar uma jornada, em dois passos.
@@ -47,7 +47,7 @@ export function NovaJornada() {
   const [erro, setErro] = useState("");
   const [criada, setCriada] = useState<string | null>(null);
 
-  const alvoCents = paraCentavos(alvoTexto) ?? 0;
+  const alvoCents = centavosDeTexto(alvoTexto) ?? 0;
   const { metodo, periodos } = plano;
   const temPrazo = metodo.opcoes.length > 0;
 
@@ -64,7 +64,7 @@ export function NovaJornada() {
   async function criarJornada(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
-    const alvo = paraCentavos(alvoTexto);
+    const alvo = centavosDeTexto(alvoTexto);
     if (alvo === null || alvo <= 0) {
       setErro("Escreva quanto vocês querem juntar, em reais.");
       return;

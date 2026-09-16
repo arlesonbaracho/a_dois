@@ -23,10 +23,13 @@ import {
   useSalvarMeta,
 } from "@repo/api";
 import {
+  centavosDeTexto,
   coresDoCasal,
   formatBRL,
   iniciaisDoCasal,
   ordemEstavel,
+  paraCampoData,
+  paraInstante,
   parcelaMensalCents,
   progressoPercentual,
   CONVITE_DAS_OFERTAS,
@@ -54,7 +57,6 @@ import {
 import { Progresso, type Fatia } from "@/components/progresso";
 import { PrecoDoItem } from "@/components/preco-do-item";
 import { prepararCapa } from "@/lib/capa";
-import { paraCampoData, paraCentavos, paraInstante } from "@/lib/dinheiro";
 
 const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 /** "março de 2024" — a idade da jornada, dita como gente diz. */
@@ -245,7 +247,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
     const form = new FormData(evento.currentTarget);
     const campo = (nome: string) => String(form.get(nome) ?? "").trim();
 
-    const alvo = paraCentavos(campo("alvo"));
+    const alvo = centavosDeTexto(campo("alvo"));
     if (alvo === null) {
       setErro("Escreva quanto vocês querem juntar, em reais.");
       return;
@@ -273,7 +275,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
     await comErro(async () => {
       await criarItem.mutateAsync({
         nome: campo("nome"),
-        precoCents: paraCentavos(campo("preco")),
+        precoCents: centavosDeTexto(campo("preco")),
         // Sem campo de link: quem vai pôr o endereço da loja é a indicação de
         // afiliado, não o casal. A coluna continua, e é onde esse link entra.
         url: null,
@@ -286,7 +288,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
     evento.preventDefault();
     const formulario = evento.currentTarget;
     const form = new FormData(formulario);
-    const valor = paraCentavos(String(form.get("valor") ?? ""));
+    const valor = centavosDeTexto(String(form.get("valor") ?? ""));
 
     if (valor === null) {
       setErro("Escreva quanto você colocou, em reais.");
