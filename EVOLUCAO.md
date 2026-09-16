@@ -87,6 +87,8 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 
 ---
 | 2026-09-16 | **A política para de negar a publicidade que o app já mostra.** A página dizia, publicada, *"Não há propaganda no app"* com a sugestão de afiliado na tela da jornada; `perfil/privacidade.tsx` prometia "Nada de propaganda de terceiro" sem dizer de quê. Seção nova declarando a comissão, que a busca roda no nosso banco, que a loja só sabe de alguém no clique, e que a ordem nunca é por comissão; a promessa do interruptor ficou restrita ao e-mail. Teste e2e que reprova se a frase antiga voltar, provado por sabotagem | `3ce9a66` |
+| 2026-09-16 | **A borda do formulário sobe para o core.** `mensagemDoBanco`, `paraInstante` e `paraCampoData` vão de `apps/web/lib` para `packages/core/src/borda.ts`; `paraCentavos`, que era só apelido de `centavosDeTexto`, some; `dinheiro.ts` e `erro.ts` saem do web. A regra do meio-dia UTC deixa de ser reescrita à mão em `aportes/actions.ts`. Teste do filtro de erro (só P0001 chega à tela), provado quebrando | `511870e` |
+| 2026-09-16 | **Teste de fumaça, itens 7 e 8, em produção.** Depois de navegar por `/login`, `/privacidade`, `/cadastro` e `/recuperar-senha`, o Cache Storage tem **exatamente os 5 arquivos do shell** em `shell-v1`; sem rede, o reload cai em "Sem conexão". Limite honesto: sem conta, nenhuma página autenticada foi visitada — a garantia de que nada autenticado entra no cache continua vindo do código (`sw.js` só grava no `install`, com `addAll` do allowlist; não existe `put` em tempo de execução) | — |
 
 ## Pendente
 
@@ -152,7 +154,16 @@ valida em `scripts/ensaio-producao.sh`.
 - [x] **Site URL e Redirect URLs** apontando para o domínio `.vercel.app`.
 - [ ] **Redirect URL de recuperação**: falta acrescentar
       `https://a-dois-web.vercel.app/auth/confirm?type=recovery`.
-- [ ] **Teste de fumaça**, os 8 itens. Nenhum rodou ainda.
+- [ ] **Teste de fumaça**: 7 e 8 passaram em 2026-09-16. **Faltam 1 a 6**, e todos
+      precisam de conta real e caixa de e-mail — ficam com você.
+- [ ] **As 4 migrations pendentes, retidas em 2026-09-16.** O pré-voo passou
+      (nenhum código lê `couple_members.split_rule`, `set_consent` mantém a
+      assinatura, a constraint se autovalida). O que travou foi o backup: o
+      runbook exige `supabase db dump` antes de qualquer migration depois do
+      lançamento, e o dump de dados de produção não é coisa para o assistente
+      rodar. Sequência, na sua máquina: dump de esquema e de dados guardado
+      fora do repositório → `npx supabase db push` → `migration list --linked`
+      mostrando 19/19 → `git push origin main`.
 - [ ] **SMTP próprio**, com SPF, DKIM e DMARC. Segue de pé, e agora vale dobrado —
       ver a decisão sobre template de e-mail abaixo.
 
@@ -223,6 +234,7 @@ Decisão técnica relevante, com o motivo em uma linha. Serve para o "por que di
 | — | Web-first como PWA, Expo na fase 2 | Validar com casais reais sem review de loja |
 | — | Monorepo com `core` em TS puro | Portar para Expo sem reescrever a lógica |
 | — | Banco em `sa-east-1` | Evita o capítulo de transferência internacional da LGPD |
+| 2026-09-16 | Na fase 2, o duotone do `Chapa` vira `RadialGradient` do `react-native-svg`, e as listras de `progresso.tsx`/`esqueleto.tsx` viram `Pattern` rotacionado. O web não muda agora | O CSS traduz 1:1 (`radial-gradient(120% 100% at 20% 12%)` = `cx=0.2 cy=0.12 rx=1.2 ry=1` em `objectBoundingBox`), e o `react-native-svg` já entra pelos ícones — nenhuma dependência a mais. Tirar as cores para dado compartilhado hoje teria um consumidor só |
 | — | Dinheiro em centavos como inteiro | Ponto flutuante em app de casal vira discussão |
 | 2026-09-09 | Import por nome de workspace (`@repo/core`), não path alias `@core/*` | Alias exigiria espelhar config no Next, no Vitest e no Metro; nome de workspace resolve sozinho nos três |
 | 2026-09-09 | Escopo `@repo/*` nos pacotes | Nome do app é provisório; evita renomear pacote junto com a marca |
@@ -465,8 +477,8 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
-| `apps/web/components/pecas.tsx` × fase 2 | **`Chapa` desenha com `radial-gradient` dentro de `style={{ backgroundImage }}` — React Native não tem nenhum dos dois.** São os seis duotones de categoria, o miolo da identidade v2, e aparecem em toda polaroide, cartão e linha de oferta. `expo-linear-gradient` só faz linear; o caminho é `react-native-svg` com `radialGradient`. **É maior que a dívida do NativeWind, e foi descoberto só em 2026-09-16.** A boa notícia ao lado: os ícones de `icones.tsx` são `circle`/`path` escritos à mão e portam quase literalmente | **Alta** |
-| `apps/web/lib` × fase 2 | `mensagemDoBanco` (`erro.ts`, lógica pura) e a regra do meio-dia UTC (`dinheiro.ts:17`) moram no `apps/web` e serão reimplementadas no Expo. A do meio-dia **já está duplicada hoje**: `aportes/actions.ts:48` escreve `${quando}T12:00:00Z` na mão em vez de chamar `paraInstante`. ~30 linhas para mover ao `core` | Média |
+| `apps/web/components/pecas.tsx` × fase 2 | `Chapa` desenha com `radial-gradient` em `style={{ backgroundImage }}`, e `progresso.tsx:55`/`esqueleto.tsx:19` com `repeating-linear-gradient` em classe arbitrária (contra a regra 8 de portabilidade). React Native não tem nenhum dos dois. **Caminho decidido em 2026-09-16** (ver Decisões): `RadialGradient` e `Pattern` do `react-native-svg`, tradução 1:1, sem dependência a mais. Registrada como Alta no mesmo dia, antes de a tradução ser conferida — é trabalho mecânico, não bloqueador | Média |
+| ~~`apps/web/lib` × fase 2~~ | **Fechada em 2026-09-16** (`511870e`): a borda foi para `packages/core/src/borda.ts` | — |
 | `apps/web/app/globals.css` × fase 2 | A dívida do Tailwind 4 `@theme` × NativeWind agora pesa mais: o tema inteiro (paleta, tipografia, raios, sombras) mora num bloco que o NativeWind estável não lê. As telas portam; o tema é reescrito | Média |
 | ~~tela "Nova jornada"~~ | **Fechada em 2026-09-13.** A tela em dois passos existe em `/jornadas/nova`, com chips, deslizante, prazo em pílulas e o checklist do passo 2 | — |
 | dock no desktop | O trilho da esquerda é uma pílula de 3 discos mais o botão verde, flutuando sozinha numa faixa de 6rem. Funciona e é o mesmo dock deitado, mas lê como peça solta, não como barra | Baixa |
