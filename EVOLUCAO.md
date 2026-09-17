@@ -123,6 +123,8 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 | Repositório (`supabase/migrations/`) | **19** | `20260914210000_ofertas_de_parceiro` |
 | Produção (`qysekkewsrwtebpiowim`) | **15** | `20260912042341_minha_linha_so_minha` |
 
+> **Web em `bcf8c47` desde 2026-09-16** (mundo v3, política com a comissão). As migrations abaixo continuam pendentes — o v3 não depende de nenhuma delas.
+>
 > **A ordem mudou em 2026-09-16.** O `9fa8a74` (vitrine de afiliado) **já
 > está no `origin/main`**, contra um banco sem a tabela `offers`. Não quebra
 > tela — `detalhe.tsx:762` cai em `return null` — mas é a armadilha 9 já
