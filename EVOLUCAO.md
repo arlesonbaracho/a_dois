@@ -121,32 +121,27 @@ diverge. Atualize as duas linhas ao criar migration e ao rodar `db push`.
 | Onde | Quantas | Última |
 |---|---|---|
 | Repositório (`supabase/migrations/`) | **19** | `20260914210000_ofertas_de_parceiro` |
-| Produção (`qysekkewsrwtebpiowim`) | **15** | `20260912042341_minha_linha_so_minha` |
+| Produção (`qysekkewsrwtebpiowim`) | **19** | `20260914210000_ofertas_de_parceiro` |
 
-> **Web em `bcf8c47` desde 2026-09-16** (mundo v3, política com a comissão). As migrations abaixo continuam pendentes — o v3 não depende de nenhuma delas.
+> **Em dia desde 2026-09-17.** As quatro pendentes subiram de uma vez, com
+> backup antes (esquema e dados em `~/backup-a-dois/`, fora do repositório).
+> Web em `bcf8c47` desde 2026-09-16 (mundo v3, política com a comissão).
 >
-> **A ordem mudou em 2026-09-16.** O `9fa8a74` (vitrine de afiliado) **já
-> está no `origin/main`**, contra um banco sem a tabela `offers`. Não quebra
-> tela — `detalhe.tsx:762` cai em `return null` — mas é a armadilha 9 já
-> acionada, com a feature morta em produção. O efeito colateral é que as
-> frases da política sobre propaganda continuavam **verdade** lá, e virariam
-> mentira no instante do push. Por isso o texto foi corrigido **antes**
-> (2026-09-16). Agora o push está liberado.
-
-**Quatro pendentes em 2026-09-14:** a destrutiva retida, a `lgpd_revogar_e_reter` (veio do merge), a `ofertas_de_parceiro` e a `link_de_item_so_http`, que **fecha um buraco em produção** e deve subir na frente de todas. As quatro anteriores subiram pelo
-`scripts/subir-producao.sh`, e o web foi para `2578b5e` na sequência.
-Conferido por `supabase migration list --linked`.
-
-**Falta uma, de propósito:** `20260912150948_regra_do_casal_contrai`, a única
-destrutiva do lote — ela apaga `couple_members.split_rule`. Ficou retida
-enquanto o web antigo estava no ar, e **agora já pode subir**, porque o web
-publicado lê a regra de `couples`.
-
-Foi separá-la que tirou a janela coordenada: enquanto as duas colunas
-convivem, o web antigo lê `couple_members.split_rule` e o novo lê
-`couples.split_rule`, os dois contra o mesmo banco. Aplicada cedo ela não
-derrubaria a tela antiga — faria pior, `regraDoCasal` cairia no `?? "igual"`
-e **todo casal apareceria dividindo meio a meio**, em silêncio.
+> **Produção estava vazia**: zero casais, membros, jornadas, itens e aportes —
+> o que tornou a destrutiva (`regra_do_casal_contrai`, que apaga
+> `couple_members.split_rule`) inofensiva e a validação da trava de link
+> impossível de reprovar. É a mesma razão de o teste de fumaça seguir na fila:
+> ninguém usou o app em produção ainda.
+>
+> Conferido no esquema do banco depois do push, uma por uma: trava
+> `goal_items_url_http` (o XSS que estava aberto em produção **fechou**),
+> tabela `offers` com a policy de vigência e as escritas negadas,
+> `couple_members.split_rule` fora e `couples.split_rule` no lugar,
+> `contributions_update` conferindo o dono do aporte, revogação da faixa
+> apagando o dado, e o expurgo de cotação com 180 dias.
+>
+> `scripts/subir-producao.sh` existia para segurar a destrutiva enquanto o web
+> antigo estava no ar. Cumpriu o papel e agora é código morto — dá para apagar.
 
 O runbook está em `relatorios/subir-pendentes-2026-09-12.md` e o ensaio que o
 valida em `scripts/ensaio-producao.sh`.
