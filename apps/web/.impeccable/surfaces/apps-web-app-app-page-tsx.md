@@ -2,30 +2,26 @@
 version: 1
 slug: "apps-web-app-app-page-tsx"
 primary_target: "apps/web/app/(app)/page.tsx"
-related_targets: ["apps/web/app/(app)/metas/lista.tsx","apps/web/app/(app)/metas/[id]/detalhe.tsx","apps/web/app/(app)/parceiro/form.tsx","apps/web/components/form-ui.tsx"]
+related_targets: ["apps/web/app/(app)/inicio.tsx","apps/web/app/(app)/jornadas/[id]/detalhe.tsx","apps/web/app/(app)/aportes/page.tsx","apps/web/app/(app)/aportes/novo/anotar.tsx","apps/web/components/pecas.tsx","apps/web/components/form-ui.tsx","apps/web/components/dock.tsx"]
 ---
 
-Escopo: o app inteiro (mundo visual novo, substituindo o stone/orange sem design).
-Modo: Operate — duas pessoas completando uma tarefa de dinheiro, no celular, fora do horário de trabalho.
+Escopo: o app inteiro — mundo visual v3, substituindo o álbum verde/marrom do v2. Nesta rodada, só o protótipo para aprovação; a implementação espera o "sim" do autor.
+Modo: Operate — duas pessoas anotando e acompanhando dinheiro a dois, no celular, fora do horário de trabalho.
 
 Público e tarefa: casal brasileiro, dois membros no máximo. Anotar aporte, ver quanto já juntaram, decidir o que comprar, confirmar quem entra no plano.
 
-Restrições: rótulo e nome acessível são contrato (121 de 146 seletores e2e ancoram em role/label). `role="progressbar"` e `role="status"` não regridem. Sem dado pessoal novo. Sem dependência nova sem autorização.
+Restrições: rótulo e nome acessível são contrato da suíte e2e. `role="progressbar"` e `role="status"` não regridem. Sem dado pessoal novo. Arte 3D é Fluent Emoji (MIT), baixada com autorização. Referência fixada pelo autor: vídeo `1a9e0df3f9c7d7552af69a4affe1a043.mp4` ("Courses") — fica "bem próximo do vídeo".
 
 ## Direction contract
 
-THESIS: O plano de um casal é um **álbum**, não um extrato. Esta superfície recusa o arranjo padrão da categoria financeira — grade de cartões iguais, gráfico no topo, saldo em número grande cinza, ícone genérico em tile — e no lugar dela põe fotos tortas sobre papel, onde cada jornada é um objeto que se pega. O dinheiro aparece como fato guardado, nunca como métrica.
+THESIS: A jornada do casal é uma **carta de um deck**, não uma linha de extrato — e cada aporte vira um **comprovante** que se guarda. Recusa o saldo gigante com gráfico do banco digital e também o álbum de polaroide que o v2 foi.
 
-OWN-WORLD: Papel creme #F7F0E1 de borda a borda; tinta quase preta #16170F; limão #D8F26B como acento único, nunca fundo de página. A peça-assinatura é a polaroide: cartão branco girado 1–2°, raio 6px, sombra 0 10px 20px rgb(22 23 15/.1). Todo controle é pílula de 99px. Progresso é bicolor por pessoa (#14B88C / #F3B63F), nunca preenchimento único. Outfit carrega estrutura e número (700–800, tracking −.02 a −.04em); Manrope carrega tudo que é dito em voz humana. O cartão escuro #16170F é reservado ao único momento que concede acesso: o pedido do parceiro.
+OWN-WORLD: As nove cores da marca e nenhuma outra: papel #FDFBF7 de fundo, peça que se pega em branco, tinta #070001 como estrutura e ação, verde #33605A e marrom #68462B como as duas pessoas, creme #E9E0D1 só sobre escuro, sálvia #91A398 de apoio e nunca texto, suave #5F6F68 no texto de apoio, areia #F1EAE0 de superfície, cinza #B3AB9C para ex-membro. Campo de categoria e contorno de campo são mistura de uma das nove com branco (o contorno é suave a 75%, 3.18:1). Única cor fora das nove: o vermelho de erro/destruição (#8a3a2a sobre #f4e6df), que é estado, não marca — quem vai perder dado precisa reconhecer o perigo. Lexend numa voz só, larga, 500 em título. Carta de raio 32 com arte 3D em cima e legenda branca embaixo, disco de tinta no vinco. Chips em pílula com contador em areia; botões e navegação em círculos separados.
 
-STORY: Ela abre e vê, em um viewport, o que os dois estão construindo e quanto já é real. Acredita porque o número está sobre as fotos das próprias metas, não numa caixa de dashboard. Age anotando um aporte pelo botão preto do dock, ou abrindo uma jornada para marcar um item comprado.
+STORY: Ela abre, vê a jornada da frente e quanto falta, arrasta para a próxima. Anota um aporte num teclado grande e recebe o comprovante. Acredita porque, quando entra aporte, moedas de R$ 1 caem sobre a tela e o total rola ao recebê-las.
 
-FIRST VIEWPORT (mobile, 390px): saudação em Manrope com o mês em negrito ao lado, iniciais do casal em disco preto à direita. Abaixo, faixa rolável de chips de categoria com contagem. Então a pílula preta larga, total em limão, largura total. Então a grade de polaroides em duas colunas de alturas desiguais, giradas em sentidos opostos, com o cartão limão "este mês" ancorando a coluna direita. Dock fixo no rodapé: pílula branca com dois destinos e, separado, o disco preto com "+" em limão — a ação primária.
+FIRST VIEWPORT (390px): "oi, Lucas e Ana" com sino e avatar do casal em círculos; título "Nossa jornada"; chips de categoria com contador; o deck ocupando o centro com duas camadas pastel atrás; navegação em três círculos e o disco preto de anotar aporte à direita.
 
-FIRST VIEWPORT (desktop, ≥1024px): o mesmo álbum, aberto sobre a mesa em vez de na mão. O dock vira trilho vertical à esquerda, mesma pílula, mesmo disco preto. As polaroides espalham em três colunas; o total e o "este mês" sobem para uma coluna à direita. Medida de texto presa em 65–75ch para o corpo não esticar. Nada de layout novo: é o mesmo mundo em outra distância.
-
-FORM: Direção **fixada pelo brief**, não sorteada. O autor do produto entregou `A DOIS - Jornada.dc.html` com paleta, tipografia, raios, sombras e quatro telas completas; o playbook manda o pin vencer o roll, então nenhum `concept-seed` rodou e não há seed key. Duas notas de calibração assumidas de olhos abertos: Outfit está na lista de faces-padrão do skill, e "fundo creme quente" é o clichê nº 1 de interface gerada — os dois vêm do brief, e o brief vence. O desktop é a única metade derivada por mim, porque o design só desenhou o celular.
-
-Interação-assinatura (o code-led carrega a ambição aqui): marcar um item como comprado endireita a polaroide — a rotação vai a 0° e a etiqueta vira pílula preta com o texto em limão. É o gesto de "colar no álbum", e é o único momento de movimento autoral da superfície.
+FORM: Direção 3 da lista (Comprovante), fundida com a referência fixada; seed key a5fdb515. Elevações: total que rola dígito a dígito (painel), carta da frente é a prioridade (cracktro), marca de estado em célula fixa (horários), um gesto por transformação com resistência (capa), pastel só nas bordas (nuvem).
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "apps/web/components/pecas.tsx"
+        ],
+        "createdAt": "2026-09-17T01:52:03.575Z",
+        "reason": "falso positivo: <img src={capaUrl}> é URL assinada do Storage em tempo de execução, e só renderiza dentro de capaUrl ? ...; a leitura estática não vê o valor"
+      }
+    ]
+  }
+}

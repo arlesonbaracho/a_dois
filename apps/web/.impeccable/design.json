@@ -1,0 +1,490 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-16T00:00:00Z",
+  "title": "Design System: Jornada (v3)",
+  "extensions": {
+    "colorMeta": {
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel Quente",
+        "canonical": "#fdfbf7",
+        "tonalRamp": [
+          "#3d2e0f",
+          "#6e531c",
+          "#9f7728",
+          "#cd9b37",
+          "#d9b468",
+          "#e6cc99",
+          "#f1e2c6",
+          "#faf5eb"
+        ]
+      },
+      "tinta": {
+        "role": "primary",
+        "displayName": "Tinta Quase Preta",
+        "canonical": "#070001",
+        "tonalRamp": [
+          "#4c000b",
+          "#8a0014",
+          "#c7001c",
+          "#ff0529",
+          "#ff425d",
+          "#ff8092",
+          "#ffb8c2",
+          "#ffe5e9"
+        ]
+      },
+      "verde": {
+        "role": "secondary",
+        "displayName": "Verde de Pessoa",
+        "canonical": "#33605a",
+        "tonalRamp": [
+          "#1b322f",
+          "#305a54",
+          "#45827a",
+          "#5ca89e",
+          "#84beb6",
+          "#acd3ce",
+          "#d0e6e3",
+          "#eef6f5"
+        ]
+      },
+      "marrom": {
+        "role": "secondary",
+        "displayName": "Marrom de Pessoa",
+        "canonical": "#68462b",
+        "tonalRamp": [
+          "#362416",
+          "#614228",
+          "#8d5f3a",
+          "#b67c4e",
+          "#c89c79",
+          "#dabca5",
+          "#eadacc",
+          "#f8f2ed"
+        ]
+      },
+      "creme": {
+        "role": "neutral",
+        "displayName": "Creme Sobre o Escuro",
+        "canonical": "#e9e0d1",
+        "tonalRamp": [
+          "#342a19",
+          "#5d4b2d",
+          "#876c40",
+          "#ae8d56",
+          "#c2a97f",
+          "#d6c5a9",
+          "#e8decf",
+          "#f7f3ee"
+        ]
+      },
+      "salvia": {
+        "role": "neutral",
+        "displayName": "Sálvia de Aviso",
+        "canonical": "#91a398",
+        "tonalRamp": [
+          "#232a25",
+          "#3f4b43",
+          "#5b6c61",
+          "#778d80",
+          "#98a99f",
+          "#bac5be",
+          "#d8dedb",
+          "#f1f3f2"
+        ]
+      },
+      "suave": {
+        "role": "neutral",
+        "displayName": "Suave de Apoio",
+        "canonical": "#5f6f68",
+        "tonalRamp": [
+          "#232927",
+          "#404a46",
+          "#5c6b64",
+          "#788c83",
+          "#99a8a2",
+          "#bac4c0",
+          "#d9dedc",
+          "#f1f3f2"
+        ]
+      },
+      "areia": {
+        "role": "neutral",
+        "displayName": "Areia",
+        "canonical": "#f1eae0",
+        "tonalRamp": [
+          "#352918",
+          "#5f492b",
+          "#896a3e",
+          "#b18a53",
+          "#c4a77d",
+          "#d7c3a7",
+          "#e9dece",
+          "#f7f3ed"
+        ]
+      },
+      "cinza": {
+        "role": "neutral",
+        "displayName": "Cinza de Quem Saiu",
+        "canonical": "#b3ab9c",
+        "tonalRamp": [
+          "#2b2821",
+          "#4e483c",
+          "#716756",
+          "#928772",
+          "#ada494",
+          "#c8c2b7",
+          "#e0ddd7",
+          "#f4f3f1"
+        ]
+      },
+      "contorno": {
+        "role": "neutral",
+        "displayName": "Contorno de Controle",
+        "canonical": "#87938e",
+        "tonalRamp": [
+          "#242827",
+          "#414845",
+          "#5e6964",
+          "#7b8983",
+          "#9ca6a1",
+          "#bcc3c0",
+          "#d9dddc",
+          "#f2f3f2"
+        ]
+      },
+      "alerta": {
+        "role": "error",
+        "displayName": "Alerta",
+        "canonical": "#8a3a2a",
+        "tonalRamp": [
+          "#3b1912",
+          "#6a2c20",
+          "#98402e",
+          "#c5563f",
+          "#d37f6e",
+          "#e1a99d",
+          "#eecfc8",
+          "#f9eeeb"
+        ]
+      },
+      "alerta-suave": {
+        "role": "error",
+        "displayName": "Alerta Suave",
+        "canonical": "#f4e6df",
+        "tonalRamp": [
+          "#392014",
+          "#663a23",
+          "#945333",
+          "#bf6e45",
+          "#cf9173",
+          "#deb5a0",
+          "#edd5ca",
+          "#f8f0ec"
+        ]
+      },
+      "campo-casa": {
+        "role": "tertiary",
+        "displayName": "Campo casa",
+        "canonical": "color-mix(in srgb, #91a398 55%, white)"
+      },
+      "campo-viagem": {
+        "role": "tertiary",
+        "displayName": "Campo viagem",
+        "canonical": "color-mix(in srgb, #68462b 30%, white)"
+      },
+      "campo-reserva": {
+        "role": "tertiary",
+        "displayName": "Campo reserva",
+        "canonical": "color-mix(in srgb, #33605a 30%, white)"
+      },
+      "campo-bebe": {
+        "role": "tertiary",
+        "displayName": "Campo bebe",
+        "canonical": "color-mix(in srgb, #b3ab9c 55%, white)"
+      }
+    },
+    "typographyMeta": {
+      "numero": {
+        "displayName": "Número",
+        "purpose": "Valor no teclado de anotar (52px); 44px no comprovante."
+      },
+      "display": {
+        "displayName": "Display",
+        "purpose": "Título de tela de primeiro nível."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Título de jornada aberta e jornada nova."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Título na legenda da carta."
+      },
+      "secao": {
+        "displayName": "Seção",
+        "purpose": "h2 de bloco via Secao."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Explicação, chip, recado."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Rótulo de campo, em suave."
+      },
+      "legenda": {
+        "displayName": "Legenda",
+        "purpose": "Data, contador, etiqueta, nota."
+      }
+    },
+    "shadows": [
+      {
+        "name": "carta",
+        "value": "0 18px 40px rgb(7 0 1 / 0.08)",
+        "purpose": "Carta do deck, carta da jornada nova, comprovante, leque da porta."
+      },
+      {
+        "name": "peca",
+        "value": "0 14px 30px rgb(7 0 1 / 0.08)",
+        "purpose": "Aviso flutuante de instalar o PWA."
+      },
+      {
+        "name": "disco",
+        "value": "0 8px 18px rgb(7 0 1 / 0.24)",
+        "purpose": "Disco de ação do dock e disco de seta da carta."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-jornada",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Curva de todo movimento autoral."
+      },
+      {
+        "name": "deck-giro",
+        "value": "5000ms",
+        "purpose": "Intervalo do giro automático; para de vez ao arrastar ou usar setas, pausa com foco."
+      },
+      {
+        "name": "deck-arremesso",
+        "value": "360ms",
+        "purpose": "Carta sai da frente; limiar 90px, resistência a 40% após 110px, retorno em 420ms."
+      },
+      {
+        "name": "deck-camada",
+        "value": "translateY(17px) scale(-0.045) rotate(indice) por camada",
+        "purpose": "Até duas cartas atrás, no campo da categoria."
+      },
+      {
+        "name": "crescer",
+        "value": "900ms",
+        "purpose": "Barra cresce da esquerda a cada valor novo."
+      },
+      {
+        "name": "chuva",
+        "value": "cair 1100-1800ms, girar-moeda 380-800ms, 16 moedas, 2700ms total",
+        "purpose": "Aporte novo; não dispara com prefers-reduced-motion."
+      },
+      {
+        "name": "odometro",
+        "value": "900ms com 900ms de atraso",
+        "purpose": "Total do mês rola quando as moedas chegam; cartão pulsa (receber, 550ms)."
+      },
+      {
+        "name": "subir + encaixar",
+        "value": "700ms; 650ms com 180ms de atraso",
+        "purpose": "Comprovante sobe e o selo encaixa."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation/transition 1ms",
+        "purpose": "Para o movimento, não a mudança de conteúdo."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão primário",
+      "kind": "button",
+      "refersTo": "botao-primario",
+      "description": "Ação principal: Enviar, Anotar, Pronto.",
+      "html": "<button class=\"ds-btn-primario\">Anotar R$ 250,00</button>",
+      "css": ".ds-btn-primario{font-family:Lexend,ui-sans-serif,system-ui,sans-serif;height:56px;padding:0 24px;border:none;border-radius:9999px;background:#070001;color:#e9e0d1;font-size:16px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .15s}.ds-btn-primario:hover{opacity:.9}.ds-btn-primario:active{transform:scale(.98)}.ds-btn-primario:focus-visible{outline:2px solid #070001;outline-offset:3px}"
+    },
+    {
+      "name": "Botão secundário",
+      "kind": "button",
+      "refersTo": "botao-secundario",
+      "description": "Mesma pílula, contorno em vez de peso.",
+      "html": "<button class=\"ds-btn-secundario\">Ver todas</button>",
+      "css": ".ds-btn-secundario{font-family:Lexend,ui-sans-serif,system-ui,sans-serif;height:44px;padding:0 20px;border:1px solid #87938e;border-radius:9999px;background:#fff;color:#070001;font-size:14px;cursor:pointer;transition:background-color .15s,transform .15s}.ds-btn-secundario:hover{background:#f1eae0}.ds-btn-secundario:active{transform:scale(.97)}.ds-btn-secundario:focus-visible{outline:2px solid #070001;outline-offset:3px}"
+    },
+    {
+      "name": "Botão de perigo",
+      "kind": "button",
+      "refersTo": "botao-perigo",
+      "description": "Apagar e sair: contorno de alerta, nunca preenchido fora da confirmação final.",
+      "html": "<button class=\"ds-btn-perigo\">Apagar jornada</button>",
+      "css": ".ds-btn-perigo{font-family:Lexend,ui-sans-serif,system-ui,sans-serif;height:44px;padding:0 20px;border:1px solid rgb(138 58 42/.5);border-radius:9999px;background:transparent;color:#8a3a2a;font-size:14px;cursor:pointer;transition:background-color .15s}.ds-btn-perigo:hover{background:#f4e6df}.ds-btn-perigo:focus-visible{outline:2px solid #070001;outline-offset:3px}"
+    },
+    {
+      "name": "Chips com contador",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filtro de categoria da home; ativo em tinta.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-ativo\" aria-pressed=\"true\">Tudo <span class=\"ds-chip-n\">4</span></button><button class=\"ds-chip\" aria-pressed=\"false\">Reserva <span class=\"ds-chip-n\">1</span></button></div>",
+      "css": ".ds-chips{display:flex;gap:8px}.ds-chip{font-family:Lexend,ui-sans-serif,system-ui,sans-serif;display:flex;align-items:center;gap:8px;height:40px;padding:0 8px 0 16px;border:1px solid #f1eae0;border-radius:9999px;background:#fff;color:#070001;font-size:14px;cursor:pointer;transition:background-color .15s,transform .15s}.ds-chip:hover{background:#f1eae0}.ds-chip:active{transform:scale(.95)}.ds-chip:focus-visible{outline:2px solid #070001;outline-offset:3px}.ds-chip-n{display:grid;place-items:center;height:26px;min-width:26px;padding:0 6px;border-radius:9999px;background:#f1eae0;color:#070001;font-size:12px;font-variant-numeric:tabular-nums}.ds-chip-ativo,.ds-chip-ativo:hover{background:#070001;border-color:#070001;color:#e9e0d1}.ds-chip-ativo .ds-chip-n{background:rgb(233 224 209/.2);color:#e9e0d1}"
+    },
+    {
+      "name": "Campo",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Campo de formulário com rótulo em suave.",
+      "html": "<label class=\"ds-campo\"><span>E-mail</span><input placeholder=\"voce@exemplo.com\"></label>",
+      "css": ".ds-campo{display:flex;flex-direction:column;gap:6px;font-family:Lexend,ui-sans-serif,system-ui,sans-serif}.ds-campo span{font-size:13px;color:#5f6f68}.ds-campo input{height:52px;padding:0 16px;border:1px solid #87938e;border-radius:20px;background:#fff;color:#070001;font:inherit;font-size:16px;outline:none;transition:border-color .15s,box-shadow .15s}.ds-campo input::placeholder{color:#5f6f68}.ds-campo input:focus{border-color:#070001;box-shadow:0 0 0 3px #f1eae0}"
+    },
+    {
+      "name": "Dock",
+      "kind": "nav",
+      "refersTo": "dock-destino",
+      "description": "Círculos soltos e o disco de ação separado.",
+      "html": "<nav class=\"ds-dock\"><div class=\"ds-dock-grupo\"><a class=\"ds-dock-item ds-dock-ativo\" aria-current=\"page\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z\"/></svg></a><a class=\"ds-dock-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><rect x=\"6\" y=\"4\" width=\"12\" height=\"13\" rx=\"3\"/><path d=\"M5 20h14\"/></svg></a><a class=\"ds-dock-item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M5 20c1-4 4-6 7-6s6 2 7 6\"/></svg></a></div><a class=\"ds-dock-acao\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></a></nav>",
+      "css": ".ds-dock{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px;background:#fdfbf7}.ds-dock-grupo{display:flex;gap:8px}.ds-dock-item{display:grid;place-items:center;width:56px;height:56px;border:1px solid #f1eae0;border-radius:9999px;background:#fff;color:#070001;transition:background-color .15s,transform .15s}.ds-dock-item:hover{background:#f1eae0}.ds-dock-item:active{transform:scale(.9)}.ds-dock-ativo,.ds-dock-ativo:hover{background:#070001;border-color:#070001;color:#e9e0d1}.ds-dock-acao{display:grid;place-items:center;width:56px;height:56px;border-radius:9999px;background:#070001;color:#e9e0d1;box-shadow:0 8px 18px rgb(7 0 1/.24);transition:transform .15s}.ds-dock-acao:hover{transform:scale(1.05)}.ds-dock-item:focus-visible,.ds-dock-acao:focus-visible{outline:2px solid #070001;outline-offset:3px}"
+    },
+    {
+      "name": "Carta do deck",
+      "kind": "card",
+      "refersTo": "carta",
+      "description": "A peça-assinatura: arte no campo da categoria, disco no vinco, barra bicolor por pessoa.",
+      "html": "<a class=\"ds-carta\" href=\"#\"><div class=\"ds-carta-chapa\"><span class=\"ds-pill ds-cat\">Reserva</span><span class=\"ds-pill ds-pct\">81%</span><div class=\"ds-arte\"></div><span class=\"ds-disco\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"m9 6 6 6-6 6\"/></svg></span></div><div class=\"ds-carta-legenda\"><h2>Reserva de emergência</h2><p>Faltam R$ 1.900,00</p><div class=\"ds-barra\"><i style=\"width:45%;background:#33605a\"></i><i style=\"width:36%;background:#68462b\"></i></div></div></a>",
+      "css": ".ds-carta{display:block;max-width:340px;padding:10px;border-radius:32px;background:#fff;box-shadow:0 18px 40px rgb(7 0 1/.08);color:#070001;text-decoration:none;font-family:Lexend,ui-sans-serif,system-ui,sans-serif}.ds-carta-chapa{position:relative;height:220px;border-radius:24px;background:color-mix(in srgb,#33605a 30%,white);display:grid;place-items:center}.ds-arte{width:96px;height:96px;border-radius:9999px;background:radial-gradient(circle at 35% 30%,#ffe08a,#f0a33c);filter:drop-shadow(0 16px 20px rgb(7 0 1/.14))}.ds-pill{position:absolute;top:14px;padding:6px 12px;border-radius:9999px;background:#fff;font-size:13px}.ds-cat{left:14px;color:#5f6f68}.ds-pct{right:14px;font-weight:500;font-variant-numeric:tabular-nums}.ds-disco{position:absolute;right:12px;bottom:-28px;display:grid;place-items:center;width:56px;height:56px;border-radius:9999px;background:#070001;color:#e9e0d1;box-shadow:0 8px 18px rgb(7 0 1/.24);transition:transform .15s}.ds-carta:hover .ds-disco{transform:scale(1.05)}.ds-carta:focus-visible{outline:2px solid #070001;outline-offset:3px}.ds-carta-legenda{padding:16px}.ds-carta-legenda h2{margin:0;padding-right:64px;font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.25}.ds-carta-legenda p{margin:4px 0 12px;font-size:14px;color:#5f6f68}.ds-barra{display:flex;gap:2px;height:8px;border-radius:9999px;background:#f1eae0;overflow:hidden}.ds-barra i{display:block;height:100%;border-radius:9999px}"
+    },
+    {
+      "name": "Comprovante",
+      "kind": "custom",
+      "refersTo": "carta",
+      "description": "O recibo de um aporte anotado, com picote.",
+      "html": "<div class=\"ds-fundo\"><section class=\"ds-recibo\"><h2>Anotado!</h2><p class=\"ds-valor\">R$ 250,00</p><p class=\"ds-para\">para Viagem a Lisboa</p><div class=\"ds-picote\"><span></span><span></span><i></i></div><dl><div><dt>Quem colocou</dt><dd>Ana</dd></div><div><dt>Código</dt><dd>JRN-3F2A</dd></div></dl><p class=\"ds-nota\">Comprovante de anotação. Nenhum dinheiro foi transferido.</p></section></div>",
+      "css": ".ds-fundo{background:#f1eae0;padding:20px;font-family:Lexend,ui-sans-serif,system-ui,sans-serif}.ds-recibo{max-width:340px;margin:0 auto;padding:24px 20px 20px;border-radius:32px;background:#fff;box-shadow:0 18px 40px rgb(7 0 1/.08);text-align:center;color:#070001}.ds-recibo h2{margin:0;font-size:20px;font-weight:500}.ds-valor{margin:6px 0 0;font-size:44px;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.ds-para,.ds-recibo dt{color:#5f6f68;font-size:14px;margin:0}.ds-picote{position:relative;height:36px;margin:16px -20px}.ds-picote span{position:absolute;top:4px;width:28px;height:28px;border-radius:9999px;background:#f1eae0}.ds-picote span:first-child{left:-14px}.ds-picote span:nth-child(2){right:-14px}.ds-picote i{position:absolute;left:24px;right:24px;top:18px;border-top:2px dashed rgb(179 171 156/.6)}.ds-recibo dl{margin:0;text-align:left}.ds-recibo dl div{display:flex;justify-content:space-between;padding:8px 0;font-size:14px}.ds-recibo dd{margin:0;font-weight:500}.ds-nota{margin:12px 0 0;font-size:12px;color:#5f6f68}"
+    }
+  ],
+  "narrative": {
+    "northStar": "A carta e o comprovante",
+    "overview": "A jornada do casal é uma **carta de um deck**, não uma linha de extrato, e cada\naporte vira um **comprovante** que se guarda. A home mostra a carta da frente\ncom duas camadas em pastel atrás; a pessoa arrasta para a próxima. Anotar é um\nteclado grande que termina num recibo com picote. Quando entra dinheiro, moedas\nde R$ 1 caem sobre a tela e o total do mês rola dígito a dígito ao recebê-las.\n\nO mundo recusa o saldo gigante com gráfico do banco digital. É claro, largo e\ntátil: papel quase branco, peças brancas que se pegam, tinta quase preta para\nestrutura e ação, arte 3D de categoria no lugar de ícone de meta. O app se\ncompromete com o claro (`color-scheme: light`); não existe paleta escura\ndesenhada.\n\n**O mundo substituído.** O v2 (\"A foto é o conteúdo\") era um álbum:\nOutfit para estrutura e Manrope para a voz, polaroides tortas, chapas em\ngradiente com marca desenhada à mão, e verde `#33605a` como cor de ação além de\nprimeira pessoa. O v3 troca o álbum pelo deck, as duas faces por Lexend, a\npolaroide pela carta de raio 32, e tira do verde o papel de botão: uma cor que\nquer dizer \"de quem é o dinheiro\" não pode também querer dizer \"aperte\". Nada\ndo v2 vale como regra aqui.",
+    "keyCharacteristics": [
+      "Nove cores de marca e nenhuma outra; o vermelho de erro é estado, não marca.",
+      "Tinta é estrutura e ação; verde e marrom são só as duas pessoas.",
+      "Uma face, Lexend, em 400 e 500.",
+      "Carta, comprovante e disco flutuam com sombra; o resto se separa por borda.",
+      "Botões, chips e navegação são pílulas e círculos soltos.",
+      "Arte de categoria em Fluent Emoji 3D sobre um campo de cor misturada com branco.",
+      "Quatro movimentos com significado, e nenhum outro."
+    ],
+    "rules": [
+      {
+        "name": "A Regra das Nove",
+        "body": "Nenhuma cor nova. Precisa de um tom? Misture uma das nove com branco. A exceção é `alerta`, e ela é estado.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Tinta que Age",
+        "body": "Tudo que se aperta ou marca ativo é tinta com creme. Verde e marrom nunca são botão, link, foco ou chip ativo.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Nome ao Lado",
+        "body": "Cor de pessoa sempre acompanha o nome da pessoa (texto visível ou `sr-only` no mesmo grupo). Verde contra marrom mede 1.18:1 de luminância: sozinha, a cor não distingue ninguém.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Creme no Escuro",
+        "body": "Creme só aparece como texto sobre tinta ou cor de pessoa. Sobre papel ou branco ele some.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Sálvia Muda",
+        "body": "Sálvia é superfície e nunca texto.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Areia",
+        "body": "Texto sobre areia é tinta. Suave ali mede 4.44:1, abaixo do piso.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra das Duas Bordas",
+        "body": "`borda` contorna cartão e chip, onde é decoração. `contorno` fecha campo e botão de contorno, onde o limite é informação e o piso de 3:1 vale.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra da Voz Única",
+        "body": "Lexend e nenhuma outra face; não existe fonte de sistema como display. Hierarquia vem de tamanho e de 400/500 — 600 e 700 não pertencem ao v3.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra Sem Sobretítulo",
+        "body": "Título não leva rótulo pequeno em cima. A tela diz o que é pelo próprio título; a saudação \"oi, Lucas e Ana\" é frase, não etiqueta, e não vai em caixa alta.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra da Faixa que Esmaece",
+        "body": "Faixa horizontal que termina dentro de um contêiner esmaece nos últimos 2.5rem (`.faixa-que-rola`); cortada seco, lê como defeito.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra do Contorno ou Sombra",
+        "body": "Quem tem borda não tem sombra, e vice-versa.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra da Sombra em Repouso",
+        "body": "Sombra pertence ao objeto, não ao mouse. Hover muda fundo para areia, opacidade, translação ou escala — nunca acrescenta sombra.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra do Círculo que Age",
+        "body": "Clicável que não é carta é pílula ou círculo. Navegação é círculo solto, nunca barra.",
+        "section": "shapes"
+      },
+      {
+        "name": "A Regra do Movimento, Não do Conteúdo",
+        "body": "`prefers-reduced-motion` zera animação e transição e não faz chover, mas o conteúdo continua mudando: o deck ainda alterna as jornadas, sem arremesso, e o número muda sem rolar.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do usar tinta com creme para toda ação e todo estado ativo.",
+      "Do pôr o nome da pessoa ao lado de toda cor de pessoa, e tirar a cor de `coresDoCasal`.",
+      "Do escrever texto tinta sobre areia e sobre sálvia.",
+      "Do usar `contorno` em campo e botão de contorno, `borda` em cartão e chip.",
+      "Do fazer um fundo novo de categoria misturando uma das nove com branco.",
+      "Do usar a arte Fluent Emoji 3D de `public/arte/` (licença MIT em `LICENSE-fluent-emoji.txt`) para categoria, e a chapa da categoria para oferta.",
+      "Do receber dinheiro pelo teclado de valor, em centavos inteiros.",
+      "Do manter `role=\"progressbar\"`, `role=\"status\"` e nome acessível em todo controle — a suíte e2e ancora neles.",
+      "Do usar `.num` (`tabular-nums`) em todo número que muda.",
+      "Do usar mapa estático de classes por categoria e por pessoa."
+    ],
+    "donts": [
+      "Don't usar sálvia como texto, nem creme sobre papel ou branco.",
+      "Don't pôr texto suave sobre areia (4.44:1).",
+      "Don't distinguir pessoas só pela cor (verde×marrom 1.18:1).",
+      "Don't introduzir cor fora das nove, além de `alerta` para erro.",
+      "Don't colocar sobretítulo ou rótulo em caixa alta acima de título.",
+      "Don't usar outra face além de Lexend, nem peso 600/700.",
+      "Don't carregar imagem de loja por hotlink: o CDN veria IP e horário de quem só abriu a tela.",
+      "Don't acrescentar movimento fora do deck, da chuva com odômetro, da barra e do comprovante.",
+      "Don't aceitar valor monetário em campo de texto livre na tela de anotar.",
+      "Don't sortear ângulo com `Math.random` em render; gire por índice.",
+      "Don't carregar fonte por `<link>` de CDN de terceiro.",
+      "Don't desenhar tema escuro: o app declara `color-scheme: light`."
+    ]
+  }
+}

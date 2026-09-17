@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-[18px] font-semibold tracking-[-0.03em]">{titulo}</h2>
+      <h2 className="text-[18px] font-medium tracking-[-0.02em]">{titulo}</h2>
       <div className="flex flex-col gap-2 font-corpo text-[14px] leading-relaxed text-suave">
         {children}
       </div>

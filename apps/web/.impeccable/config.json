@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "lexend",
+        "files": [
+          ".impeccable/mocks/prototipo/index.html"
+        ],
+        "createdAt": "2026-09-17T00:32:04.524Z",
+        "reason": "mesmo motivo: a família Lexend do mundo v3, só no protótipo"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/prototipo/index.html"
+        ],
+        "createdAt": "2026-09-17T00:55:06.337Z",
+        "reason": "fundo da folha de apresentação (#EEEAE4) atrás dos celulares, não a superfície do app, que é branca; paleta terrosa pedida pelo autor em 2026-09-16"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/prototipo/index.html"
+        ],
+        "createdAt": "2026-09-17T00:55:06.376Z",
+        "reason": "os 5 achados são a moldura .fone: o respiro de 18/20px está na .tela interna, absoluta para empilhar nav, aviso e moedas"
+      }
+    ]
+  }
+}

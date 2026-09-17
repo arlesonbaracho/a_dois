@@ -78,7 +78,7 @@ export function Pwa() {
         </button>
         <button
           type="button"
-          className="rounded-full border border-contorno px-4 py-2.5 text-[14px] font-medium text-suave-forte transition hover:bg-areia active:scale-[0.97]"
+          className="rounded-full border border-contorno px-4 py-2.5 text-[14px] font-medium text-suave transition hover:bg-areia active:scale-[0.97]"
           onClick={dispensar}
         >
           Agora não

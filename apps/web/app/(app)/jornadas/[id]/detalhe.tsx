@@ -636,7 +636,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                         {parte}% do que já entrou
                       </i>
                     </span>
-                    <b className="flex-none text-[15px] font-semibold tabular-nums">
+                    <b className="flex-none text-[15px] font-medium tabular-nums">
                       {formatBRL(fatia.cents)}
                     </b>
                   </div>

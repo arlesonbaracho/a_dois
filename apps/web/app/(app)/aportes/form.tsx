@@ -297,9 +297,8 @@ function Saldos({
   const emDia = saldo.linhas.every((linha) => linha.diferencaCents === 0);
 
   return (
-    // Cartão claro: o #16170F é reservado ao pedido do parceiro, que é o único
-    // momento do app que concede acesso a dado financeiro de outra pessoa. Um
-    // segundo cartão escuro aqui faria o primeiro parar de significar.
+    // Cartão claro: o número é referência e a frase do rodapé é o que a
+    // pessoa veio saber.
     //
     // E o número deixa de ser herói: quem lidera é a frase do rodapé, que é o
     // que a pessoa veio saber. O total é referência, não troféu.
