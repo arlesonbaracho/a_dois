@@ -91,16 +91,18 @@ test.describe("aportes e divisão", () => {
       p_target_amount_cents: 500000,
     })).json();
 
-    await page.goto("/aportes");
+    await page.goto("/aportes/novo");
 
-    // Ponto, e não vírgula: o campo é <input type="number">, e o Chromium
-    // simplesmente RECUSA a vírgula ali dentro. centavosDeTexto sabe ler vírgula,
-    // mas o campo não deixa ela chegar — quem digita "1250,50", que é como se
-    // escreve dinheiro em português, não consegue. Está em Dívidas.
-    await page.getByLabel("Quanto (R$)").fill("1250.50");
-    await page.getByRole("button", { name: "Anotar" }).click();
+    // O teclado não tem vírgula: os dígitos entram pela direita, como num Pix.
+    // 1-2-5-0-5-0 é R$ 1.250,50 — e não existe texto para ser mal lido.
+    for (const tecla of "125050") {
+      await page.getByRole("button", { name: tecla, exact: true }).click();
+    }
+    await expect(page.getByLabel("Quanto (R$)")).toHaveText("R$ 1.250,50");
+    await page.getByRole("button", { name: /^Anotar R\$/ }).click();
 
-    await expect(page.getByText("Anotado. Bom trabalho, vocês dois.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Anotado!" })).toBeVisible();
+    await expect(page.getByText("Nenhum dinheiro foi transferido")).toBeVisible();
 
     // Reais viram centavo inteiro na borda: 1250,50 é 125050, não 1250.
     const [aporte] = await comoAna.ler<{ amount_cents: number }[]>(

@@ -62,21 +62,22 @@ export function Lista() {
     <main className="mx-auto flex max-w-sm flex-col gap-4 p-5 lg:max-w-4xl lg:p-10">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-semibold leading-none tracking-[-0.03em] lg:text-4xl">
+          <h1 className="text-[30px] font-medium leading-none tracking-[-0.03em] lg:text-4xl">
             Jornadas de vocês
           </h1>
           <Explica className="mt-1.5">
             O que vocês estão juntando dinheiro para conseguir.
           </Explica>
         </div>
-        {/* A criação saiu daqui e virou tela própria, em dois passos. O que
-            ficou é a porta: um disco, no lugar onde o dedo já estava. */}
+        {/* Pílula com texto, e não disco: o disco de "+" do dock já quer dizer
+            "anotar aporte", e dois "+" iguais com dois sentidos na mesma tela
+            fariam a pessoa errar o toque. */}
         <Link
           href="/jornadas/nova"
-          className="grid size-11 flex-none place-items-center rounded-full bg-verde text-creme shadow-disco transition hover:scale-105 active:scale-95"
+          className="flex h-11 flex-none items-center gap-1.5 rounded-full border border-contorno bg-white pl-3 pr-4 text-[14px] transition hover:bg-areia active:scale-95"
         >
-          <IconeMais className="size-5" />
-          <span className="sr-only">Criar uma jornada</span>
+          <IconeMais className="size-[18px]" />
+          Nova jornada
         </Link>
       </header>
 
@@ -87,7 +88,7 @@ export function Lista() {
       ) : jornadas.length === 0 ? (
         /* O vazio diz o que falta e leva à tela que resolve. */
         <div className="flex flex-col items-start gap-4 py-4">
-          <p className="max-w-[26ch] text-[21px] font-semibold leading-tight tracking-[-0.03em]">
+          <p className="max-w-[26ch] text-[22px] font-medium leading-tight tracking-[-0.03em]">
             Ainda não tem jornada nenhuma. Comecem por uma.
           </p>
           <Explica className="max-w-[42ch]">
@@ -96,7 +97,7 @@ export function Lista() {
           </Explica>
           <Link
             href="/jornadas/nova"
-            className="rounded-full bg-tinta px-5 py-3.5 text-[13.5px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.97]"
+            className="rounded-full bg-tinta px-5 py-3.5 text-[15px] font-medium text-creme transition hover:opacity-90 active:scale-[0.97]"
           >
             Criar a primeira
           </Link>

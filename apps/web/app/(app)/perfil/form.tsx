@@ -14,6 +14,7 @@ export function FormPerfil({ perfil }: { perfil: Perfil | null }) {
 
   return (
     <Cartao
+      porta={false}
       titulo="Seu perfil"
       subtitulo="É isto que a outra pessoa vê ao te convidar, ou ao te achar pelo apelido."
     >

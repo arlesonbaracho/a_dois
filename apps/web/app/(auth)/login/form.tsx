@@ -51,11 +51,11 @@ export function FormLogin({
         <Recado erro={estado.erro} aviso={estado.aviso} />
 
         {/* A promessa que o produto inteiro sustenta, dita na porta. */}
-        <p className="mt-auto pt-6 font-corpo text-[11px] leading-relaxed text-suave">
+        <p className="mt-auto pt-6 font-corpo text-[12px] leading-relaxed text-suave">
           Ninguém entra no plano de vocês sem a sua confirmação, nem por link.
         </p>
         <Enviar largo>Entrar</Enviar>
-        <p className="pb-2 text-center font-corpo text-[12px] text-suave">
+        <p className="pb-2 text-center font-corpo text-[13px] text-suave">
           Ainda não têm conta?{" "}
           <Link href="/cadastro">
             <Saida>Criar conta</Saida>

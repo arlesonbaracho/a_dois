@@ -18,7 +18,6 @@ import {
   useMembros,
   useMeta,
   useOfertasParaItem,
-  useRegistrarAporte,
   useSalvarItem,
   useSalvarMeta,
 } from "@repo/api";
@@ -45,14 +44,12 @@ import {
   Bloco,
   Chapa,
   Chip,
-  CartaoDestaque,
   DiscoDePessoa,
   Etiqueta,
   Explica,
   LinhaAporte,
   LinhaOferta,
-  Polaroide,
-  Secao,
+  PontoDePessoa,
 } from "@/components/pecas";
 import { Progresso, type Fatia } from "@/components/progresso";
 import { PrecoDoItem } from "@/components/preco-do-item";
@@ -62,6 +59,8 @@ const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 /** "março de 2024" — a idade da jornada, dita como gente diz. */
 const desde = (iso: string) =>
   new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+/** "até março de 2027". */
+const ate = desde;
 /** As três respostas de "quanto isso importa", na voz do produto. */
 const PRIORIDADES: [Prioridade, string][] = [
   ["alta", "É o que a gente mais quer"],
@@ -89,7 +88,6 @@ export function Detalhe({ goalId }: { goalId: string }) {
   const criarItem = useCriarItem(goalId);
   const salvarItem = useSalvarItem(goalId);
   const apagarItem = useApagarItem(goalId);
-  const registrarAporte = useRegistrarAporte(goalId);
 
   const [erro, setErro] = useState("");
   const [erroCapa, setErroCapa] = useState("");
@@ -284,26 +282,6 @@ export function Detalhe({ goalId }: { goalId: string }) {
     }, "Não consegui adicionar agora. Tenta de novo?");
   }
 
-  async function adicionarAporte(evento: React.FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    const formulario = evento.currentTarget;
-    const form = new FormData(formulario);
-    const valor = centavosDeTexto(String(form.get("valor") ?? ""));
-
-    if (valor === null) {
-      setErro("Escreva quanto você colocou, em reais.");
-      return;
-    }
-
-    await comErro(async () => {
-      await registrarAporte.mutateAsync({
-        valorCents: valor,
-        quandoISO: paraInstante(String(form.get("quando") ?? "")) ?? undefined,
-      });
-      formulario.reset();
-    }, "Não consegui registrar agora. Tenta de novo?");
-  }
-
   // Dois cliques, e o primeiro só explica. O banco é quem decide: sem aporte
   // dentro, ele apaga de primeira e nem chega a pedir confirmação.
   async function tentarApagar() {
@@ -319,95 +297,115 @@ export function Detalhe({ goalId }: { goalId: string }) {
     }, "Não consegui apagar agora. Tenta de novo?");
   }
 
-  const hoje = new Date().toISOString().slice(0, 10);
-
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-3xl lg:p-10">
-      <header className="flex items-center gap-3">
+      <header className="flex min-h-11 items-center justify-between gap-3">
         <Link
           href="/jornadas"
-          className="grid size-9 flex-none place-items-center rounded-full border border-borda bg-white text-tinta transition active:scale-95"
+          className="grid size-11 flex-none place-items-center rounded-full border border-borda bg-white text-tinta transition hover:bg-areia active:scale-95"
         >
-          <IconeVoltar className="size-4" />
+          <IconeVoltar className="size-5" />
           <span className="sr-only">Voltar para as jornadas</span>
         </Link>
-        {/* Sem kicker: a linha pequena vai ABAIXO do título. Rótulo acima de
-            cabeçalho é proibido pelo piso de craft. */}
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[-0.03em] lg:text-2xl">
-            {jornada.title}
-          </h1>
-          <p className="mt-0.5 font-corpo text-[10.5px] text-suave">
-            {rotuloDaCategoria(jornada.category)} · desde{" "}
-            {desde(jornada.created_at)}
-            {jornada.deadline_at ? (
-              <> · para {dia(jornada.deadline_at)}</>
-            ) : null}
-          </p>
-        </div>
         {/* De quem é esta jornada, sem gastar uma linha de texto. */}
         <AvataresDoCasal pessoas={dupla} />
       </header>
 
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <Polaroide indice={1}>
-            <Chapa
-              categoria={jornada.category}
-              capaUrl={
-                jornada.cover_path ? capas?.get(jornada.cover_path) : null
-              }
-              className="h-20 rounded-chapa"
-            />
-            <div className="mt-2">
-              <Progresso
-                percentual={percentual}
-                aportadoCents={aportadoCents}
-                alvoCents={jornada.target_amount_cents}
-                fatias={fatias}
-              />
-            </div>
-          </Polaroide>
-
-          {/* O input fica escondido e o label é o botão: o controle nativo tem
-              rótulo associado de verdade (é o mesmo elemento), então continua
-              alcançável por teclado e por leitor de tela — e a suíte e2e o
-              encontra por getByLabel, que aqui é contrato. */}
-          <label className="mt-2 block cursor-pointer rounded-full border border-contorno/60 bg-white px-3 py-1.5 text-center font-corpo text-[11.5px] text-suave-forte transition-colors hover:border-contorno has-[:focus-visible]:border-tinta">
-            {enviarCapa.isPending
-              ? "Guardando a foto…"
-              : jornada.cover_path
-                ? "Trocar a foto"
-                : "Pôr uma foto"}
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              aria-label="Capa da jornada"
-              disabled={enviarCapa.isPending || !casal}
-              onChange={trocarCapa}
-            />
-          </label>
-          <Recado erro={erroCapa} />
-        </div>
-        <div className="flex flex-1 flex-col gap-2.5">
-          <CartaoDestaque
-            rotulo="faltam"
-            valorCents={faltamCents}
-            className="flex flex-1 flex-col justify-center"
+      <Chapa
+        categoria={jornada.category}
+        capaUrl={jornada.cover_path ? capas?.get(jornada.cover_path) : null}
+        arte="h-[64%]"
+        className="h-[188px] rounded-carta lg:h-[260px]"
+      >
+        <span className="absolute left-3.5 top-3.5 rounded-full bg-white px-3 py-1.5 text-[13px] text-suave">
+          {rotuloDaCategoria(jornada.category)}
+        </span>
+        <span className="num absolute right-3.5 top-3.5 rounded-full bg-white px-3 py-1.5 text-[13px] font-medium">
+          {percentual}%
+        </span>
+        {/* O input fica escondido e o label é o botão: o controle nativo tem
+            rótulo associado de verdade (é o mesmo elemento), então continua
+            alcançável por teclado e por leitor de tela — e a suíte e2e o
+            encontra por getByLabel, que aqui é contrato. */}
+        <label className="absolute bottom-3.5 left-3.5 cursor-pointer rounded-full bg-white px-3 py-1.5 text-[13px] transition hover:bg-areia has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-tinta">
+          {enviarCapa.isPending
+            ? "Guardando a foto…"
+            : jornada.cover_path
+              ? "Trocar a foto"
+              : "Pôr uma foto"}
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            aria-label="Capa da jornada"
+            disabled={enviarCapa.isPending || !casal}
+            onChange={trocarCapa}
           />
-          {porMesCents === null ? null : (
-            <div className="flex flex-1 flex-col justify-center rounded-bloco border border-borda bg-white p-3">
-              <span className="font-corpo text-[10.5px] text-suave">
-                por mês, a dois
-              </span>
-              <b className="block text-[17px] font-semibold tracking-[-0.03em] tabular-nums">
-                {formatBRL(porMesCents)}
-              </b>
-            </div>
-          )}
+        </label>
+      </Chapa>
+      <Recado erro={erroCapa} />
+
+      {/* Sem kicker: a linha pequena vai ABAIXO do título. */}
+      <div>
+        <h1 className="text-[26px] font-medium leading-tight tracking-[-0.03em] lg:text-[30px]">
+          {jornada.title}
+        </h1>
+        <p className="num mt-1 text-[14px] text-suave">
+          {formatBRL(jornada.target_amount_cents)}
+          {jornada.deadline_at ? <> até {ate(jornada.deadline_at)}</> : null} · desde{" "}
+          {desde(jornada.created_at)}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <span className="block text-[12px] text-suave">Já juntaram</span>
+          <b className="num text-[20px] font-medium tracking-[-0.02em]">{formatBRL(aportadoCents)}</b>
+        </div>
+        <div>
+          <span className="block text-[12px] text-suave">Faltam</span>
+          <b className="num text-[20px] font-medium tracking-[-0.02em]">{formatBRL(faltamCents)}</b>
         </div>
       </div>
+
+      <div>
+        <Progresso
+          percentual={percentual}
+          aportadoCents={aportadoCents}
+          alvoCents={jornada.target_amount_cents}
+          fatias={fatias}
+          semLegenda
+        />
+        {/* Verde e marrom têm quase a mesma luz (1.18:1): a cor de cada pessoa
+            nunca aparece sem o nome dela ao lado. */}
+        {fatias.length > 0 ? (
+          <p className="num mt-2 flex flex-wrap gap-x-3.5 gap-y-1 text-[12px] text-suave">
+            {fatias.map((fatia) => (
+              <span key={fatia.chave} className="flex items-center gap-1.5">
+                <PontoDePessoa cor={fatia.cor} />
+                {fatia.chave === "fora"
+                  ? "Ex-membro"
+                  : (nomePor.get(fatia.chave) ?? "Sua dupla")}{" "}
+                {formatBRL(fatia.cents)}
+              </span>
+            ))}
+          </p>
+        ) : null}
+      </div>
+
+      {/* Quanto ainda cabe por mês até o prazo. */}
+      {porMesCents === null ? null : (
+        <p className="num text-[14px] text-suave">
+          <b className="font-medium text-tinta">{formatBRL(porMesCents)}</b> por mês, a dois
+        </p>
+      )}
+
+      <Link
+        href={`/aportes/novo?jornada=${goalId}`}
+        className="grid h-14 place-items-center rounded-full bg-tinta px-6 text-[16px] font-medium text-creme transition hover:opacity-90 active:scale-[0.98]"
+      >
+        Anotar aporte nesta jornada
+      </Link>
 
       <Recado erro={erro} />
 
@@ -434,10 +432,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
               {itens.map((item) => {
                 const comprado = item.status === "comprado";
                 return (
-                  <li
-                    key={item.id}
-                    className="rounded-cartao border border-borda bg-white p-2.5"
-                  >
+                  <li key={item.id} className="py-1">
                     <div className="flex items-center gap-3">
                       {/* O <input> é o próprio quadrado de 44px: é ele que recebe
                         o clique, o foco e o rótulo. O <label> ao lado estende o
@@ -467,13 +462,13 @@ export function Detalhe({ goalId }: { goalId: string }) {
                         className="min-w-0 flex-1 cursor-pointer"
                       >
                         <b
-                          className={`block truncate text-[13.5px] font-semibold tracking-[-0.02em] ${
+                          className={`block truncate text-[15px] font-medium tracking-[-0.02em] ${
                             comprado ? "text-suave line-through" : ""
                           }`}
                         >
                           {item.name}
                         </b>
-                        <i className="block font-corpo text-[10.5px] not-italic text-suave">
+                        <i className="block font-corpo text-[12px] not-italic text-suave">
                           {comprado
                             ? "comprado, guardado no álbum"
                             : item.estimated_price_cents === null
@@ -499,7 +494,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                             href={item.url}
                             target="_blank"
                             rel="noreferrer noopener"
-                            className="flex-none font-corpo text-[11px] font-semibold text-verde underline"
+                            className="flex-none font-corpo text-[12px] font-medium text-tinta underline"
                           >
                             ver na loja
                           </a>
@@ -512,7 +507,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                             onClick={() =>
                               void verPreco(item.id, item.url as string)
                             }
-                            className="flex-none font-corpo text-[11px] font-semibold text-verde underline disabled:opacity-50"
+                            className="flex-none font-corpo text-[12px] font-medium text-tinta underline disabled:opacity-50"
                           >
                             {buscarPreco.isPending ? "buscando…" : "ver preço"}
                           </button>
@@ -526,7 +521,7 @@ export function Detalhe({ goalId }: { goalId: string }) {
                             "Não consegui apagar agora. Tenta de novo?",
                           )
                         }
-                        className="flex-none font-corpo text-[11px] text-suave underline transition-colors hover:text-alerta"
+                        className="flex-none font-corpo text-[12px] text-suave underline transition-colors hover:text-alerta"
                         aria-label={`Tirar ${item.name} da lista`}
                       >
                         tirar
@@ -634,14 +629,14 @@ export function Detalhe({ goalId }: { goalId: string }) {
                       cor={fatia.cor}
                     />
                     <span className="min-w-0 flex-1">
-                      <b className="block truncate text-[13px] font-semibold">
+                      <b className="block truncate text-[13px] font-medium">
                         {nome}
                       </b>
-                      <i className="block font-corpo text-[10.5px] not-italic text-suave">
+                      <i className="block font-corpo text-[12px] not-italic text-suave">
                         {parte}% do que já entrou
                       </i>
                     </span>
-                    <b className="flex-none text-[13.5px] font-bold tabular-nums">
+                    <b className="flex-none text-[15px] font-semibold tabular-nums">
                       {formatBRL(fatia.cents)}
                     </b>
                   </div>
@@ -652,32 +647,8 @@ export function Detalhe({ goalId }: { goalId: string }) {
         </Bloco>
       ) : null}
 
-      <Bloco>
-        <Secao>Coloquei um dinheiro aqui</Secao>
-        <form onSubmit={adicionarAporte} className="mt-3 flex flex-col gap-3.5">
-          <Campo
-            rotulo="Quanto (R$)"
-            name="valor"
-            type="text"
-            required
-            inputMode="decimal"
-            placeholder="0,00"
-          />
-          <Campo
-            rotulo="Quando"
-            name="quando"
-            type="date"
-            defaultValue={hoje}
-            max={hoje}
-          />
-          <Enviar pendente={registrarAporte.isPending} largo>
-            Anotar
-          </Enviar>
-        </form>
-      </Bloco>
-
       <details className="rounded-cartao border border-borda bg-white p-4">
-        <summary className="cursor-pointer text-[13.5px] font-semibold">
+        <summary className="cursor-pointer text-[15px] font-medium">
           Editar esta jornada
         </summary>
         <form onSubmit={editarJornada} className="mt-3.5 flex flex-col gap-3.5">
@@ -742,7 +713,7 @@ function Aviso({ texto }: { texto: string }) {
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-4 p-5">
       <Explica>{texto}</Explica>
-      <Link href="/jornadas" className="text-[12.5px] font-semibold underline">
+      <Link href="/jornadas" className="text-[14px] font-medium underline">
         Voltar para as jornadas
       </Link>
     </main>

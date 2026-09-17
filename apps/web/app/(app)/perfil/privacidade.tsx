@@ -187,7 +187,7 @@ export function Privacidade({ userId }: { userId: string }) {
                 rotulo={item.rotulo}
                 descricao={item.descricao}
               />
-              <p className="pl-7 font-corpo text-[11px] text-suave">
+              <p className="pl-7 font-corpo text-[12px] text-suave">
                 {carregandoPerfil
                   ? "Carregando…"
                   : desde
@@ -202,14 +202,14 @@ export function Privacidade({ userId }: { userId: string }) {
       <section className="flex flex-col gap-3">
         <Secao className="text-alerta">Apagar minha conta</Secao>
 
-        <div className="flex flex-col gap-2 rounded-cartao bg-alerta-suave p-4 font-corpo text-[12.5px] leading-relaxed text-alerta">
-          <p className="font-semibold">O que some, e não volta:</p>
+        <div className="flex flex-col gap-2 rounded-cartao bg-alerta-suave p-4 font-corpo text-[14px] leading-relaxed text-alerta">
+          <p className="font-medium">O que some, e não volta:</p>
           <ul className="list-disc pl-5">
             <li>seu login, seu e-mail e sua senha</li>
             <li>seu nome, seu apelido e sua faixa de renda</li>
             <li>seu vínculo com este plano</li>
           </ul>
-          <p className="font-semibold">O que fica:</p>
+          <p className="font-medium">O que fica:</p>
           <ul className="list-disc pl-5">
             <li>
               o dinheiro que você já colocou, com o valor intacto, mas sem o seu
@@ -244,7 +244,7 @@ export function Privacidade({ userId }: { userId: string }) {
           type="button"
           onClick={() => void excluir()}
           disabled={!podeExcluir}
-          className="self-start rounded-full bg-alerta px-5 py-3.5 text-[13px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
+          className="self-start rounded-full bg-alerta px-5 py-3.5 text-[14px] font-medium text-creme transition hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
         >
           Apagar minha conta
         </button>

@@ -93,7 +93,7 @@ test.describe("metas e itens", () => {
   // diante, e só este precisa de "Reduzir movimento" ligado — que era o caso
   // que travava o carrossel. A regra proíbe movimento, não troca de conteúdo:
   // o deslize some (o CSS zera a transição), a alternância fica.
-  test.describe("carrossel com movimento reduzido", () => {
+  test.describe("deck com movimento reduzido", () => {
     test.use({ reducedMotion: "reduce" });
 
     test("o cartão da home vira sozinho, e só quando há mais de uma jornada", async ({
@@ -108,20 +108,15 @@ test.describe("metas e itens", () => {
       });
 
       await entrar(page, conta);
-      // No celular é onde a decisão vale: um cartão por vez, com os pontos.
+      // No celular é onde a decisão vale: uma carta por vez, na frente do deck.
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto("/");
 
-      // Com uma só não há ponto nenhum, e o título não muda.
-      const pontoAtivo = page.locator('[aria-current="true"]');
-      await expect(
-        page.getByRole("heading", { name: "Primeira" }),
-      ).toBeVisible();
-      await expect(pontoAtivo).toHaveCount(0);
+      // Com uma só, a carta da frente não muda.
+      const naFrente = page.locator("[data-frente] h2");
+      await expect(naFrente).toHaveText("Primeira");
       await page.waitForTimeout(6500);
-      await expect(
-        page.getByRole("heading", { name: "Primeira" }),
-      ).toBeVisible();
+      await expect(naFrente).toHaveText("Primeira");
 
       // Com duas, vira sozinho. O prazo é folgado porque a rota compila na
       // primeira visita; o que o teste mede é a TROCA, não o relógio.
@@ -130,15 +125,11 @@ test.describe("metas e itens", () => {
         p_target_amount_cents: 100000,
       });
       await page.reload();
-      await expect(pontoAtivo).toHaveCount(1);
+      await expect(naFrente).toHaveCount(1);
 
-      const primeiro = await pontoAtivo.getAttribute("aria-label");
-      expect(
-        primeiro,
-        "o ponto ativo precisa dizer qual jornada está em cena",
-      ).toBeTruthy();
+      const primeiro = await naFrente.textContent();
       await expect
-        .poll(() => pontoAtivo.getAttribute("aria-label"), { timeout: 20_000 })
+        .poll(() => naFrente.textContent(), { timeout: 20_000 })
         .not.toBe(primeiro);
     });
   });
@@ -161,8 +152,16 @@ test.describe("metas e itens", () => {
       "0",
     );
 
-    await page.getByLabel("Quanto (R$)").fill("2000");
-    await page.getByRole("button", { name: "Anotar" }).click();
+    // Da jornada, o aporte abre o teclado já nela. Dígito entra pela direita:
+    // 2-0-0-0-0-0 é R$ 2.000,00, sem vírgula para interpretar.
+    await page.getByRole("link", { name: "Anotar aporte nesta jornada" }).click();
+    for (const tecla of "200000") {
+      await page.getByRole("button", { name: tecla, exact: true }).click();
+    }
+    await expect(page.getByLabel("Quanto (R$)")).toHaveText("R$ 2.000,00");
+    await page.getByRole("button", { name: /^Anotar R\$/ }).click();
+    await expect(page.getByRole("heading", { name: "Anotado!" })).toBeVisible();
+    await page.goto(`/jornadas/${meta}`);
 
     // 2.000 de 8.000 é um quarto, e a barra tem que dizer isso para quem
     // enxerga E para quem usa leitor de tela.

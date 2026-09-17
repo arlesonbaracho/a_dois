@@ -48,7 +48,7 @@ export default function Cadastro() {
         />
         <Recado erro={estado.erro} aviso={estado.aviso} />
 
-        <p className="mt-auto pt-6 font-corpo text-[11px] leading-relaxed text-suave">
+        <p className="mt-auto pt-6 font-corpo text-[12px] leading-relaxed text-suave">
           A gente não pede CPF, endereço nem data de nascimento. Nunca pediu, e
           não é por esquecimento.{" "}
           {/* Aqui, e não só no perfil: é neste instante que a pessoa decide
@@ -59,7 +59,7 @@ export default function Cadastro() {
           </Link>
         </p>
         <Enviar largo>Criar conta</Enviar>
-        <p className="pb-2 text-center font-corpo text-[12px] text-suave">
+        <p className="pb-2 text-center font-corpo text-[13px] text-suave">
           Já tem conta?{" "}
           <Link href="/login">
             <Saida>Entrar</Saida>

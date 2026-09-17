@@ -72,6 +72,14 @@ export default async function Aportes() {
   const corDe = (userId: string | null): CorDePessoa =>
     userId ? (cores.get(userId) ?? "fora") : "fora";
 
+  const tituloPor = new Map(listaMetas.map((meta) => [meta.id, meta.title]));
+  const agora = new Date();
+  const doMes = (lista: typeof listaAportes) =>
+    centavosNoMes(
+      lista.map((aporte) => ({ quandoISO: aporte.contributed_at, cents: aporte.amount_cents })),
+      agora,
+    );
+
   const nomes: Record<string, string> = {};
   for (const membro of membros) {
     nomes[membro.user_id] =
@@ -82,14 +90,12 @@ export default async function Aportes() {
 
   return (
     <TelaAportes
-      metas={listaMetas.map((meta) => ({
-        id: meta.id,
-        titulo: meta.title,
-        alvoCents: meta.target_amount_cents,
-      }))}
+      temJornada={listaMetas.length > 0}
+      mes={agora.toLocaleDateString("pt-BR", { month: "long" })}
       ultimos={listaAportes.slice(0, 8).map((aporte) => ({
         id: aporte.id,
         quem: aporte.user_id ? (nomes[aporte.user_id] ?? "Ex-membro") : "Ex-membro",
+        jornada: tituloPor.get(aporte.goal_id) ?? "",
         cor: corDe(aporte.user_id),
         valorCents: aporte.amount_cents,
         quando: aporte.contributed_at,
@@ -98,13 +104,14 @@ export default async function Aportes() {
       nomes={nomes}
       cores={Object.fromEntries(membros.map((m) => [m.user_id, corDe(m.user_id)]))}
       totalDoPlanoCents={totalDoPlanoCents}
-      doMesCents={centavosNoMes(
-        listaAportes.map((aporte) => ({
-          quandoISO: aporte.contributed_at,
-          cents: aporte.amount_cents,
-        })),
-        new Date(),
-      )}
+      doMesCents={doMes(listaAportes)}
+      doMesPorPessoa={membros
+        .map((membro) => ({
+          chave: membro.user_id,
+          cor: corDe(membro.user_id),
+          cents: doMes(listaAportes.filter((aporte) => aporte.user_id === membro.user_id)),
+        }))
+        .sort((a, b) => (a.cor < b.cor ? -1 : 1))}
       disponivel={disponivel}
       minhaRegra={regra}
       minhaFaixa={eu?.income_band ?? null}

@@ -30,11 +30,14 @@ export function Progresso({
   aportadoCents,
   alvoCents,
   fatias,
+  semLegenda = false,
 }: {
   percentual: number;
   aportadoCents: number;
   alvoCents: number;
   fatias?: Fatia[];
+  /** A carta do deck já diz quanto falta numa linha própria. */
+  semLegenda?: boolean;
 }) {
   // Contra o que a barra é medida. Meta sem alvo (alvo zero é caso real) mede
   // contra o próprio aportado, senão a divisão seria por zero.
@@ -48,11 +51,11 @@ export function Progresso({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="Quanto vocês já juntaram desta jornada"
-        className={`flex h-1.5 w-full overflow-hidden rounded-full bg-creme ${
+        className={`flex h-2 w-full overflow-hidden rounded-full bg-areia ${
           // Sem nada dentro, a barra lisa lê como defeito. A listra diz "ainda
           // não começou", que é estado legítimo e comum numa jornada nova.
           aportadoCents === 0
-            ? "bg-[repeating-linear-gradient(115deg,var(--color-creme)_0_7px,var(--color-listra)_7px_14px)]"
+            ? "bg-[repeating-linear-gradient(115deg,var(--color-areia)_0_7px,var(--color-listra)_7px_14px)]"
             : ""
         }`}
       >
@@ -61,25 +64,25 @@ export function Progresso({
             aporta do outro aparelho: sem ele a animação só rodaria na
             primeira montagem, e a barra mudaria de tamanho num salto. É o
             único movimento da tela que fala do dinheiro. */}
-        <span key={aportadoCents} className="anima-crescer flex h-full w-full origin-left">
+        <span key={aportadoCents} className="anima-crescer flex h-full w-full origin-left gap-0.5">
           {fatias && fatias.length > 0 ? (
             fatias.map((fatia) => (
               <i
                 key={fatia.chave}
-                className={`block h-full ${COR[fatia.cor]}`}
+                className={`block h-full rounded-full ${COR[fatia.cor]}`}
                 style={{ width: `${base > 0 ? Math.min(100, (fatia.cents / base) * 100) : 0}%` }}
               />
             ))
           ) : (
-            <i className="block h-full bg-verde" style={{ width: `${percentual}%` }} />
+            <i className="block h-full rounded-full bg-tinta" style={{ width: `${percentual}%` }} />
           )}
         </span>
       </div>
       {/* O texto é um nó só de propósito — a suíte e2e ancora na frase
           inteira. O que muda é o peso: o que já entrou é o fato, o alvo e a
           porcentagem são referência. */}
-      <p className="font-corpo text-[11px] tabular-nums text-suave">
-        <b className="font-semibold text-tinta">{formatBRL(aportadoCents)}</b>{" "}
+      <p className={`num text-[12px] text-suave ${semLegenda ? "sr-only" : ""}`}>
+        <b className="font-medium text-tinta">{formatBRL(aportadoCents)}</b>{" "}
         {/* O `{" "}` acima não é enfeite: sem ele o JSX come o espaço entre os
             dois nós e a linha fica sem ponto de quebra nenhum — o texto
             vazava para fora do cartão. */}

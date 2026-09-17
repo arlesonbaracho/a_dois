@@ -6,6 +6,7 @@ import { useFormStatus } from "react-dom";
 import { APP_NAME } from "@repo/core";
 
 import { IconeOlho } from "./icones";
+import { Chapa } from "./pecas";
 
 // Peças burras dos formulários: nenhuma delas sabe o que é Supabase.
 
@@ -22,35 +23,63 @@ export type EstadoForm = { erro?: string; aviso?: string; email?: string };
 /**
  * A moldura de toda tela de porta: login, cadastro, senha, convite.
  *
- * Carrega a marca no topo, e o rodapé é fixo — o botão principal e a saída
- * ficam no alcance do polegar, não no fim de uma rolagem. Antes eram seis
- * telas de superfície vazia com um título no meio, e é a primeira coisa que
- * alguém vê do produto.
+ * Carrega a marca e o leque de cartas — três jornadas do deck abertas na mão,
+ * que é o produto inteiro numa imagem antes de qualquer conta existir. O
+ * botão principal e a saída ficam no alcance do polegar.
  */
 export function Cartao({
   titulo,
   subtitulo,
+  porta = true,
   children,
 }: {
   titulo: string;
   subtitulo: ReactNode;
+  /** Falso quando a moldura é usada DENTRO do app: marca e leque são da porta. */
+  porta?: boolean;
   children: ReactNode;
 }) {
+  if (!porta) {
+    return (
+      <main className="mx-auto flex max-w-sm flex-col gap-6 px-5 pb-8 pt-5 lg:max-w-2xl lg:p-10">
+        <div>
+          <h1 className="text-[30px] font-medium leading-[1.1] tracking-[-0.03em]">{titulo}</h1>
+          <p className="mt-2 max-w-[40ch] text-[14px] leading-relaxed text-suave">{subtitulo}</p>
+        </div>
+        {children}
+      </main>
+    );
+  }
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col p-6">
-      <p className="py-6">
-        <span className="inline-block rounded-full bg-tinta px-4 py-2 font-corpo text-[11.5px] font-semibold tracking-[0.14em] text-creme">
-          {APP_NAME.toUpperCase()}
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col px-5 pb-8 pt-5">
+      <p className="flex items-center gap-2.5 text-[18px] font-medium tracking-[-0.02em]">
+        <span
+          aria-hidden="true"
+          className="grid size-11 place-items-center rounded-full bg-tinta text-creme"
+        >
+          {APP_NAME[0]}
         </span>
+        {APP_NAME}
       </p>
+      {/* Cada chapa vai dentro de uma caixa posicionada: a chapa carrega o
+          próprio `relative`, que venceria um `absolute` passado de fora. */}
+      <div aria-hidden="true" className="relative mx-auto my-3 h-40 w-full max-w-[20rem]">
+        <div className="absolute left-2 top-4 h-32 w-28 -rotate-9">
+          <Chapa categoria="viagem" arte="h-[56%]" className="h-full rounded-cartao shadow-carta" />
+        </div>
+        <div className="absolute right-2 top-4 h-32 w-28 rotate-9">
+          <Chapa categoria="casamento" arte="h-[56%]" className="h-full rounded-cartao shadow-carta" />
+        </div>
+        <div className="absolute left-1/2 top-0 z-10 h-36 w-32 -translate-x-1/2">
+          <Chapa categoria="casa" arte="h-[58%]" className="h-full rounded-cartao shadow-carta" />
+        </div>
+      </div>
       <div className="flex flex-1 flex-col gap-6">
         <div>
-          <h1 className="max-w-[22ch] text-[21px] font-semibold leading-tight tracking-[-0.03em]">
+          <h1 className="max-w-[20ch] text-[28px] font-medium leading-[1.12] tracking-[-0.03em]">
             {titulo}
           </h1>
-          <p className="mt-2 max-w-[34ch] font-corpo text-[12.5px] leading-relaxed text-suave">
-            {subtitulo}
-          </p>
+          <p className="mt-2 max-w-[34ch] text-[14px] leading-relaxed text-suave">{subtitulo}</p>
         </div>
         {children}
       </div>
@@ -61,10 +90,10 @@ export function Cartao({
 export function Campo({ rotulo, ...props }: { rotulo: string } & ComponentProps<"input">) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-corpo text-[11.5px] font-semibold text-suave-forte">{rotulo}</span>
+      <span className="text-[13px] text-suave">{rotulo}</span>
       <input
         {...props}
-        className="rounded-bloco border border-contorno/60 bg-white px-4 py-3 text-base text-tinta placeholder:text-suave focus:border-verde"
+        className="h-[52px] rounded-bloco border border-contorno bg-white px-4 text-base text-tinta outline-none transition placeholder:text-suave focus:border-tinta focus:ring-[3px] focus:ring-areia"
       />
     </label>
   );
@@ -81,19 +110,19 @@ export function CampoSenha({ rotulo, ...props }: { rotulo: string } & ComponentP
   const [aberto, setAberto] = useState(false);
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-corpo text-[11.5px] font-semibold text-suave-forte">{rotulo}</span>
-      <span className="flex items-center rounded-bloco border border-contorno/60 bg-white pr-1.5 focus-within:border-verde">
+      <span className="text-[13px] text-suave">{rotulo}</span>
+      <span className="flex h-[52px] items-center rounded-bloco border border-contorno bg-white pr-1.5 transition focus-within:border-tinta focus-within:ring-[3px] focus-within:ring-areia">
         <input
           {...props}
           type={aberto ? "text" : "password"}
-          className="min-w-0 flex-1 bg-transparent px-4 py-3 text-base text-tinta outline-none placeholder:text-suave"
+          className="min-w-0 flex-1 bg-transparent px-4 text-base text-tinta outline-none placeholder:text-suave"
         />
         <button
           type="button"
           onClick={() => setAberto((estava) => !estava)}
           aria-label={aberto ? "Esconder o que digitei" : "Ver o que digitei"}
           aria-pressed={aberto}
-          className="grid size-10 flex-none place-items-center rounded-full text-suave-forte transition-colors hover:bg-areia"
+          className="grid size-10 flex-none place-items-center rounded-full text-suave transition-colors hover:bg-areia"
         >
           <IconeOlho cortado={!aberto} className="size-5" />
         </button>
@@ -110,10 +139,10 @@ export function Escolha({
 }: { rotulo: string } & ComponentProps<"select">) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-corpo text-[11.5px] font-semibold text-suave-forte">{rotulo}</span>
+      <span className="text-[13px] text-suave">{rotulo}</span>
       <select
         {...props}
-        className="rounded-bloco border border-contorno/60 bg-white px-4 py-3 text-base text-tinta focus:border-verde"
+        className="h-[52px] rounded-bloco border border-contorno bg-white px-4 text-base text-tinta outline-none transition focus:border-tinta focus:ring-[3px] focus:ring-areia"
       >
         {children}
       </select>
@@ -128,10 +157,10 @@ export function Interruptor({
 }: { rotulo: string; descricao: string } & ComponentProps<"input">) {
   return (
     <label className="flex items-start gap-3">
-      <input {...props} type="checkbox" className="mt-0.5 size-4 accent-verde" />
+      <input {...props} type="checkbox" className="mt-0.5" />
       <span>
-        <span className="block text-[13.5px] font-semibold">{rotulo}</span>
-        <span className="mt-0.5 block font-corpo text-[12px] leading-relaxed text-suave">
+        <span className="block text-[15px] font-medium">{rotulo}</span>
+        <span className="mt-0.5 block text-[13px] leading-relaxed text-suave">
           {descricao}
         </span>
       </span>
@@ -161,7 +190,7 @@ export function Enviar({
     <button
       type="submit"
       disabled={ocupado}
-      className={`rounded-full bg-tinta px-5 py-4 text-[13.5px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 ${
+      className={`h-14 rounded-full bg-tinta px-6 text-[16px] font-medium text-creme transition hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 ${
         largo ? "w-full" : ""
       }`}
     >
@@ -178,7 +207,7 @@ export function Secundario({
   return (
     <button
       {...props}
-      className="rounded-full border border-contorno/60 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-tinta transition hover:border-contorno active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+      className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-contorno bg-white px-5 text-[14px] text-tinta transition hover:bg-areia active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
     >
       {children}
     </button>
@@ -199,7 +228,7 @@ export function Perigo({
   return (
     <button
       {...props}
-      className="self-start rounded-full border border-alerta/40 px-4 py-2.5 font-corpo text-[12.5px] font-semibold text-alerta transition hover:bg-alerta-suave active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+      className="h-11 self-start rounded-full border border-alerta/50 px-5 text-[14px] text-alerta transition hover:bg-alerta-suave active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
     >
       {children}
     </button>
@@ -214,7 +243,7 @@ export function Perigo({
  */
 export function Saida({ children }: { children: ReactNode }) {
   return (
-    <span className="font-corpo text-[12.5px] font-semibold text-verde underline transition-colors hover:text-tinta">
+    <span className="text-[14px] text-tinta underline transition-colors hover:text-suave">
       {children}
     </span>
   );
@@ -225,7 +254,7 @@ export function Recado({ erro, aviso }: EstadoForm) {
   return (
     <p
       role="status"
-      className={`rounded-bloco px-4 py-3 font-corpo text-[12.5px] leading-relaxed ${
+      className={`rounded-bloco px-4 py-3 text-[14px] leading-relaxed ${
         erro ? "bg-alerta-suave text-alerta" : "bg-salvia text-tinta"
       }`}
     >

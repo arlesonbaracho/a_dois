@@ -27,10 +27,10 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
       aria-labelledby="primeiros-passos"
       className="rounded-cartao border border-borda bg-white p-4"
     >
-      <h2 id="primeiros-passos" className="text-[17px] font-semibold tracking-[-0.03em]">
+      <h2 id="primeiros-passos" className="text-[18px] font-medium tracking-[-0.03em]">
         Comecem por aqui
       </h2>
-      <p className="mt-0.5 font-corpo text-[11.5px] text-suave">
+      <p className="mt-0.5 font-corpo text-[13px] text-suave">
         {feitos} de {total} — a lista some sozinha quando acabar.
       </p>
 
@@ -48,22 +48,22 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
               >
                 <Marca
                   aria-hidden="true"
-                  className={`mt-px size-4 flex-none ${feito ? "text-verde" : "text-suave"}`}
+                  className={`mt-px size-4 flex-none ${feito ? "text-tinta" : "text-suave"}`}
                 />
                 <span className="min-w-0 flex-1">
                   <span
-                    className={`block text-[13.5px] font-semibold tracking-[-0.02em] ${
+                    className={`block text-[15px] font-medium tracking-[-0.02em] ${
                       feito ? "line-through" : ""
                     }`}
                   >
                     {passo.titulo}
                     {passo.opcional ? (
-                      <span className="ml-1.5 font-corpo text-[10.5px] font-normal text-suave">
+                      <span className="ml-1.5 font-corpo text-[12px] font-normal text-suave">
                         opcional
                       </span>
                     ) : null}
                   </span>
-                  <span className="mt-0.5 block font-corpo text-[11.5px] leading-relaxed text-suave">
+                  <span className="mt-0.5 block font-corpo text-[13px] leading-relaxed text-suave">
                     {passo.dica}
                   </span>
                 </span>
@@ -89,7 +89,7 @@ export function PrimeirosPassos({ passos }: { passos: Passo[] }) {
           argumento — o que cabe aqui é dizer onde se desliga. */}
       <Link
         href="/perfil"
-        className="mt-2 inline-block px-2.5 font-corpo text-[11px] text-verde underline"
+        className="mt-2 inline-block px-2.5 font-corpo text-[12px] text-tinta underline"
       >
         O que a gente guarda, e o que vocês podem desligar
       </Link>

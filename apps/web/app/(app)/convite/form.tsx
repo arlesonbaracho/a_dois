@@ -17,7 +17,7 @@ export function FormConvite({ token, nome }: { token: string; nome: string }) {
       titulo="Alguém quer dividir um plano com você"
       subtitulo={
         <>
-          Este convite ainda <strong className="font-semibold text-tinta">não dá acesso a
+          Este convite ainda <strong className="font-medium text-tinta">não dá acesso a
           nada</strong>. Ao pedir para entrar, a pessoa que te convidou vê que foi você que
           apareceu e decide se confirma. Só depois disso vocês passam a ver o mesmo plano.
         </>

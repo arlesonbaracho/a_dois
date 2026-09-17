@@ -21,7 +21,7 @@ export function PrecoDoItem({ itemId }: { itemId: string }) {
   const parado = variacao.diferencaCents === 0;
 
   return (
-    <span className="mt-0.5 flex items-center gap-1.5 font-corpo text-[10.5px]">
+    <span className="mt-0.5 flex items-center gap-1.5 font-corpo text-[12px]">
       <span className="text-suave">
         {formatBRL(variacao.deCents)} → {formatBRL(variacao.paraCents)}
       </span>
@@ -29,8 +29,8 @@ export function PrecoDoItem({ itemId }: { itemId: string }) {
         <span className="text-suave">sem mudar em {variacao.dias} dias</span>
       ) : (
         <span
-          className={`rounded-full px-1.5 py-px font-semibold ${
-            caiu ? "bg-verde text-creme" : "bg-alerta-suave text-alerta"
+          className={`rounded-full px-1.5 py-px font-medium ${
+            caiu ? "bg-tinta text-creme" : "bg-alerta-suave text-alerta"
           }`}
         >
           {caiu ? "caiu" : "subiu"} {Math.abs(variacao.percentual)}% em {variacao.dias} dias

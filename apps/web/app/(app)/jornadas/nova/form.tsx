@@ -17,7 +17,7 @@ import {
 
 import { Campo, Enviar, Recado } from "@/components/form-ui";
 import { IconeAvancar, IconeFechar } from "@/components/icones";
-import { Chapa, Chip, Explica, Polaroide } from "@/components/pecas";
+import { Chapa, Chip, Explica } from "@/components/pecas";
 import { marcarPrimeiraMeta } from "@/components/pwa";
 import { prepararCapa } from "@/lib/capa";
 
@@ -27,7 +27,7 @@ import { prepararCapa } from "@/lib/capa";
  * Antes era um formulário encostado na lateral de /jornadas: seis campos
  * empilhados, e nenhum deles respondia à pergunta que o casal realmente tem,
  * que não é "quanto custa" — é "dá pra fazer?". O passo 1 responde isso a
- * cada toque, porque o cartão verde recalcula quanto cabe por mês enquanto o
+ * cada toque, porque o cartão recalcula quanto cabe por mês enquanto o
  * valor e o prazo mudam.
  */
 const MINIMO = 50000; // R$ 500
@@ -96,10 +96,11 @@ export function NovaJornada() {
     >
       <header className="flex items-end justify-between gap-3">
         <div>
-          <span className="font-corpo text-[10.5px] text-suave">passo 1 de 2</span>
-          <h1 className="text-[21px] font-semibold leading-tight tracking-[-0.03em]">
+          {/* O passo vai ABAIXO do título: rótulo acima de cabeçalho é kicker. */}
+          <h1 className="text-[26px] font-medium leading-tight tracking-[-0.03em]">
             Nova jornada
           </h1>
+          <span className="text-[13px] text-suave">passo 1 de 2</span>
         </div>
         <Link
           href="/jornadas"
@@ -112,29 +113,29 @@ export function NovaJornada() {
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <Polaroide indice={0}>
-            <Chapa categoria={categoria} className="h-[86px] rounded-chapa" />
-            <b className="mt-2 block truncate text-[12.5px] font-semibold leading-tight">
+          <div className="rounded-cartao border border-borda bg-white p-2">
+            <Chapa categoria={categoria} arte="h-[64%]" className="h-[86px] rounded-bloco" />
+            <b className="mt-2 block truncate text-[14px] font-medium leading-tight">
               {nome}
             </b>
-            <span className="font-corpo text-[10.5px] text-suave">
+            <span className="font-corpo text-[12px] text-suave">
               {temPrazo
                 ? `em ${periodos} ${nomeDoRitmo(metodo.ritmo, periodos > 1)}`
                 : "sem prazo"}
             </span>
-          </Polaroide>
+          </div>
         </div>
         {/* Responde "dá pra fazer?" a cada toque no valor, no método e no
             tamanho. É a peça que o formulário antigo não tinha, e é por ela
             que a tela existe. */}
-        <div className="flex flex-1 flex-col justify-center rounded-bloco bg-verde p-3.5 text-creme">
-          <span className="font-corpo text-[10.5px] text-creme/90">
+        <div className="flex flex-1 flex-col justify-center rounded-cartao bg-areia p-3.5 text-tinta">
+          <span className="font-corpo text-[12px] text-tinta">
             {temPrazo ? "precisam guardar" : "vocês querem juntar"}
           </span>
-          <b className="mt-0.5 block text-[21px] font-semibold tabular-nums tracking-[-0.035em]">
+          <b className="mt-0.5 block text-[22px] font-medium tabular-nums tracking-[-0.035em]">
             {formatBRL(primeira ?? alvoCents)}
           </b>
-          <span className="font-corpo text-[10.5px] text-creme/90">
+          <span className="font-corpo text-[12px] text-tinta">
             {!temPrazo
               ? "quando der"
               : metodo.forma === "igual"
@@ -146,8 +147,8 @@ export function NovaJornada() {
         </div>
       </div>
 
-      <span className="mt-1 font-corpo text-[10.5px] text-suave">
-        o que vocês querem conquistar
+      <span className="mt-1 font-corpo text-[12px] text-suave">
+        O que vocês querem conquistar
       </span>
       <div className="flex flex-wrap gap-2">
         {CATEGORIAS.map((valor) => (
@@ -172,8 +173,8 @@ export function NovaJornada() {
 
       <div className="rounded-cartao border border-borda bg-white p-4">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="font-corpo text-[10.5px] text-suave">quanto custa</span>
-          <b className="text-[21px] font-semibold tabular-nums tracking-[-0.035em]">
+          <span className="font-corpo text-[12px] text-suave">Quanto custa</span>
+          <b className="text-[22px] font-medium tabular-nums tracking-[-0.035em]">
             {formatBRL(alvoCents)}
           </b>
         </div>
@@ -204,11 +205,11 @@ export function NovaJornada() {
             placeholder="0,00"
           />
         </div>
-        <span className="mt-4 block font-corpo text-[10.5px] text-suave">como vão juntar</span>
+        <span className="mt-4 block font-corpo text-[12px] text-suave">Como vão juntar</span>
         {/* Dois níveis: o método, e só então o tamanho dele. Um nível só
             obrigaria a listar "12 meses, 26 semanas, 52 semanas crescente…"
             numa faixa que ninguém leria até o fim. */}
-        <div className="sem-barra -mx-4 mt-2 flex gap-2 overflow-x-auto px-4">
+        <div className="sem-barra faixa-que-rola -mx-4 mt-2 flex gap-2 overflow-x-auto px-4">
           {METODOS.map((opcao) => (
             <Chip
               key={opcao.id}
@@ -230,10 +231,10 @@ export function NovaJornada() {
                 type="button"
                 aria-pressed={periodos === quantos}
                 onClick={() => setPlano({ metodo, periodos: quantos })}
-                className={`flex-1 whitespace-nowrap rounded-full border px-1 py-2.5 text-[11.5px] font-semibold transition active:scale-95 ${
+                className={`flex-1 whitespace-nowrap rounded-full border px-1 py-2.5 text-[13px] font-medium transition active:scale-95 ${
                   periodos === quantos
                     ? "border-tinta bg-tinta text-creme"
-                    : "border-contorno/60 bg-white text-suave-forte hover:border-contorno"
+                    : "border-contorno bg-white text-suave-forte hover:border-contorno"
                 }`}
               >
                 {quantos} {nomeDoRitmo(metodo.ritmo, quantos > 1)}
@@ -259,7 +260,7 @@ export function NovaJornada() {
  *
  * A foto entra AQUI, e não num link para outra tela. O mundo v2 inteiro se
  * apoia nela — no cartão da home são 268px de foto contra quarenta de texto —
- * e pedir a capa três telas depois é o mesmo que não pedir. A polaroide toda é
+ * e pedir a capa três telas depois é o mesmo que não pedir. A carta toda é
  * o alvo: tocar em qualquer parte dela abre o seletor do aparelho.
  *
  * O envio é o mesmo caminho do detalhe: a foto é reduzida e reencodada no
@@ -305,33 +306,33 @@ function Pronto({ id, nome, categoria }: { id: string; nome: string; categoria: 
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-3.5 p-5 lg:max-w-md lg:p-10">
       <header>
-        <span className="font-corpo text-[10.5px] text-suave">passo 2 de 2</span>
-        <h1 className="text-[21px] font-semibold leading-tight tracking-[-0.03em]">
+        <h1 className="text-[26px] font-medium leading-tight tracking-[-0.03em]">
           Jornada criada
         </h1>
+        <span className="text-[13px] text-suave">passo 2 de 2</span>
       </header>
 
       <label className="block cursor-pointer">
-        <Polaroide indice={0} className="transition-transform hover:-translate-y-1">
+        <div className="rounded-carta bg-white p-2.5 shadow-carta transition-transform hover:-translate-y-1">
           <div className="relative">
-            <Chapa categoria={categoria} capaUrl={capaUrl} className="h-[124px] rounded-chapa" />
+            <Chapa categoria={categoria} capaUrl={capaUrl} className="h-[188px] rounded-cartao" />
             {capaUrl ? null : (
               <span className="absolute inset-0 grid place-items-center">
-                <span className="rounded-full bg-papel/90 px-3.5 py-2 font-corpo text-[11.5px] font-semibold text-tinta">
+                <span className="rounded-full bg-white px-3.5 py-2 font-corpo text-[13px] font-medium text-tinta">
                   {enviarCapa.isPending ? "Guardando a foto…" : "Escolher a foto"}
                 </span>
               </span>
             )}
           </div>
-          <b className="mt-2.5 block text-[13.5px] font-semibold tracking-[-0.02em]">{nome}</b>
-          <span className="font-corpo text-[11px] text-suave">
+          <b className="mt-2.5 block px-1.5 text-[15px] font-medium tracking-[-0.02em]">{nome}</b>
+          <span className="block px-1.5 pb-1 font-corpo text-[12px] text-suave">
             {capaUrl
               ? "toque para trocar a foto"
               : enviarCapa.isPending
                 ? "guardando…"
                 : "a foto que abre a jornada"}
           </span>
-        </Polaroide>
+        </div>
         <input
           type="file"
           accept="image/*"
@@ -344,17 +345,17 @@ function Pronto({ id, nome, categoria }: { id: string; nome: string; categoria: 
 
       <Recado erro={erroCapa} />
 
-      <span className="mt-2 font-corpo text-[10.5px] text-suave">para começar</span>
+      <span className="mt-2 font-corpo text-[12px] text-suave">Para começar</span>
       <ul className="flex flex-col gap-2">
         {comecos.map(([href, rotulo, dica]) => (
           <li key={rotulo}>
             <Link
               href={href}
-              className="flex items-center gap-3 rounded-cartao border border-borda bg-white p-3 transition hover:border-contorno/60 active:scale-[0.99]"
+              className="flex items-center gap-3 rounded-cartao border border-borda bg-white p-3 transition hover:border-contorno active:scale-[0.99]"
             >
               <span className="min-w-0 flex-1">
-                <b className="block text-[13px] font-semibold tracking-[-0.02em]">{rotulo}</b>
-                <i className="block font-corpo text-[10.5px] not-italic text-suave">{dica}</i>
+                <b className="block text-[14px] font-medium tracking-[-0.02em]">{rotulo}</b>
+                <i className="block font-corpo text-[12px] not-italic text-suave">{dica}</i>
               </span>
               <IconeAvancar aria-hidden="true" className="size-4 flex-none text-suave" />
             </Link>
@@ -370,7 +371,7 @@ function Pronto({ id, nome, categoria }: { id: string; nome: string; categoria: 
       <div className="pt-2">
         <Link
           href={`/jornadas/${id}`}
-          className="block rounded-full bg-verde px-5 py-4 text-center text-[13.5px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.98]"
+          className="grid h-14 place-items-center rounded-full bg-tinta px-5 text-center text-[15px] font-medium text-creme transition hover:opacity-90 active:scale-[0.98]"
         >
           Abrir a jornada
         </Link>

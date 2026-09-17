@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 
 import {
-  registrarAporte,
   salvarMinhaDivisao,
   salvarRegraDoCasal,
   usuarioAtual,
@@ -12,7 +11,6 @@ import {
   centavosDeTexto,
   type FaixaRenda,
   mensagemDoBanco,
-  paraInstante,
   PESO_FAIXA,
   type RegraDivisao,
 } from "@repo/core";
@@ -33,31 +31,6 @@ function texto(form: FormData, campo: string): string {
 
 function centavos(form: FormData, campo: string): number | null {
   return centavosDeTexto(texto(form, campo));
-}
-
-export async function acaoRegistrarAporte(
-  _anterior: EstadoForm,
-  form: FormData,
-): Promise<EstadoForm> {
-  const valor = centavos(form, "valor");
-  if (valor === null) return { erro: "Escreva quanto você colocou, em reais." };
-
-  const supabase = await criarClienteServidor();
-
-  try {
-    await registrarAporte(supabase, {
-      goalId: texto(form, "meta"),
-      valorCents: valor,
-      quandoISO: paraInstante(texto(form, "quando")) ?? undefined,
-    });
-  } catch (erro) {
-    return { erro: mensagemDoBanco(erro, "Não consegui registrar agora. Tenta de novo?") };
-  }
-
-  revalidatePath("/aportes");
-  revalidatePath("/");
-  // Sem valor na mensagem: ela pode virar breadcrumb, e regra 8 vale aqui também.
-  return { aviso: "Anotado. Bom trabalho, vocês dois." };
 }
 
 export async function acaoSalvarDivisao(

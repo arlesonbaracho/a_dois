@@ -1,194 +1,111 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import {
   AVISO_DE_PUBLICIDADE,
+  type Categoria,
+  categoriaConhecida,
   formatBRL,
   iniciaisDoCasal,
   rotuloDaCategoria,
 } from "@repo/core";
 
-import {
-  IconeAvancar,
-  MarcaBebe,
-  MarcaCasa,
-  MarcaCasamento,
-  MarcaGeral,
-  MarcaReserva,
-  MarcaViagem,
-} from "./icones";
+import { IconeAvancar } from "./icones";
 import { Progresso, type Fatia } from "./progresso";
 
 /**
- * As peças do design v2. Burras: recebem pronto e desenham.
+ * As peças do mundo v3. Burras: recebem pronto e desenham.
  *
- * O mundo mudou de superfície: o creme saiu do fundo e virou o texto sobre o
- * escuro, o limão saiu de cena e o verde assumiu a ação. O que ficou foi a
- * gramática — pílula em todo controle, uma cor por pessoa, e a foto como
- * conteúdo principal.
+ * O plano do casal virou um deck: cada jornada é uma carta, com a arte em
+ * cima e a legenda branca embaixo. Tinta é estrutura e ação; verde e marrom
+ * são só as duas pessoas.
  */
 
 /**
- * A polaroide.
- *
- * O v2 a manteve em dois lugares (dentro da jornada e na jornada nova) e
- * trocou a home por um cartão reto e grande. Onde ela fica, fica torta: a
- * inclinação vem de um índice, nunca de Math.random, porque sorteio aqui daria
- * ângulo diferente no servidor e no cliente e quebraria a hidratação.
+ * O fundo de cada categoria. Mapa estático porque o Tailwind lê classe por
+ * varredura de texto: montar `bg-campo-${categoria}` em tempo de execução
+ * produz classe que não existe no CSS.
  */
-const INCLINACOES = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2"] as const;
-// Linha larga precisa de giro menor: a 690px, 2° cisalham 24px e a linha
-// encosta na de baixo. O gesto de endireitar continua legível em 0.4°.
-const INCLINACOES_SUTIS = [
-  "-rotate-[0.4deg]",
-  "rotate-[0.25deg]",
-  "-rotate-[0.25deg]",
-  "rotate-[0.4deg]",
-] as const;
+const CAMPO: Record<Categoria, string> = {
+  casa: "bg-campo-casa",
+  viagem: "bg-campo-viagem",
+  reserva: "bg-campo-reserva",
+  casamento: "bg-campo-casamento",
+  bebe: "bg-campo-bebe",
+  geral: "bg-campo-geral",
+};
 
-export function Polaroide({
-  indice = 0,
-  endireitada = false,
-  sutil = false,
-  className = "",
-  children,
-}: {
-  indice?: number;
-  endireitada?: boolean;
-  sutil?: boolean;
-  className?: string;
-  children: ReactNode;
-}) {
-  const escala = sutil ? INCLINACOES_SUTIS : INCLINACOES;
-  const giro = endireitada ? "rotate-0" : escala[indice % escala.length];
-  return (
-    <div
-      className={`rounded-polaroide bg-white p-2 pb-3 shadow-polaroide transition-transform duration-500 ${giro} ${className}`}
-    >
-      {children}
-    </div>
-  );
+/** A classe do fundo da categoria — é a cor da carta quando ela está atrás no deck. */
+export function campoDe(categoria: string): string {
+  return CAMPO[categoriaConhecida(categoria) ?? "geral"];
 }
 
 /**
  * A chapa: o plano de imagem.
  *
- * Um duotone autoral por categoria, com a marca da categoria desenhada por
- * cima. A marca não é enfeite: sem ela um retângulo de gradiente lê como
- * imagem que não carregou, que foi o defeito mais visível da versão anterior.
- *
- * Com o Storage, a foto de verdade entra por cima — e o material continua
- * aqui, no papel que sempre foi o dele: é o que se vê enquanto a foto não
- * chegou, e é o que fica quando a jornada não tem capa.
+ * Sem foto, é o campo da categoria com a arte 3D dela (Fluent Emoji, MIT, em
+ * `public/arte/`). Com foto, a foto do casal entra por cima de tudo — e o
+ * campo continua aqui, que é o que se vê enquanto ela não chegou.
  */
-const MATERIAL: Record<
-  string,
-  { arte: string; Marca: (props: { className?: string }) => ReactNode }
-> = {
-  casa: {
-    arte: "radial-gradient(120% 100% at 20% 12%, #A8B7AD 0%, #91A398 46%, #6F8179 100%)",
-    Marca: MarcaCasa,
-  },
-  viagem: {
-    arte: "radial-gradient(120% 100% at 78% 16%, #8B6340 0%, #68462B 52%, #4A3120 100%)",
-    Marca: MarcaViagem,
-  },
-  reserva: {
-    arte: "radial-gradient(120% 100% at 30% 18%, #4B7C74 0%, #33605A 50%, #24463F 100%)",
-    Marca: MarcaReserva,
-  },
-  casamento: {
-    arte: "radial-gradient(120% 100% at 68% 14%, #C09C7A 0%, #9D7E58 50%, #74593A 100%)",
-    Marca: MarcaCasamento,
-  },
-  bebe: {
-    arte: "radial-gradient(120% 100% at 26% 16%, #AFBAC4 0%, #8494A1 50%, #5F6E79 100%)",
-    Marca: MarcaBebe,
-  },
-  geral: {
-    arte: "radial-gradient(120% 100% at 50% 14%, #A6B2A8 0%, #7E8F84 50%, #5A6A61 100%)",
-    Marca: MarcaGeral,
-  },
-};
-
 export function Chapa({
   categoria,
   capaUrl,
   className = "",
+  arte = "h-[62%]",
   children,
 }: {
   categoria: string;
   capaUrl?: string | null;
   className?: string;
+  /** A altura da arte dentro do campo. */
+  arte?: string;
   children?: ReactNode;
 }) {
-  const m = MATERIAL[categoria.trim().toLowerCase()] ?? MATERIAL.geral;
+  const chave = categoriaConhecida(categoria) ?? "geral";
   return (
-    <div className={`relative overflow-hidden ${className}`} style={{ backgroundImage: m.arte }}>
+    <div className={`relative flex items-center justify-center overflow-hidden ${CAMPO[chave]} ${className}`}>
       {capaUrl ? (
         /* alt vazio de propósito: o nome acessível do cartão é o título da
            jornada, logo ali embaixo. Descrever a foto de novo faria o leitor
            de tela anunciar a mesma coisa duas vezes.
 
            <img> e não next/image: a URL é assinada e vence em uma hora, então
-           o cache do otimizador trabalharia contra a gente — e o Storage já
-           serve a imagem no tamanho em que ela subiu. */
+           o cache do otimizador trabalharia contra a gente. */
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={capaUrl}
           alt=""
           loading="lazy"
           decoding="async"
+          draggable={false}
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <m.Marca className="absolute -bottom-[12%] -right-[6%] h-[78%] w-auto text-white/30" />
+        <Image
+          src={`/arte/${chave}.png`}
+          alt=""
+          width={256}
+          height={256}
+          unoptimized
+          draggable={false}
+          className={`w-auto drop-shadow-[0_16px_20px_rgb(7_0_1/0.14)] ${arte}`}
+        />
       )}
       {children}
     </div>
   );
 }
 
-/** A pílula escura com o total. */
+/**
+ * O total, dito como número e não como botão: pílula preta larga é a forma da
+ * ação principal, e um número vestido dela convida a ser tocado.
+ */
 export function PilulaTotal({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-full bg-tinta px-4 py-2.5 text-center font-corpo text-[11px] font-bold text-creme lg:max-w-xs lg:py-3 lg:text-[13px]">
+    <p className="num rounded-cartao bg-areia px-4 py-3 text-[15px] font-medium text-tinta lg:max-w-xs">
       {children}
     </p>
-  );
-}
-
-/**
- * O cartão de destaque: rótulo pequeno, número grande, fundo verde.
- *
- * Era o cartão limão. O verde carrega o mesmo papel — o número que importa —
- * e o texto dentro dele é creme, porque a tinta sobre o verde mediria 3.4:1 e
- * o creme mede 5.42:1.
- */
-export function CartaoDestaque({
-  rotulo,
-  valorCents,
-  rodape,
-  className = "",
-  children,
-}: {
-  rotulo: string;
-  valorCents: number;
-  rodape?: string;
-  className?: string;
-  children?: ReactNode;
-}) {
-  return (
-    /* creme/90 e não /80 nos rótulos: sobre o verde, 80% mede 4.10:1 e 90%
-       mede 4.73:1 — e estes são 10.5px, que é onde o piso de 4.5:1 vale. */
-    <div className={`rounded-bloco bg-verde p-3.5 text-creme ${className}`}>
-      <span className="font-corpo text-[10.5px] text-creme/90">{rotulo}</span>
-      <b className="mt-px block text-xl font-bold tabular-nums tracking-[-0.035em]">
-        {formatBRL(valorCents)}
-      </b>
-      {rodape ? <span className="font-corpo text-[10.5px] text-creme/90">{rodape}</span> : null}
-      {children}
-    </div>
   );
 }
 
@@ -207,18 +124,18 @@ export function Chip({
     <button
       type="button"
       aria-pressed={ativo}
-      className={`flex flex-none items-center gap-1.5 rounded-full border px-3.5 py-2.5 text-[12.5px] font-medium transition active:scale-95 ${
-        ativo
-          ? "border-tinta bg-tinta text-creme"
-          : "border-contorno/60 bg-white text-tinta hover:border-contorno"
+      className={`flex h-10 flex-none items-center gap-2 rounded-full border text-[14px] transition active:scale-95 ${
+        quantos === undefined ? "px-4" : "pl-4 pr-2"
+      } ${
+        ativo ? "border-tinta bg-tinta text-creme" : "border-borda bg-white text-tinta hover:bg-areia"
       }`}
       {...props}
     >
       {rotulo}
       {quantos === undefined ? null : (
         <span
-          className={`rounded-full px-1.5 py-px text-[10.5px] font-semibold ${
-            ativo ? "bg-creme/25 text-creme" : "bg-areia text-suave"
+          className={`num grid h-[26px] min-w-[26px] place-items-center rounded-full px-1.5 text-[12px] ${
+            ativo ? "bg-creme/20 text-creme" : "bg-areia text-tinta"
           }`}
         >
           {quantos}
@@ -231,8 +148,8 @@ export function Chip({
 /**
  * Cartão branco comum.
  *
- * Borda e nenhuma sombra: o v2 troca elevação por contorno. Quem tem borda não
- * tem sombra, e vice-versa.
+ * Borda e nenhuma sombra: sombra é da carta do deck, que flutua. Quem tem
+ * borda não tem sombra, e vice-versa.
  */
 export function Bloco({
   className = "",
@@ -246,12 +163,15 @@ export function Bloco({
   );
 }
 
-/** Pílula pequena de estado: "você", "pendente", "no plano", "comprado". */
+/**
+ * Pílula pequena de estado: "você", "pendente", "no plano", "comprado".
+ * Sobre areia o texto é tinta: suave ali mede 4.44:1, abaixo do piso.
+ */
 export function Etiqueta({ children, forte = false }: { children: ReactNode; forte?: boolean }) {
   return (
     <span
-      className={`flex-none rounded-full px-2.5 py-1 font-corpo text-[10.5px] font-semibold ${
-        forte ? "bg-verde text-creme" : "bg-areia text-suave"
+      className={`num flex-none rounded-full px-2.5 py-1 text-[12px] font-medium ${
+        forte ? "bg-tinta text-creme" : "bg-areia text-tinta"
       }`}
     >
       {children}
@@ -259,13 +179,31 @@ export function Etiqueta({ children, forte = false }: { children: ReactNode; for
   );
 }
 
+/** "mar/2027" — o prazo dito curto, como cabe na legenda da carta. */
+function prazoCurto(iso: string): string {
+  const data = new Date(iso);
+  const mes = data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+  return `${mes}/${data.getFullYear()}`;
+}
+
+/** A linha que a carta diz embaixo do título: quanto falta, e até quando. */
+function oQueFalta(aportadoCents: number, alvoCents: number, prazoISO?: string | null): string {
+  const prazo = prazoISO ? ` · até ${prazoCurto(prazoISO)}` : "";
+  if (alvoCents <= 0) return `${formatBRL(aportadoCents)} juntados${prazo}`;
+  const faltam = alvoCents - aportadoCents;
+  if (faltam <= 0) return `Juntaram tudo${prazo}`;
+  return `Faltam ${formatBRL(faltam)}${prazo}`;
+}
+
 /**
- * O cartão grande de uma jornada. É a peça-assinatura do v2.
+ * A carta do deck. É a peça-assinatura do v3.
  *
- * A foto ocupa a maior parte e carrega os dois fatos que se leem de relance: a
- * porcentagem no canto de cima e a categoria no de baixo. O disco de seta
- * sangra para fora da foto, que é o que faz o cartão parecer um objeto a ser
- * aberto e não um bloco de painel.
+ * A arte ocupa a maior parte, com a categoria e a porcentagem em pílulas
+ * brancas. O disco de seta fica no vinco entre a arte e a legenda — irmão da
+ * chapa, nunca filho, porque o `overflow-hidden` dela cortaria o círculo.
+ *
+ * `draggable={false}`: a carta é arrastada pelo deck, e o arrasto nativo de
+ * link do navegador cancelaria o gesto.
  */
 export function CartaoHero({
   id,
@@ -276,6 +214,7 @@ export function CartaoHero({
   alvoCents,
   percentual,
   fatias,
+  prazoISO,
 }: {
   id: string;
   titulo: string;
@@ -285,55 +224,52 @@ export function CartaoHero({
   alvoCents: number;
   percentual: number;
   fatias?: Fatia[];
+  prazoISO?: string | null;
 }) {
   return (
     <Link
       href={`/jornadas/${id}`}
-      className="group block rounded-cartao border border-borda bg-white p-2.5 pb-1 shadow-peca transition hover:-translate-y-0.5"
+      draggable={false}
+      className="group block select-none rounded-carta bg-white p-2.5 shadow-carta"
     >
-      {/* O disco sangra para FORA da foto, então ele é irmão da chapa: dentro
-          dela o `overflow-hidden` cortava metade do círculo. */}
       <div className="relative">
         <Chapa
           categoria={categoria}
           capaUrl={capaUrl}
-          className="h-[268px] rounded-bloco lg:h-[300px]"
+          className="h-[262px] rounded-cartao lg:h-[300px]"
         >
-          <span className="absolute right-3 top-3 rounded-full bg-white px-2.5 py-1.5 font-corpo text-[10.5px] font-semibold tabular-nums">
-            {percentual}%
-          </span>
-          <span className="absolute bottom-3 left-3 rounded-full bg-papel/90 px-2.5 py-1.5 font-corpo text-[10.5px] font-semibold">
+          <span className="absolute left-3.5 top-3.5 rounded-full bg-white px-3 py-1.5 text-[13px] text-suave">
             {rotuloDaCategoria(categoria)}
           </span>
+          <span className="num absolute right-3.5 top-3.5 rounded-full bg-white px-3 py-1.5 text-[13px] font-medium">
+            {percentual}%
+          </span>
         </Chapa>
-        <span className="absolute -bottom-5 right-3.5 grid size-11 place-items-center rounded-full bg-tinta text-creme shadow-disco transition-transform group-hover:scale-105">
-          <IconeAvancar className="size-5" />
+        <span
+          aria-hidden="true"
+          className="absolute -bottom-7 right-3 grid size-14 place-items-center rounded-full bg-tinta text-creme shadow-disco transition-transform group-hover:scale-105"
+        >
+          <IconeAvancar className="size-[22px]" />
         </span>
       </div>
-      <div className="px-2.5 pb-3 pt-7">
-        <h2 className="max-w-[20ch] text-[21px] font-semibold leading-tight tracking-[-0.03em]">
-          {titulo}
-        </h2>
-        <div className="mt-2">
-          <Progresso
-            percentual={percentual}
-            aportadoCents={aportadoCents}
-            alvoCents={alvoCents}
-            fatias={fatias}
-          />
-        </div>
+      <div className="px-4 pb-4 pt-4">
+        <h2 className="pr-16 text-[21px] font-medium leading-tight tracking-[-0.02em]">{titulo}</h2>
+        <p className="num mb-3 mt-1 text-[14px] text-suave">
+          {oQueFalta(aportadoCents, alvoCents, prazoISO)}
+        </p>
+        <Progresso
+          percentual={percentual}
+          aportadoCents={aportadoCents}
+          alvoCents={alvoCents}
+          fatias={fatias}
+          semLegenda
+        />
       </div>
     </Link>
   );
 }
 
-/**
- * O mesmo objeto em escala de lista.
- *
- * O v2 não desenhou a lista — só a home, que mostra uma jornada por vez. Esta
- * é a derivação: a mesma peça, metade do tamanho, em duas colunas. Sem ela a
- * lista seria um mundo visual de terceiro tipo.
- */
+/** A mesma carta em escala de lista: metade do tamanho, em duas colunas. */
 export function CartaoJornada({
   id,
   titulo,
@@ -352,7 +288,6 @@ export function CartaoJornada({
   alvoCents: number;
   percentual: number;
   fatias?: Fatia[];
-  indice?: number;
 }) {
   return (
     <Link
@@ -362,18 +297,17 @@ export function CartaoJornada({
       <Chapa
         categoria={categoria}
         capaUrl={capaUrl}
-        className="h-28 rounded-quadro lg:h-44"
+        arte="h-[66%]"
+        className="h-32 rounded-bloco lg:h-44"
       >
-        <span className="absolute right-2 top-2 rounded-full bg-white px-2 py-1 font-corpo text-[10px] font-semibold tabular-nums">
+        <span className="num absolute right-2 top-2 rounded-full bg-white px-2.5 py-1 text-[12px] font-medium">
           {percentual}%
         </span>
       </Chapa>
-      <div className="px-1.5 pb-1 pt-2.5">
-        <b className="block truncate text-[14px] font-semibold tracking-[-0.02em]">{titulo}</b>
-        <span className="block font-corpo text-[10.5px] text-suave">
-          {rotuloDaCategoria(categoria)}
-        </span>
-        <div className="mt-2">
+      <div className="px-1.5 pb-1.5 pt-3">
+        <b className="line-clamp-2 block text-[15px] font-medium leading-snug tracking-[-0.02em]">{titulo}</b>
+        <span className="block text-[12px] text-suave">{rotuloDaCategoria(categoria)}</span>
+        <div className="mt-2.5">
           <Progresso
             percentual={percentual}
             aportadoCents={aportadoCents}
@@ -386,29 +320,17 @@ export function CartaoJornada({
   );
 }
 
-/**
- * O degrau de seção.
- *
- * Existia de fato — e em quatro tamanhos diferentes: 17, 16, 15 e o `text-sm`
- * que nem era do sistema. Um degrau só, com nome, é o que impede a próxima
- * tela de inventar o quinto.
- */
+/** O degrau de seção. Um só, com nome, para a próxima tela não inventar outro. */
 export function Secao({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <h2 className={`text-[17px] font-semibold tracking-[-0.03em] ${className}`}>{children}</h2>
+    <h2 className={`text-[18px] font-medium tracking-[-0.02em] ${className}`}>{children}</h2>
   );
 }
 
-/**
- * O parágrafo que explica.
- *
- * Toda vez que uma tela escreveu `text-sm text-suave-forte` ela pediu 14px na
- * fonte de display — que é a voz do que o app AFIRMA. Explicação é o app
- * conversando, e conversa é Manrope.
- */
+/** O parágrafo que explica: o app conversando. */
 export function Explica({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <p className={`font-corpo text-[12.5px] leading-relaxed text-suave ${className}`}>{children}</p>
+    <p className={`font-corpo text-[14px] leading-relaxed text-suave ${className}`}>{children}</p>
   );
 }
 
@@ -431,7 +353,7 @@ export function DiscoDePessoa({
   return (
     <span
       aria-hidden="true"
-      className={`grid size-8 flex-none place-items-center rounded-full text-[12px] font-semibold text-creme ${DISCO[cor]} ${className}`}
+      className={`grid size-11 flex-none place-items-center rounded-full text-[15px] font-medium text-creme ${DISCO[cor]} ${className}`}
     >
       {iniciais || "·"}
     </span>
@@ -444,10 +366,8 @@ export function PontoDePessoa({ cor }: { cor: Fatia["cor"] }) {
 }
 
 /**
- * Os dois do casal, empilhados.
- *
- * Diz de relance de quem é a jornada sem gastar uma linha de texto. A borda da
- * cor do fundo é o que separa um disco do outro na sobreposição.
+ * Os dois do casal, sobrepostos. A borda da cor do fundo é o que separa um
+ * disco do outro na sobreposição.
  */
 export function AvataresDoCasal({
   pessoas,
@@ -464,9 +384,9 @@ export function AvataresDoCasal({
         <span
           key={pessoa.chave}
           aria-hidden="true"
-          className={`grid size-7 place-items-center rounded-full border-2 border-papel text-[11px] font-semibold text-creme ${
+          className={`grid size-11 place-items-center rounded-full border-[3px] border-papel text-[14px] font-medium text-creme ${
             DISCO[pessoa.cor]
-          } ${indice > 0 ? "-ml-2.5" : ""}`}
+          } ${indice > 0 ? "-ml-3" : ""}`}
         >
           {iniciaisDoCasal([pessoa.nome]) || "·"}
         </span>
@@ -476,31 +396,34 @@ export function AvataresDoCasal({
 }
 
 /**
- * Uma linha de aporte: quem, quando, quanto.
- *
- * Mora aqui porque o mesmo fato aparecia de duas formas — bloco branco com
- * disco colorido na jornada, e duas colunas de texto pelado em /aportes. Era a
- * mesma coisa desenhada duas vezes, e por isso desenhada diferente.
+ * Uma linha de aporte: quem, quando, quanto. Cada uma é um comprovante, na
+ * cor de quem colocou.
  */
 export function LinhaAporte({
   nome,
+  acao,
   legenda,
   cor,
   valorCents,
 }: {
   nome: string;
+  /** "anotou": vai depois do nome, fora das iniciais do disco. */
+  acao?: string;
   legenda: string;
   cor: Fatia["cor"];
   valorCents: number;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-cartao border border-borda bg-white p-3">
+    <div className="flex items-center gap-3 py-1.5">
       <DiscoDePessoa iniciais={iniciaisDoCasal([nome])} cor={cor} />
       <span className="min-w-0 flex-1">
-        <b className="block truncate text-[13px] font-semibold">{nome}</b>
-        <i className="block font-corpo text-[10.5px] not-italic text-suave">{legenda}</i>
+        <b className="block truncate text-[15px] font-normal">
+          {nome}
+          {acao ? ` ${acao}` : null}
+        </b>
+        <i className="block text-[12px] not-italic text-suave">{legenda}</i>
       </span>
-      <b className="flex-none text-[13px] font-semibold tabular-nums">{formatBRL(valorCents)}</b>
+      <b className="num flex-none text-[15px] font-medium">{formatBRL(valorCents)}</b>
     </div>
   );
 }
@@ -508,17 +431,14 @@ export function LinhaAporte({
 /**
  * A sugestão de compra, colada no item que o casal anotou.
  *
- * Linha e não cartão: o item é deles, a oferta é convidada. Se a sugestão
- * empurrar o item para fora da vista, a aba deixou de ser a lista do casal e
- * virou vitrine.
+ * Linha e não cartão: o item é deles, a oferta é convidada.
  *
  * A imagem é a chapa da categoria, e não a foto da loja: um `<img>` apontando
  * para o CDN do parceiro entregaria a ele o IP e o horário de quem só ABRIU a
  * tela, sem clicar em nada.
  *
  * `rel="sponsored"` é a declaração nativa de link pago; `noreferrer` fica
- * porque o referrer contaria à loja de qual jornada a visita saiu, e a
- * atribuição de afiliado é por parâmetro na URL, não por referrer.
+ * porque o referrer contaria à loja de qual jornada a visita saiu.
  */
 export function LinhaOferta({
   titulo,
@@ -540,19 +460,19 @@ export function LinhaOferta({
       href={url}
       target="_blank"
       rel="sponsored noopener noreferrer"
-      className="mt-2 flex items-center gap-3 rounded-bloco border border-borda bg-papel p-2.5 transition hover:border-contorno/60 active:scale-[0.99]"
+      className="mt-2 flex items-center gap-3 rounded-bloco border border-borda bg-white p-2 pr-3.5 transition hover:border-contorno active:scale-[0.99]"
     >
-      <Chapa categoria={categoria} className="size-10 flex-none rounded-quadro" />
+      <Chapa categoria={categoria} arte="h-[68%]" className="size-10 flex-none rounded-chapa" />
       <span className="min-w-0 flex-1">
-        <b className="block truncate text-[12.5px] font-semibold tracking-[-0.02em]">{titulo}</b>
-        <i className="block truncate font-corpo text-[10.5px] not-italic text-suave">
+        <b className="block truncate text-[13px] font-medium">{titulo}</b>
+        <i className="block text-[12px] not-italic leading-snug text-suave">
           {/* A palavra vem primeiro e é texto: quem usa leitor de tela ouve
               "Publicidade" antes do nome da loja e do preço. */}
           {AVISO_DE_PUBLICIDADE} · {loja} · visto em{" "}
           {new Date(vistoEmISO).toLocaleDateString("pt-BR")}
         </i>
       </span>
-      <b className="flex-none text-[12.5px] font-semibold tabular-nums">{formatBRL(precoCents)}</b>
+      <b className="num flex-none text-[13px] font-medium">{formatBRL(precoCents)}</b>
     </a>
   );
 }

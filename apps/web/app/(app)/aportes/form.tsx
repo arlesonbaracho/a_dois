@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import {
   type CorDePessoa,
@@ -12,14 +12,15 @@ import {
 } from "@repo/core";
 
 import { Campo, Enviar, Escolha, Recado, type EstadoForm } from "@/components/form-ui";
-import { CartaoDestaque, Explica, LinhaAporte, PontoDePessoa, Secao } from "@/components/pecas";
+import { Chip, Explica, LinhaAporte, PontoDePessoa, Secao } from "@/components/pecas";
+import { Progresso } from "@/components/progresso";
 
-import { acaoRegistrarAporte, acaoSalvarDivisao } from "./actions";
+import { acaoSalvarDivisao } from "./actions";
 
-type Meta = { id: string; titulo: string; alvoCents: number };
 type Aporte = {
   id: string;
   quem: string;
+  jornada: string;
   cor: CorDePessoa;
   valorCents: number;
   quando: string;
@@ -58,98 +59,152 @@ const MODOS: { valor: RegraDivisao; rotulo: string; comoFunciona: string; oQueFa
   },
 ];
 
-const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
+/** "Hoje", "Ontem", "12 de setembro" — o dia dito como gente diz. */
+function nomeDoDia(iso: string, agora: Date): string {
+  const dia = new Date(iso).toDateString();
+  if (dia === agora.toDateString()) return "Hoje";
+  const ontem = new Date(agora);
+  ontem.setDate(agora.getDate() - 1);
+  if (dia === ontem.toDateString()) return "Ontem";
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
+}
 
 export function TelaAportes({
-  metas,
+  temJornada,
+  mes,
   ultimos,
   saldo,
   nomes,
   cores,
   totalDoPlanoCents,
   doMesCents,
+  doMesPorPessoa,
   disponivel,
   minhaRegra,
   minhaFaixa,
   minhaParteFixaCents,
 }: {
-  metas: Meta[];
+  temJornada: boolean;
+  mes: string;
   ultimos: Aporte[];
   saldo: Saldo;
   nomes: Record<string, string>;
   cores: Record<string, CorDePessoa>;
   totalDoPlanoCents: number;
   doMesCents: number;
+  doMesPorPessoa: { chave: string; cor: CorDePessoa; cents: number }[];
   disponivel: Record<RegraDivisao, boolean>;
   minhaRegra: RegraDivisao;
   minhaFaixa: string | null;
   minhaParteFixaCents: number | null;
 }) {
-  const [estadoAporte, salvarAporte] = useActionState<EstadoForm, FormData>(
-    acaoRegistrarAporte,
-    {},
-  );
   const [estadoDivisao, salvarDivisao] = useActionState<EstadoForm, FormData>(
     acaoSalvarDivisao,
     {},
   );
 
   const deQuemSaiu = totalDoPlanoCents - saldo.totalRateadoCents;
-  const hoje = new Date().toISOString().slice(0, 10);
+  const [agora] = useState(() => new Date());
+  // Filtro por pessoa: a chave é o nome como aparece na linha.
+  const [deQuem, setDeQuem] = useState<string | null>(null);
+  const contagem = new Map<string, number>();
+  for (const aporte of ultimos) contagem.set(aporte.quem, (contagem.get(aporte.quem) ?? 0) + 1);
+  // Os últimos, agrupados por dia, na ordem em que chegaram.
+  const porDia = new Map<string, Aporte[]>();
+  for (const aporte of ultimos.filter((item) => deQuem === null || item.quem === deQuem)) {
+    const nome = nomeDoDia(aporte.quando, agora);
+    porDia.set(nome, [...(porDia.get(nome) ?? []), aporte]);
+  }
 
   return (
-    <main className="mx-auto flex max-w-sm flex-col gap-5 p-5 lg:max-w-2xl lg:p-10">
+    <main className="mx-auto flex max-w-sm flex-col gap-5 px-5 pt-5 lg:max-w-2xl lg:p-10">
       <div>
-        <h1 className="text-[28px] font-semibold leading-none tracking-[-0.03em] lg:text-4xl">Aportes</h1>
-        <Explica className="mt-1">
+        <h1 className="text-[30px] font-medium leading-none tracking-[-0.03em]">Aportes</h1>
+        <Explica className="mt-1.5">
           Quem colocou quanto, e como vocês combinaram de dividir.
         </Explica>
       </div>
 
-      <Saldos saldo={saldo} nomes={nomes} cores={cores} deQuemSaiuCents={deQuemSaiu} />
+      {/* O mês, com a barra de quem colocou. A barra mede a parte de cada um
+          no que entrou este mês, e não contra um alvo — mês não tem alvo. */}
+      <section className="rounded-cartao border border-borda bg-white px-4 pb-3.5 pt-3">
+        <div className="mb-2.5 flex items-baseline justify-between gap-3">
+          <h2 className="text-[13px] font-normal capitalize text-suave">{mes}</h2>
+          <b className="num text-[22px] font-medium tracking-[-0.02em]">{formatBRL(doMesCents)}</b>
+        </div>
+        <Progresso
+          percentual={doMesCents > 0 ? 100 : 0}
+          aportadoCents={doMesCents}
+          alvoCents={0}
+          fatias={doMesPorPessoa
+            .filter((pessoa) => pessoa.cents > 0)
+            .map((pessoa) => ({ chave: pessoa.chave, cents: pessoa.cents, cor: pessoa.cor }))}
+          semLegenda
+        />
+        <p className="num mt-2 flex flex-wrap gap-x-3.5 gap-y-1 text-[12px] text-suave">
+          {doMesPorPessoa.map((pessoa) => (
+            <span key={pessoa.chave} className="flex items-center gap-1.5">
+              <PontoDePessoa cor={pessoa.cor} />
+              {nomes[pessoa.chave] ?? "Sua dupla"} {formatBRL(pessoa.cents)}
+            </span>
+          ))}
+        </p>
+      </section>
 
-      {/* "este mês" saiu da home quando ela virou uma jornada por vez. O lugar
-          dele é aqui, que é a tela do dinheiro. */}
-      <CartaoDestaque rotulo="este mês" valorCents={doMesCents} rodape="o que entrou desde o dia 1" />
-
-      {metas.length === 0 ? (
-        <p className="rounded-cartao border border-borda bg-white p-4 font-corpo text-[12.5px] leading-relaxed text-suave-forte">
+      {!temJornada ? (
+        <p className="rounded-cartao border border-borda bg-white p-4 text-[14px] leading-relaxed text-suave">
           Antes do primeiro aporte, criem uma jornada em{" "}
-          <Link href="/jornadas" className="font-semibold underline">
+          <Link href="/jornadas" className="font-medium text-tinta underline">
             jornadas de vocês
           </Link>
           .
         </p>
+      ) : ultimos.length === 0 ? (
+        <Explica>Nenhum aporte ainda. O + lá embaixo anota o primeiro.</Explica>
       ) : (
-        <form action={salvarAporte} className="flex flex-col gap-4">
-          <Secao>Coloquei um dinheiro</Secao>
-
-          {/* Era um <label> com <select> montado à mão bem ao lado de campos
-              que vêm de form-ui — e dava para ver: o rótulo "Em qual jornada"
-              saía 14px em Outfit e o "Quanto (R$)" logo abaixo saía 11.5px em
-              Manrope, no mesmo formulário. */}
-          <Escolha rotulo="Em qual jornada" name="meta" required>
-            {metas.map((meta) => (
-              <option key={meta.id} value={meta.id}>
-                {meta.titulo}
-              </option>
-            ))}
-          </Escolha>
-
-          <Campo
-            rotulo="Quanto (R$)"
-            name="valor"
-            type="text"
-            required
-            inputMode="decimal"
-            placeholder="0,00"
-          />
-          <Campo rotulo="Quando" name="quando" type="date" defaultValue={hoje} max={hoje} />
-
-          <Recado erro={estadoAporte.erro} aviso={estadoAporte.aviso} />
-          <Enviar largo>Anotar</Enviar>
-        </form>
+        /* Cada linha é um comprovante, na cor de quem colocou. */
+        <section className="flex flex-col" aria-label="Os últimos aportes">
+          {contagem.size > 1 ? (
+            <div className="sem-barra -mx-5 flex gap-2 overflow-x-auto px-5 py-0.5 lg:mx-0 lg:px-0">
+              <Chip
+                rotulo="Todos"
+                quantos={ultimos.length}
+                ativo={deQuem === null}
+                onClick={() => setDeQuem(null)}
+              />
+              {[...contagem].map(([quem, quantos]) => (
+                <Chip
+                  key={quem}
+                  rotulo={quem}
+                  quantos={quantos}
+                  ativo={deQuem === quem}
+                  onClick={() => setDeQuem(quem)}
+                />
+              ))}
+            </div>
+          ) : null}
+          {[...porDia].map(([dia, doDia]) => (
+            <div key={dia}>
+              <h2 className="mb-1 mt-3 text-[13px] font-normal text-suave">{dia}</h2>
+              <ul>
+                {doDia.map((aporte) => (
+                  <li key={aporte.id}>
+                    <LinhaAporte
+                      nome={aporte.quem}
+                      acao="anotou"
+                      legenda={aporte.jornada}
+                      cor={aporte.cor}
+                      valorCents={aporte.valorCents}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
       )}
+
+      <Saldos saldo={saldo} nomes={nomes} cores={cores} deQuemSaiuCents={deQuemSaiu} />
 
       <form action={salvarDivisao} className="flex flex-col gap-4">
         <div>
@@ -177,11 +232,11 @@ export function TelaAportes({
                   value={modo.valor}
                   defaultChecked={minhaRegra === modo.valor}
                   disabled={!podeUsar}
-                  className="mt-0.5 size-4 accent-verde"
+                  className="mt-0.5"
                 />
                 <span>
-                  <span className="block text-[13.5px] font-semibold">{modo.rotulo}</span>
-                  <span className="mt-0.5 block font-corpo text-[12px] leading-relaxed text-suave-forte">
+                  <span className="block text-[15px] font-medium">{modo.rotulo}</span>
+                  <span className="mt-0.5 block font-corpo text-[13px] leading-relaxed text-suave-forte">
                     {podeUsar ? modo.comoFunciona : modo.oQueFalta}
                   </span>
                 </span>
@@ -219,26 +274,6 @@ export function TelaAportes({
         <Enviar largo>Salvar</Enviar>
       </form>
 
-      {ultimos.length > 0 ? (
-        <section className="flex flex-col gap-2">
-          <Secao>Os últimos</Secao>
-          {/* A mesma linha da aba "Aportes" da jornada. Era duas colunas de
-              texto pelado aqui e bloco branco com disco colorido lá — o mesmo
-              fato desenhado duas vezes, e por isso desenhado diferente. */}
-          <ul className="flex flex-col gap-2">
-            {ultimos.map((aporte) => (
-              <li key={aporte.id}>
-                <LinhaAporte
-                  nome={aporte.quem}
-                  legenda={dia(aporte.quando)}
-                  cor={aporte.cor}
-                  valorCents={aporte.valorCents}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
     </main>
   );
 }
@@ -271,19 +306,19 @@ function Saldos({
     <section className="flex flex-col gap-3 rounded-cartao border border-borda bg-white p-4">
       {/* h2, total, lista e frase como filhos diretos: o e2e ancora em
           heading.locator("..") e um invólucro tiraria as linhas do pai. */}
-      <h2 className="text-[17px] font-semibold tracking-[-0.03em]">Quanto vocês já juntaram</h2>
-      <p className="-mt-2 text-[28px] font-semibold tracking-[-0.035em] tabular-nums">
+      <h2 className="text-[18px] font-medium tracking-[-0.03em]">Quanto vocês já juntaram</h2>
+      <p className="-mt-2 text-[30px] font-medium tracking-[-0.035em] tabular-nums">
         {formatBRL(saldo.totalRateadoCents + deQuemSaiuCents)}
       </p>
 
-      <ul className="flex flex-col gap-2 border-t border-divisa pt-3 font-corpo text-[11.5px]">
+      <ul className="flex flex-col gap-2 border-t border-divisa pt-3 font-corpo text-[13px]">
         {saldo.linhas.map((linha) => (
           <li key={linha.userId} className="flex items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-2">
               <PontoDePessoa cor={cores[linha.userId] ?? "fora"} />
               <span className="truncate text-suave">{nomes[linha.userId] ?? "Sua dupla"}</span>
             </span>
-            <span className="font-semibold tabular-nums text-tinta">
+            <span className="font-medium tabular-nums text-tinta">
               {formatBRL(linha.aportadoCents)}
               {saldo.aplicavel ? (
                 <span className="font-normal text-suave">
@@ -302,7 +337,7 @@ function Saldos({
         ) : null}
       </ul>
 
-      <p className="border-t border-divisa pt-3 font-corpo text-[12.5px] font-medium leading-relaxed text-suave-forte">
+      <p className="border-t border-divisa pt-3 font-corpo text-[14px] font-medium leading-relaxed text-suave-forte">
         {!saldo.aplicavel
           ? "Escolham ali embaixo como querem dividir, e eu faço essa conta."
           : emDia

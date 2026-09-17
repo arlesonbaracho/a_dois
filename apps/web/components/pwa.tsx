@@ -61,14 +61,14 @@ export function Pwa() {
 
   return (
     <div className="fixed inset-x-4 bottom-28 z-30 mx-auto max-w-sm rounded-cartao border border-borda bg-white p-4 text-tinta shadow-peca lg:bottom-4 lg:left-28 lg:right-auto">
-      <p className="font-corpo text-[12.5px] leading-relaxed">
+      <p className="font-corpo text-[14px] leading-relaxed">
         Quer o {APP_NAME} na tela de início? Fica mais perto na hora de lançar um
         aporte.
       </p>
       <div className="mt-3 flex gap-2">
         <button
           type="button"
-          className="rounded-full bg-tinta px-4 py-2.5 text-[12.5px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.97]"
+          className="rounded-full bg-tinta px-4 py-2.5 text-[14px] font-medium text-creme transition hover:opacity-90 active:scale-[0.97]"
           onClick={() => {
             void evento.prompt();
             setEvento(null);
@@ -78,7 +78,7 @@ export function Pwa() {
         </button>
         <button
           type="button"
-          className="rounded-full border border-contorno/60 px-4 py-2.5 text-[12.5px] font-semibold text-suave-forte transition hover:bg-areia active:scale-[0.97]"
+          className="rounded-full border border-contorno px-4 py-2.5 text-[14px] font-medium text-suave-forte transition hover:bg-areia active:scale-[0.97]"
           onClick={dispensar}
         >
           Agora não

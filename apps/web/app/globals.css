@@ -1,70 +1,78 @@
 @import "tailwindcss";
 
-/* Tokens do design v2: superfície quase branca, tinta quase preta, verde como
-   a cor da ação e marrom como a segunda pessoa. Ficam aqui, e não espalhados
-   nas telas, porque é o que permite trocar a paleta inteira num arquivo só —
-   foi exatamente isso que a troca do creme+limão para cá exercitou.
+/* Tokens do mundo v3: o deck de jornadas sobre papel, com as nove cores da
+   marca e nenhuma outra. Ficam aqui, e não espalhados nas telas, porque é o
+   que permite trocar a paleta inteira num arquivo só.
 
    Vive com a dívida registrada: o NativeWind estável ainda espera Tailwind 3,
    então na fase 2 este bloco é reescrito — as telas, não. */
 @theme {
+  /* As nove. */
   --color-papel: #fdfbf7;
   --color-tinta: #070001;
-
-  /* Verde é a ação e a primeira pessoa; marrom é a segunda. Uma cor só faz os
-     dois papéis de propósito: o dinheiro de quem age é da cor de quem age. */
   --color-verde: #33605a;
   --color-marrom: #68462b;
-
-  /* Sálvia é SUPERFÍCIE, nunca texto: mede 2.57:1 sobre o fundo. Sobre ela o
-     texto é tinta, que dá 7.82:1. */
-  --color-salvia: #91a398;
-
-  /* O creme deixou de ser fundo e virou o texto sobre superfície escura:
-     15.90:1 sobre a tinta, 5.42:1 sobre o verde. */
   --color-creme: #e9e0d1;
-
+  --color-salvia: #91a398;
   --color-suave: #5f6f68;
-  --color-suave-forte: #3d4a44;
-
   --color-areia: #f1eae0;
-  --color-divisa: #f1eae0;
-  /* A listra do trilho vazio. Precisa destoar do creme o suficiente para ler
-     como hachura e não como sujeira de renderização. */
-  --color-listra: #dcd2c2;
+  --color-cinza: #b3ab9c;
 
-  /* Duas bordas, e a diferença é o piso de contraste. `borda` contorna cartão,
-     que é decoração e pode ser quase invisível. `contorno` fecha CONTROLE —
-     campo, select, chip, botão de contorno — e aí o limite do controle é
-     informação: 3.42:1 sobre o branco, contra 1.25:1 da outra. */
-  --color-borda: #ede5d8;
-  --color-contorno: #7e8f84;
-
+  /* Papéis. Tinta é estrutura E ação: botão, chip ativo, disco. Verde e
+     marrom deixaram de ser ação no v3 e são só as duas pessoas — uma cor que
+     quer dizer "de quem é o dinheiro" não pode também querer dizer "aperte". */
   --color-pessoa-1: #33605a;
   --color-pessoa-2: #68462b;
   --color-pessoa-fora: #b3ab9c;
 
+  /* Suave mede 5.13:1 sobre o papel e 5.30:1 sobre o branco, mas só 4.44:1
+     sobre a areia: texto pequeno em cima de areia vai em tinta. O antigo
+     "suave-forte" não era uma das nove e virou apelido de suave. */
+  --color-suave-forte: #5f6f68;
+
+  /* Duas bordas, e a diferença é o piso de contraste. `borda` contorna
+     cartão e chip — decoração, pode ser quase invisível. `contorno` fecha
+     CAMPO e botão de contorno, onde o limite é informação: é suave a 75%
+     sobre o branco, 3.18:1, acima do piso de 3:1. */
+  --color-borda: #f1eae0;
+  --color-divisa: #f1eae0;
+  --color-contorno: #87938e;
+
+  /* A listra do trilho vazio, sobre a areia. */
+  --color-listra: #e9e0d1;
+
+  /* O fundo da arte de cada categoria. Nenhuma cor nova: cada um é uma das
+     nove misturada com branco. Verde e marrom entram fracos (30%) para não
+     lerem como a cor de uma pessoa. */
+  --color-campo-casa: color-mix(in srgb, #91a398 55%, white);
+  --color-campo-viagem: color-mix(in srgb, #68462b 30%, white);
+  --color-campo-reserva: color-mix(in srgb, #33605a 30%, white);
+  --color-campo-casamento: #e9e0d1;
+  --color-campo-bebe: color-mix(in srgb, #b3ab9c 55%, white);
+  --color-campo-geral: #f1eae0;
+
+  /* Estado de erro não é cor de marca: é o aviso de que algo não deu certo,
+     e precisa ser reconhecível como tal. */
   --color-alerta: #8a3a2a;
   --color-alerta-suave: #f4e6df;
 
-  --font-display: var(--fonte-display), ui-sans-serif, system-ui, sans-serif;
-  --font-corpo: var(--fonte-corpo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--fonte), ui-sans-serif, system-ui, sans-serif;
+  --font-corpo: var(--fonte), ui-sans-serif, system-ui, sans-serif;
 
-  /* Seis raios, e cada um quer dizer uma coisa. */
-  --radius-chapa: 4px;
-  --radius-polaroide: 8px;
+  --radius-chapa: 12px;
   --radius-quadro: 16px;
   --radius-bloco: 20px;
   --radius-cartao: 24px;
+  --radius-carta: 32px;
 
-  --shadow-polaroide: 0 12px 26px rgb(7 0 1 / 0.11);
-  --shadow-peca: 0 14px 30px rgb(7 0 1 / 0.1);
+  --shadow-carta: 0 18px 40px rgb(7 0 1 / 0.08);
+  --shadow-peca: 0 14px 30px rgb(7 0 1 / 0.08);
   --shadow-disco: 0 8px 18px rgb(7 0 1 / 0.24);
 }
 
-/* O app se compromete com o claro: o design é de superfície quase branca, e
-   não existe paleta escura desenhada. Sem isto, navegador em modo escuro pinta
-   o fundo de preto e as telas de auth ficam texto escuro sobre fundo escuro. */
+/* O app se compromete com o claro: não existe paleta escura desenhada. Sem
+   isto, navegador em modo escuro pinta o fundo de preto e as telas de auth
+   ficam texto escuro sobre fundo escuro. */
 :root {
   color-scheme: light;
 }
@@ -77,15 +85,14 @@ body {
 }
 
 /* As superfícies que o navegador desenha por conta própria. Sem isto elas
-   ficam com o azul de sistema no meio da paleta — é o detalhe mais barato que
-   separa uma tela montada de uma desenhada. */
+   ficam com o azul de sistema no meio da paleta. */
 ::selection {
-  background-color: var(--color-verde);
+  background-color: var(--color-tinta);
   color: var(--color-creme);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-verde);
+  outline: 2px solid var(--color-tinta);
   outline-offset: 3px;
 }
 
@@ -96,12 +103,16 @@ a {
 input,
 textarea,
 select {
-  caret-color: var(--color-verde);
+  caret-color: var(--color-tinta);
 }
 
 * {
-  scrollbar-color: var(--color-borda) transparent;
+  scrollbar-color: var(--color-listra) transparent;
   scrollbar-width: thin;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
 }
 
 /* O triângulo do <details> e a seta do <select> são as duas últimas peças que
@@ -133,13 +144,11 @@ details[open] > summary::before {
 select {
   appearance: none;
   padding-right: 2.25rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%233d4a44' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235f6f68' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85rem center;
 }
 
-/* O calendário nativo era a última superfície que o navegador ainda desenhava
-   no estilo dele. */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 0.5;
@@ -151,13 +160,17 @@ input[type="date"]:focus::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
+/* Faixa que rola e termina dentro de um contêiner, e não na borda da tela: o
+   último chip cortado seco lê como defeito. O esmaecido diz "tem mais". */
+.faixa-que-rola {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+
 /* A faixa de chips rola na horizontal e a barra do navegador aparecia como um
-   traço escuro colado embaixo dela. `scrollbar-width` sozinho não cobre o
-   WebKit. */
+   traço escuro colado embaixo dela. */
 .sem-barra {
-  /* `scrollbar-width: none` aqui e não só na classe utilitária: a regra
-     global de `*` mora fora de @layer e vence qualquer utility do Tailwind,
-     que mora dentro. */
+  /* Aqui e não só na utility: a regra global de `*` mora fora de @layer e
+     vence qualquer utility do Tailwind, que mora dentro. */
   scrollbar-width: none;
 }
 
@@ -167,15 +180,10 @@ input[type="date"]:focus::-webkit-calendar-picker-indicator {
   height: 0;
 }
 
-/* O Manrope fecha as palavras em 10–12px a ponto de ligar ("o usodela",
-   "juntandodinheiro"). 0.05em aqui era 0.6px e sumia no arredondamento — o
-   valor precisa sobreviver à rasterização no tamanho onde o defeito mora. */
 .font-corpo {
-  word-spacing: 0.12em;
   text-wrap: pretty;
 }
 
-/* Título que quebra em linhas de tamanhos parecidos. */
 h1,
 h2,
 h3 {
@@ -183,7 +191,7 @@ h3 {
 }
 
 /* O slider de valor da jornada nova. O nativo vem com a pista azul do sistema
-   e um polegar pequeno demais para dedo; estes são os 24px que o brief pede. */
+   e um polegar pequeno demais para dedo. */
 input[type="range"] {
   appearance: none;
   width: 100%;
@@ -198,7 +206,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: var(--color-verde);
+  background: var(--color-tinta);
   border: 4px solid #fff;
   box-shadow: 0 2px 6px rgb(7 0 1 / 0.22);
   cursor: grab;
@@ -208,14 +216,13 @@ input[type="range"]::-moz-range-thumb {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: var(--color-verde);
+  background: var(--color-tinta);
   border: 4px solid #fff;
   box-shadow: 0 2px 6px rgb(7 0 1 / 0.22);
   cursor: grab;
 }
 
-/* O único movimento que fala do dinheiro: a barra cresce da esquerda até o
-   que o casal já juntou. Sai do zero e vai ao valor, com desaceleração. */
+/* A barra cresce da esquerda até o que o casal já juntou. */
 @keyframes crescer {
   from {
     transform: scaleX(0);
@@ -229,9 +236,74 @@ input[type="range"]::-moz-range-thumb {
   animation: crescer 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* O comprovante sobe da base, e o selo encaixa um instante depois. */
+@keyframes subir {
+  from {
+    transform: translateY(60px);
+    opacity: 0;
+  }
+}
+
+@keyframes encaixar {
+  from {
+    transform: scale(0.4) rotate(-14deg);
+    opacity: 0;
+  }
+}
+
+.anima-subir {
+  animation: subir 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anima-encaixar {
+  animation: encaixar 650ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* A chuva de moedas: aporte novo cai sobre a tela e entra no total do mês.
+   A queda acelera (gravidade), e a moeda gira em torno do próprio eixo, que é
+   como uma moeda cai de verdade. */
+@keyframes cair {
+  0% {
+    transform: translateY(-70px) rotate(var(--r0));
+    opacity: 0;
+  }
+  8%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(var(--fim)) rotate(var(--r1));
+    opacity: 0;
+  }
+}
+
+@keyframes girar-moeda {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes receber {
+  40% {
+    transform: scale(1.035);
+  }
+}
+
+.moeda {
+  animation: cair var(--t) cubic-bezier(0.45, 0, 0.9, 0.55) var(--d) both;
+}
+
+.moeda > svg {
+  animation: girar-moeda var(--g) linear var(--d) infinite;
+  filter: drop-shadow(0 6px 6px rgb(7 0 1 / 0.2));
+}
+
+.anima-receber {
+  animation: receber 550ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Quem pediu menos movimento recebe o estado final, imediato. Vale para tudo
-   que anima no app, e não só para a barra: é a razão de o bloco ficar aqui e
-   não em cada peça. */
+   que anima no app — a chuva de moedas nem começa (ver `chuva.tsx`). */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -243,33 +315,83 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* A caixa de item comprado.
-   É o próprio <input type=checkbox> desenhado como o quadrado de 44px do
-   design — e não um input escondido com um <span> por cima. Escondido, o
-   alvo de clique vira 1px e a suíte e2e passa a errar o toque; desenhado, o
-   controle nativo continua sendo o controle, com foco e rótulo de verdade. */
+/* Rádio e caixa de marcar desenhados na paleta — o nativo vinha com o azul
+   ou o cinza do sistema no meio do mundo. Fora de @layer de propósito: vence
+   qualquer tamanho que uma utility tenha deixado no elemento. A marca de item
+   (`.caixa-item`) tem desenho próprio, logo abaixo. */
+input[type="radio"],
+input[type="checkbox"]:not(.caixa-item) {
+  appearance: none;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  border: 1.5px solid var(--color-contorno);
+  background-color: #fff;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  transition:
+    border-width 160ms ease-out,
+    border-color 160ms ease-out,
+    background-color 160ms ease-out;
+}
+
+input[type="radio"] {
+  border-radius: 9999px;
+}
+
+input[type="radio"]:checked {
+  border: 6px solid var(--color-tinta);
+}
+
+input[type="checkbox"]:not(.caixa-item) {
+  border-radius: 6px;
+}
+
+input[type="checkbox"]:not(.caixa-item):checked {
+  border-color: var(--color-tinta);
+  background-color: var(--color-tinta);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23e9e0d1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 7.5 2.8 2.8L11 4.8'/%3E%3C/svg%3E");
+}
+
+input[type="radio"]:disabled,
+input[type="checkbox"]:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* A marca de item comprado.
+   É o próprio <input type=checkbox> desenhado como o círculo de 44px — e não
+   um input escondido com um <span> por cima. Escondido, o alvo de clique vira
+   1px e a suíte e2e passa a errar o toque; desenhado, o controle nativo
+   continua sendo o controle, com foco e rótulo de verdade.
+
+   Estado é marca em célula fixa: vazio falta, cheio comprado — o mesmo
+   desenho em toda lista do app. */
 .caixa-item {
   appearance: none;
   width: 2.75rem;
   height: 2.75rem;
   flex: none;
-  border-radius: var(--radius-quadro);
-  border: 1px solid var(--color-borda);
-  background-color: var(--color-areia);
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-contorno);
+  background-color: transparent;
   background-position: center;
   background-repeat: no-repeat;
-  /* Um círculo de contorno enquanto não está marcado: o quadrado vazio lia
-     como imagem que faltou carregar, que é o defeito que a chapa acabou de
-     perder. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%237e8f84' stroke-width='1.75'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3C/svg%3E");
   cursor: pointer;
   transition:
-    background-color 160ms ease-out,
-    border-color 160ms ease-out;
+    background-color 200ms ease-out,
+    border-color 200ms ease-out,
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.caixa-item:active {
+  transform: scale(0.92);
 }
 
 .caixa-item:checked {
-  background-color: var(--color-verde);
-  border-color: var(--color-verde);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' fill='none' stroke='%23e9e0d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 11.5 9 16l9.5-9.5'/%3E%3C/svg%3E");
+  background-color: var(--color-tinta);
+  border-color: var(--color-tinta);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' fill='none' stroke='%23e9e0d1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 11.5 9 16l9.5-9.5'/%3E%3C/svg%3E");
 }

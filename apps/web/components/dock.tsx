@@ -3,37 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { IconeCasa, IconeLista, IconeMais, IconePessoa } from "./icones";
+import { IconeCasa, IconeDeck, IconeMais, IconePessoa } from "./icones";
 
 /**
  * O dock.
  *
- * No celular é a pílula branca do design, colada no rodapé, com o disco de
- * ação separado à direita. No desktop o mesmo dock deita e vira trilho à
- * esquerda — o design só desenhou o celular, e esta é a derivação.
- *
- * Três destinos, e não dois: a home agora mostra UMA jornada por vez, então a
- * lista deixou de ser atalho e virou o caminho para as outras. O perfil entra
- * junto porque o disco de iniciais do cabeçalho some nas telas internas.
+ * Círculos soltos, e não uma pílula: três destinos à esquerda e, separado, o
+ * disco de tinta com a ação que o app existe para fazer — anotar um aporte.
+ * No desktop o mesmo dock deita e vira trilho à esquerda.
  *
  * Os ícones são mudos para leitor de tela (`aria-hidden` no SVG), então cada
  * destino carrega o nome em texto só-para-leitor.
  */
 const DESTINOS = [
   { href: "/", rotulo: "Início", Icone: IconeCasa },
-  { href: "/jornadas", rotulo: "Jornadas", Icone: IconeLista },
+  { href: "/jornadas", rotulo: "Jornadas", Icone: IconeDeck },
   { href: "/perfil", rotulo: "Seu perfil", Icone: IconePessoa },
 ] as const;
 
 export function Dock() {
   const caminho = usePathname();
 
+  // Anotar é uma tela cheia, com o próprio botão de fechar: o dock sai da
+  // frente do teclado de valor.
+  if (caminho.startsWith("/aportes/novo")) return null;
+
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 p-4 lg:inset-x-auto lg:inset-y-0 lg:left-0 lg:w-24 lg:flex-col lg:justify-center lg:p-6"
+      className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 bg-linear-to-t from-papel from-55% to-papel/0 px-5 pb-5 pt-8 lg:inset-x-auto lg:inset-y-0 lg:left-0 lg:w-24 lg:flex-col lg:justify-center lg:bg-none lg:p-5"
     >
-      <div className="flex gap-1.5 rounded-full border border-borda bg-white p-1.5 shadow-peca lg:flex-col">
+      <div className="flex gap-2 lg:flex-col">
         {DESTINOS.map(({ href, rotulo, Icone }) => {
           const aqui = href === "/" ? caminho === "/" : caminho.startsWith(href);
           return (
@@ -41,11 +41,13 @@ export function Dock() {
               key={href}
               href={href}
               aria-current={aqui ? "page" : undefined}
-              className={`grid size-11 place-items-center rounded-full transition active:scale-90 ${
-                aqui ? "bg-tinta text-creme" : "text-suave hover:bg-areia"
+              className={`grid size-14 place-items-center rounded-full border transition active:scale-90 ${
+                aqui
+                  ? "border-tinta bg-tinta text-creme"
+                  : "border-borda bg-white text-tinta hover:bg-areia"
               }`}
             >
-              <Icone className="size-5" />
+              <Icone className="size-[22px]" />
               <span className="sr-only">{rotulo}</span>
             </Link>
           );
@@ -53,8 +55,8 @@ export function Dock() {
       </div>
 
       <Link
-        href="/aportes"
-        className="grid size-13 place-items-center rounded-full bg-verde text-creme shadow-disco transition-transform hover:scale-105 active:scale-95"
+        href="/aportes/novo"
+        className="grid size-14 place-items-center rounded-full bg-tinta text-creme shadow-disco transition-transform hover:scale-105 active:scale-95"
       >
         <IconeMais className="size-6" />
         <span className="sr-only">Anotar um aporte</span>

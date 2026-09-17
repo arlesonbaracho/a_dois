@@ -352,11 +352,14 @@ test.describe("4.5 metas: validações e formatação de dinheiro", () => {
     })).json();
 
     await entrar(page, conta);
-    await page.goto(`/jornadas/${meta}`);
-    await page.getByLabel("Quanto (R$)").fill("1.234,56");
-    await page.getByRole("button", { name: "Anotar" }).click();
+    await page.goto(`/aportes/novo?jornada=${meta}`);
+    for (const tecla of "123456") {
+      await page.getByRole("button", { name: tecla, exact: true }).click();
+    }
+    await page.getByRole("button", { name: /^Anotar R\$/ }).click();
 
-    await expect(page.getByText("R$ 1.234,56")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Anotado!" })).toBeVisible();
+    await expect(page.getByText("R$ 1.234,56", { exact: true })).toBeVisible();
     const [aporte] = await cliente.ler<{ amount_cents: number }[]>(
       "contributions?select=amount_cents",
     );

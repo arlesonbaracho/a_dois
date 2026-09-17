@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Outfit } from "next/font/google";
+import { Lexend } from "next/font/google";
 
 import { APP_NAME, THEME_COLOR } from "@repo/core";
 
@@ -8,25 +8,16 @@ import { Pwa } from "@/components/pwa";
 import "./globals.css";
 
 /**
- * As duas faces do design. Via `next/font`, que baixa no build e serve da
- * nossa origem: nenhuma requisição a `fonts.googleapis.com` em runtime, ou
- * seja, nenhum IP de quem usa o app indo para terceiro a cada visita. Num
- * projeto que pôs o banco em sa-east-1 para não abrir o capítulo de
- * transferência internacional, um <link> para o Google desfaria isso pela
- * porta dos fundos.
- *
- * Outfit carrega estrutura e número; Manrope carrega o que é dito em voz
- * humana.
+ * Uma face só: Lexend, larga, feita para leitura. Via `next/font`, que baixa
+ * no build e serve da nossa origem: nenhuma requisição a
+ * `fonts.googleapis.com` em runtime, ou seja, nenhum IP de quem usa o app indo
+ * para terceiro a cada visita. Num projeto que pôs o banco em sa-east-1 para
+ * não abrir o capítulo de transferência internacional, um <link> para o Google
+ * desfaria isso pela porta dos fundos.
  */
-const display = Outfit({
+const fonte = Lexend({
   subsets: ["latin"],
-  variable: "--fonte-display",
-  display: "swap",
-});
-
-const corpo = Manrope({
-  subsets: ["latin"],
-  variable: "--fonte-corpo",
+  variable: "--fonte",
   display: "swap",
 });
 
@@ -46,7 +37,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${display.variable} ${corpo.variable}`}>
+    <html lang="pt-BR" className={fonte.variable}>
       <body>
         {children}
         <Pwa />

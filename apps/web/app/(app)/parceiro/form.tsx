@@ -44,14 +44,14 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
 
       {/* Irmãos, não aninhados: o e2e mede o pai deste <p> para conferir que o
           e-mail sai mascarado, e um invólucro o deixaria de fora. */}
-      <span className="-mb-2 font-corpo text-[10.5px] text-creme/70">pedido pendente</span>
-      <p className="text-[17px] font-semibold tracking-[-0.03em]">
+      <span className="-mb-2 font-corpo text-[12px] text-creme/70">pedido pendente</span>
+      <p className="text-[18px] font-medium tracking-[-0.03em]">
         Alguém pediu para entrar no plano de vocês
       </p>
 
       {/* Rótulo apagado, valor aceso: é a leitura que o design pede, e é a que
           deixa o e-mail mascarado saltar — ele é a informação que decide. */}
-      <dl className="flex flex-col gap-2 font-corpo text-[11.5px]">
+      <dl className="flex flex-col gap-2 font-corpo text-[13px]">
         {[
           ["Nome", pedido.display_name ?? "não informou"],
           ...(pedido.nickname ? [["Apelido", pedido.nickname]] : []),
@@ -61,14 +61,14 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
         ].map(([rotulo, valor]) => (
           <div key={rotulo} className="flex justify-between gap-3">
             <dt className="text-creme/70">{rotulo}</dt>
-            <dd className="font-semibold">{valor}</dd>
+            <dd className="font-medium">{valor}</dd>
           </div>
         ))}
       </dl>
 
-      <p className="font-corpo text-[11.5px] leading-relaxed text-creme/85">
+      <p className="font-corpo text-[13px] leading-relaxed text-creme/85">
         Confirmando, essa pessoa passa a ver{" "}
-        <strong className="font-semibold text-creme">todo o histórico financeiro do plano</strong>{" "}
+        <strong className="font-medium text-creme">todo o histórico financeiro do plano</strong>{" "}
         — jornadas, valores e aportes, inclusive o que vocês registraram antes de
         ela entrar. Só confirme se reconhece quem está do outro lado.
       </p>
@@ -80,7 +80,7 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
           type="submit"
           name="acao"
           value="confirmar"
-          className="flex-1 rounded-full bg-verde px-4 py-3.5 text-[13px] font-semibold text-creme transition hover:opacity-90 active:scale-[0.97]"
+          className="flex-1 rounded-full bg-creme px-4 py-3.5 text-[14px] font-medium text-tinta transition hover:opacity-90 active:scale-[0.97]"
         >
           Confirmar
         </button>
@@ -88,7 +88,7 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
           type="submit"
           name="acao"
           value="recusar"
-          className="flex-1 rounded-full border border-creme/30 px-4 py-3.5 text-[13px] font-semibold text-creme/85 transition hover:bg-creme/10 active:scale-[0.97]"
+          className="flex-1 rounded-full border border-creme/30 px-4 py-3.5 text-[14px] font-medium text-creme/85 transition hover:bg-creme/10 active:scale-[0.97]"
         >
           Não é quem eu convidei
         </button>
@@ -96,7 +96,7 @@ function CartaoPedido({ pedido }: { pedido: PedidoPendente }) {
           type="submit"
           name="acao"
           value="revogar"
-          className="w-full rounded-full px-4 py-2 font-corpo text-[11.5px] text-creme/70 underline"
+          className="w-full rounded-full px-4 py-2 font-corpo text-[13px] text-creme/70 underline"
         >
           Cancelar o convite
         </button>
@@ -132,7 +132,7 @@ function Compartilhar({ link }: { link: string }) {
   }
 
   const casca =
-    "flex flex-1 items-center justify-center gap-2 rounded-bloco border border-borda bg-white px-3 py-3.5 text-[12px] font-semibold transition hover:border-contorno/60 active:scale-[0.97]";
+    "flex flex-1 items-center justify-center gap-2 rounded-bloco border border-borda bg-white px-3 py-3.5 text-[13px] font-medium transition hover:border-contorno active:scale-[0.97]";
 
   return (
     <div className="flex gap-2">
@@ -142,7 +142,7 @@ function Compartilhar({ link }: { link: string }) {
         rel="noreferrer noopener"
         className={casca}
       >
-        <IconeConversa aria-hidden="true" className="size-4 text-verde" />
+        <IconeConversa aria-hidden="true" className="size-4 text-tinta" />
         WhatsApp
       </a>
       {podeCompartilhar ? (
@@ -151,12 +151,12 @@ function Compartilhar({ link }: { link: string }) {
           onClick={() => void navigator.share({ text: recado }).catch(() => {})}
           className={casca}
         >
-          <IconeLink aria-hidden="true" className="size-4 text-verde" />
+          <IconeLink aria-hidden="true" className="size-4 text-tinta" />
           Enviar
         </button>
       ) : null}
       <button type="button" onClick={() => void copiar()} className={casca}>
-        <IconeCopiar aria-hidden="true" className="size-4 text-verde" />
+        <IconeCopiar aria-hidden="true" className="size-4 text-tinta" />
         {copiado ? "Copiado" : "Copiar"}
       </button>
     </div>
@@ -221,10 +221,10 @@ function FormCriar() {
       {/* O escopo do acesso, dito ANTES de convidar. Estava só no cartão de
           confirmação — ou seja, só aparecia para quem já tinha decidido. */}
       <div className="rounded-cartao bg-salvia p-4 text-tinta">
-        <b className="block text-[14px] font-semibold tracking-[-0.02em]">
+        <b className="block text-[14px] font-medium tracking-[-0.02em]">
           O que essa pessoa vai ver
         </b>
-        <p className="mt-1.5 font-corpo text-[11.5px] leading-relaxed">
+        <p className="mt-1.5 font-corpo text-[13px] leading-relaxed">
           As jornadas de vocês, os aportes dos dois e a divisão — inclusive o que
           já estava aqui antes dela entrar. Não vê sua senha, seu e-mail nem nada
           fora deste plano.
@@ -232,7 +232,7 @@ function FormCriar() {
       </div>
 
       <Bloco>
-        <b className="block text-[14px] font-semibold tracking-[-0.02em]">
+        <b className="block text-[14px] font-medium tracking-[-0.02em]">
           Sem parceiro ainda?
         </b>
         <Explica className="mt-1.5">
@@ -251,7 +251,7 @@ function ConviteAtivo({ convite }: { convite: ConviteAberto }) {
     <form action={acao} className="flex flex-col gap-2 rounded-cartao border border-borda bg-white p-3.5">
       <input type="hidden" name="id" value={convite.invite_id} />
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[13.5px] font-semibold tracking-[-0.02em]">
+        <span className="text-[15px] font-medium tracking-[-0.02em]">
           {NOME_DO_CANAL[convite.channel]}
           {convite.email_mascarado ? ` — ${convite.email_mascarado}` : ""}
         </span>
@@ -259,12 +259,12 @@ function ConviteAtivo({ convite }: { convite: ConviteAberto }) {
           type="submit"
           name="acao"
           value="revogar"
-          className="font-corpo text-[11.5px] text-suave underline transition-colors hover:text-alerta"
+          className="font-corpo text-[13px] text-suave underline transition-colors hover:text-alerta"
         >
           Cancelar
         </button>
       </div>
-      <span className="font-corpo text-[11px] text-suave">
+      <span className="font-corpo text-[12px] text-suave">
         vale até {new Date(convite.expires_at).toLocaleString("pt-BR")}
       </span>
       <Recado erro={estado.erro} aviso={estado.aviso} />
@@ -288,7 +288,7 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
 
       {sozinho ? (
         <>
-          <p className="font-corpo text-[12.5px] leading-relaxed text-suave-forte">
+          <p className="font-corpo text-[14px] leading-relaxed text-suave-forte">
             Você está sozinho aqui, então sair <strong>apaga o plano inteiro</strong>:
             jornadas, itens, aportes e histórico de preço. Não dá para desfazer, e a
             gente não guarda cópia.
@@ -301,7 +301,7 @@ function SairDoPlano({ sozinho }: { sozinho: boolean }) {
           />
         </>
       ) : (
-        <p className="font-corpo text-[12.5px] leading-relaxed text-suave-forte">
+        <p className="font-corpo text-[14px] leading-relaxed text-suave-forte">
           Seus aportes continuam no plano, com os valores intactos, mas passam a
           aparecer como <strong>ex-membro</strong>. Seu nome e sua faixa de renda
           somem daqui, e sua sessão cai na hora.
@@ -344,10 +344,10 @@ export function TelaParceiro({
           <span className="sr-only">Voltar para o início</span>
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="text-[21px] font-semibold leading-tight tracking-[-0.03em] lg:text-2xl">
+          <h1 className="text-[22px] font-medium leading-tight tracking-[-0.03em] lg:text-2xl">
             Quem está no plano
           </h1>
-          <p className="mt-0.5 font-corpo text-[10.5px] text-suave">
+          <p className="mt-0.5 font-corpo text-[12px] text-suave">
             a jornada é de duas pessoas
           </p>
         </div>
@@ -360,10 +360,10 @@ export function TelaParceiro({
             type="button"
             aria-pressed={aba === nome}
             onClick={() => setAba(nome)}
-            className={`flex-1 rounded-full border px-4 py-2.5 text-[12.5px] font-semibold transition active:scale-[0.97] ${
+            className={`flex-1 rounded-full border px-4 py-2.5 text-[14px] font-medium transition active:scale-[0.97] ${
               aba === nome
                 ? "border-tinta bg-tinta text-creme"
-                : "border-contorno/60 bg-white text-suave-forte hover:border-contorno"
+                : "border-contorno bg-white text-suave-forte hover:border-contorno"
             }`}
           >
             {nome}
@@ -385,8 +385,8 @@ export function TelaParceiro({
               >
                 <DiscoDePessoa iniciais={iniciaisDoCasal([membro.nome])} cor={membro.cor} />
                 <span className="min-w-0 flex-1">
-                  <b className="block truncate text-[13.5px] font-semibold">{membro.nome}</b>
-                  <i className="block font-corpo text-[10.5px] not-italic text-suave">
+                  <b className="block truncate text-[15px] font-medium">{membro.nome}</b>
+                  <i className="block font-corpo text-[12px] not-italic text-suave">
                     {membro.papel}
                   </i>
                 </span>

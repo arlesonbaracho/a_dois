@@ -75,8 +75,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Fora daqui: estáticos do Next e os arquivos do shell do PWA, que o
-    // service worker busca sem cookie e não podem cair em redirect de login.
-    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|icon-.*\\.png).*)",
+    // Fora daqui: estáticos do Next, os arquivos do shell do PWA, que o
+    // service worker busca sem cookie e não podem cair em redirect de login, e
+    // a arte das categorias (public/arte), que a tela de login já mostra.
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|icon-.*\\.png|arte/).*)",
   ],
 };

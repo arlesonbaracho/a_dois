@@ -8,11 +8,10 @@ import {
   usuarioAtual,
 } from "@repo/api";
 import {
+  centavosNoMes,
   coresDoCasal,
   ordemDoAlbum,
   faltaComecar,
-  iniciaisDoCasal,
-  mesPorExtenso,
   ordemEstavel,
   primeirosPassos,
   progressoPercentual,
@@ -93,6 +92,7 @@ export default async function Home() {
       alvoCents: jornada.target_amount_cents,
       percentual: progressoPercentual(aportadoCents, jornada.target_amount_cents),
       fatias,
+      prazoISO: jornada.deadline_at,
     };
   });
 
@@ -100,18 +100,18 @@ export default async function Home() {
   // recém-criada (0%) é abrir na que menos tem o que mostrar.
   const emOrdem = ordemDoAlbum(jornadas);
 
-  const nomes = ordemEstavel(
+  const pessoas = ordemEstavel(
     membros.map((membro) => ({
       userId: membro.user_id,
       papel: membro.role,
       nome: membro.display_name,
     })),
-  ).map((membro) => membro.nome);
+  ).map((membro) => ({
+    chave: membro.userId,
+    nome: membro.nome ?? "",
+    cor: cores.get(membro.userId) ?? ("fora" as const),
+  }));
 
-  // "este mês" e "quem colocou quanto" saíram daqui: a home passou a mostrar
-  // UMA jornada por vez, e empilhar duas caixas de dinheiro antes do álbum
-  // enterraria a tese da tela. As duas contas vivem inteiras em /aportes, que
-  // é a tela de dinheiro.
   const totalCents = sumCents(listaAportes.map((aporte) => aporte.amount_cents));
 
   // A faixa de renda sai da MINHA linha em membros — nenhuma consulta a mais,
@@ -129,10 +129,15 @@ export default async function Home() {
   return (
     <Inicio
       passos={faltaComecar(passos) ? passos : null}
-      nomes={nomes}
-      iniciais={iniciaisDoCasal(nomes)}
-      mes={mesPorExtenso(agora)}
-      totalCents={totalCents}
+      pessoas={pessoas}
+      mes={agora.toLocaleDateString("pt-BR", { month: "long" })}
+      doMesCents={centavosNoMes(
+        listaAportes.map((aporte) => ({
+          quandoISO: aporte.contributed_at,
+          cents: aporte.amount_cents,
+        })),
+        agora,
+      )}
       jornadas={emOrdem}
       temPedido={pedidos.length > 0}
     />

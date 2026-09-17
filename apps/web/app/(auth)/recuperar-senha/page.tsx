@@ -22,7 +22,7 @@ export default function RecuperarSenha() {
         <div className="mt-auto pt-6">
           <Enviar largo>Mandar o link</Enviar>
         </div>
-        <p className="pb-2 text-center font-corpo text-[12px] text-suave">
+        <p className="pb-2 text-center font-corpo text-[13px] text-suave">
           <Link href="/login">
             <Saida>Voltar para o login</Saida>
           </Link>

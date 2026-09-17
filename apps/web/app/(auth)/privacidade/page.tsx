@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-[17px] font-bold tracking-[-0.03em]">{titulo}</h2>
-      <div className="flex flex-col gap-2 font-corpo text-[12.5px] leading-relaxed text-suave">
+      <h2 className="text-[18px] font-semibold tracking-[-0.03em]">{titulo}</h2>
+      <div className="flex flex-col gap-2 font-corpo text-[14px] leading-relaxed text-suave">
         {children}
       </div>
     </section>
@@ -37,7 +37,7 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
 /** Lacuna que o controlador precisa preencher antes de valer como documento. */
 function Falta({ children }: { children: ReactNode }) {
   return (
-    <mark className="rounded bg-alerta-suave px-1.5 py-0.5 font-semibold text-alerta">
+    <mark className="rounded bg-alerta-suave px-1.5 py-0.5 font-medium text-alerta">
       {children}
     </mark>
   );
@@ -47,13 +47,13 @@ export default function Privacidade() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-7 p-6 py-12">
       <header className="flex flex-col gap-2">
-        <Link href="/login" className="font-corpo text-[12.5px] text-suave underline">
+        <Link href="/login" className="font-corpo text-[14px] text-suave underline">
           voltar
         </Link>
-        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.03em]">
+        <h1 className="text-[30px] font-medium leading-tight tracking-[-0.03em]">
           O que a gente guarda, e o que não guarda
         </h1>
-        <p className="font-corpo text-[13.5px] leading-relaxed text-suave-forte">
+        <p className="font-corpo text-[15px] leading-relaxed text-suave-forte">
           Atualizada em 16 de setembro de 2026. Escrita para ser lida, não para
           proteger a gente de você.
         </p>
@@ -236,7 +236,7 @@ export default function Privacidade() {
         </p>
       </Secao>
 
-      <footer className="mt-2 border-t border-borda pt-5 font-corpo text-[12px] leading-relaxed text-suave">
+      <footer className="mt-2 border-t border-borda pt-5 font-corpo text-[13px] leading-relaxed text-suave">
         <p>
           Se algo aqui mudar de um jeito que importe para você, a gente avisa
           antes de a mudança valer.
