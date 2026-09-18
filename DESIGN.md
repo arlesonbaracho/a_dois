@@ -513,6 +513,22 @@ Disco de tinta com a inicial do `APP_NAME` em creme, o nome ao lado, e um leque
 de três chapas (viagem e casamento a ±9°, casa à frente) antes do título.
 Dentro do app, `porta={false}` tira marca e leque.
 
+### Boas-vindas (`BoasVindas`)
+Três telas em tela cheia sobre a própria home, fundo papel: o leque da porta
+(`Leque`), o casal com a cadeira vazia e o selo de tinta (`ArteDoCasal`), e o
+comprovante com duas moedas (`Moeda`). Três segmentos no topo (tinta os feitos,
+areia os que faltam), "Pular" em texto sublinhado, título de 30px, e o botão de
+tinta "Próximo" → "Começar". A troca é scroll-snap nativo. Só para casal sem
+jornada nem aporte, e uma vez por navegador (cookie `jornada-boas-vindas`).
+
+### Deck de começo e próximo passo
+Sem jornada, os primeiros passos são o deck: a carta da frente com campo de
+200px (parceiro em creme, jornada em sálvia, aporte em verde a 30%), a arte do
+passo, título de 21px, a dica e o botão que resolve; os que faltam atrás, nas
+cores de campo, como as camadas do deck de jornadas. Passo "esperando" leva
+pílula "esperando" e botão de contorno. Com jornada, o passo pendente vira uma
+linha: mini-campo de 48px, título, verbo e seta.
+
 ### Motion
 Quatro movimentos, todos em `cubic-bezier(.16,1,.3,1)`:
 1. **O deck** passa e gira.
