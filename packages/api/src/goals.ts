@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { apagarPastaDaCapa } from "./capas";
 import type { Database } from "./database.types";
 
 type Client = SupabaseClient<Database>;
@@ -108,5 +109,7 @@ export async function apagarMeta(
     p_confirmo_apagar: confirmo,
   });
   if (error) throw error;
+  // Só depois do 'ok': com 'precisa_confirmar' nada foi apagado, e a foto fica.
+  if (data === "ok") await apagarPastaDaCapa(client, goalId);
   return data as ResultadoApagarMeta;
 }

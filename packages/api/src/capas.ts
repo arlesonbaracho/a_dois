@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { CAPA_BUCKET, CAPA_TIPO, caminhoDaCapa } from "@repo/core";
 
+import { meuCasal } from "./couple";
 import type { Database } from "./database.types";
 
 type Client = SupabaseClient<Database>;
@@ -99,4 +100,31 @@ export async function enviarCapa(client: Client, nova: NovaCapa): Promise<string
   }
 
   return caminho;
+}
+
+/**
+ * Apaga a pasta da capa de uma jornada que acabou de ser apagada.
+ *
+ * `delete_goal` apaga a linha, mas SQL não alcança o arquivo (o
+ * `protect_delete` do Storage barra de propósito). A policy `capas_delete`
+ * confere só o casal do caminho, e o casal continua existindo — então quem
+ * apagou a jornada consegue apagar a pasta dela. A pasta inteira, e não só o
+ * `cover_path`: pega também a capa que sobrou de uma troca que falhou no meio.
+ *
+ * Sem `throw`: a jornada já sumiu, e falhar aqui transformaria um delete que
+ * deu certo em erro na tela.
+ *
+ * ponytail: melhor esforço. Se a rede cair entre a RPC e o remove, o arquivo
+ * fica órfão; só um varredor com service role pega esse caso.
+ */
+export async function apagarPastaDaCapa(client: Client, goalId: string): Promise<void> {
+  const casal = await meuCasal(client).catch(() => null);
+  if (!casal) return;
+
+  const pasta = `${casal.id}/${goalId}`;
+  const { data } = await client.storage.from(CAPA_BUCKET).list(pasta);
+  const caminhos = (data ?? []).map((objeto) => `${pasta}/${objeto.name}`);
+  if (caminhos.length === 0) return;
+
+  await client.storage.from(CAPA_BUCKET).remove(caminhos);
 }

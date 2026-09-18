@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { chaves, comoPessoa, criarConta, entrar, parear } from "./apoio";
+import { capaExiste, chaves, comoPessoa, criarConta, entrar, parear } from "./apoio";
 
 /** Um PNG de 8x8 e 74 bytes. Pequeno para o teste ser rápido, e imagem de
  *  verdade para o canvas do navegador conseguir decodificar. */
@@ -326,6 +326,17 @@ test.describe("metas e itens", () => {
     // que só existe nesta aba.
     await page.reload();
     await expect(page.locator('img[src*="/capas/"]')).toBeVisible();
+
+    // Apagar a jornada apaga o ARQUIVO, não só a linha. Conferido pela API do
+    // Storage: a linha sumir da tabela não diz nada sobre o bucket.
+    expect(await capaExiste(request, linha.cover_path)).toBe(true);
+    await page.getByRole("button", { name: "Apagar esta jornada" }).click();
+    await expect(page).toHaveURL("/jornadas");
+    await expect
+      .poll(() => capaExiste(request, linha.cover_path), {
+        message: "a capa devia sair do bucket junto com a jornada",
+      })
+      .toBe(false);
   });
 
   /**
