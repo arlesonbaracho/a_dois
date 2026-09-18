@@ -4,6 +4,7 @@ Diário do projeto. Atualizado ao final de toda tarefa concluída.
 
 **Última atualização:** 2026-09-13 (LGPD no banco, a promessa ligada, papelada)
 **Última atualização:** 2026-09-16 (mundo v3: deck de jornadas, teclado de aporte e comprovante)
+**Última atualização:** 2026-09-17 (capa sai com a jornada; Pendente esvaziada)
 **Fase atual:** Fase 1 — web-first
 **Próximo passo:** o teste de fumaça em produção (8 itens, nenhum rodou) e a dívida **Alta** do `/auth/confirm` × PKCE. Depois, nome no cadastro — que é migration
 
@@ -90,20 +91,26 @@ Registre com data e hash curto do commit. Nunca reescreva, só acrescente.
 | 2026-09-16 | **A borda do formulário sobe para o core.** `mensagemDoBanco`, `paraInstante` e `paraCampoData` vão de `apps/web/lib` para `packages/core/src/borda.ts`; `paraCentavos`, que era só apelido de `centavosDeTexto`, some; `dinheiro.ts` e `erro.ts` saem do web. A regra do meio-dia UTC deixa de ser reescrita à mão em `aportes/actions.ts`. Teste do filtro de erro (só P0001 chega à tela), provado quebrando | `511870e` |
 | 2026-09-16 | **Teste de fumaça, itens 7 e 8, em produção.** Depois de navegar por `/login`, `/privacidade`, `/cadastro` e `/recuperar-senha`, o Cache Storage tem **exatamente os 5 arquivos do shell** em `shell-v1`; sem rede, o reload cai em "Sem conexão". Limite honesto: sem conta, nenhuma página autenticada foi visitada — a garantia de que nada autenticado entra no cache continua vindo do código (`sw.js` só grava no `install`, com `addAll` do allowlist; não existe `put` em tempo de execução) | — |
 | 2026-09-16 | **Mundo v3: o plano vira um deck, e cada aporte vira comprovante.** Redesenho aprovado pelo autor a partir de um vídeo de referência, em protótipo antes de qualquer tela. Lexend numa voz só; as nove cores da marca com papéis novos (tinta é ação, verde e marrom só as pessoas, creme só sobre escuro, campo de categoria e contorno como mistura com branco); arte Fluent Emoji 3D (MIT) no lugar do gradiente com traço; polaroide e cartão verde saem. Home em deck: gira a cada 5s, arrasta com resistência, quem arrasta assume. Aporte novo faz chover moeda de R$ 1 e rola o total do mês (sem movimento pedido, só o número). `/aportes/novo`: teclado com centavo inteiro e comprovante "Nenhum dinheiro foi transferido"; os dois formulários de valor em texto e a Server Action `acaoRegistrarAporte` saem. Rádios e caixas na paleta. `/arte/` fora do middleware. 47/47 e2e, sabotagem no relógio do deck, e duas rodadas de revisor independente | `0eb730d` |
+| 2026-09-17 | **Apagar a jornada apaga a capa do bucket.** `delete_goal` apagava a linha e deixava `<casal>/<jornada>/*.jpg` no Storage para sempre — foto do casal, dado pessoal. Depois do `ok`, `apagarPastaDaCapa` (em `packages/api/src/capas.ts`) lista a pasta da jornada e apaga tudo, inclusive a capa que sobrou de troca malsucedida. Sem migration: a policy `capas_delete` confere só o casal, que continua existindo. Sem `throw`, porque a jornada já sumiu. O e2e da capa agora apaga a jornada e confere pela API do Storage; provado quebrando (sem a chamada, reprova em "a capa devia sair do bucket junto com a jornada") | `c97b69b` |
 
 ## Pendente
 
 O que está na fila imediata, em ordem de execução.
 
-**1. Varrer a capa órfã.** Apagar jornada ou plano não apaga o arquivo do
-bucket: o `protect_delete` do Storage barra delete por SQL de propósito, para
-a API não ficar com blob sem dono. Ver Dívidas.
+Vazia desde 2026-09-17. A capa órfã fechou em `c97b69b`, e o
+`contributions_update` que vinha depois já estava fechado desde
+`20260913145618_lgpd_revogar_e_reter` (em produção desde 17/09).
 
-Fora isso, a fila dos prompts acabou e a da auditoria também: os sete achados
-estão fechados. O resto está em **Falta (backlog)** e em **Dívidas**.
+O que sobra de urgente depende de você, não de código — é o **Próximo passo**
+do topo:
 
-A próxima que eu pegaria é `contributions_update`, que é a mesma classe de
-buraco que `couple_members_update` acabou de fechar, e custa uma cláusula.
+1. **Teste de fumaça 1 a 6** em produção: conta real e caixa de e-mail.
+2. **Dívida Alta `/auth/confirm` × PKCE**: fecha quando o SMTP próprio entrar e
+   os templates subirem (item do Deploy).
+3. **Redirect URL de recuperação** no painel do Supabase (item do Deploy).
+4. **`<<PREENCHER>>` da papelada**: controlador, encarregado e `privacidade@`.
+
+O resto está em **Falta (backlog)** e em **Dívidas**.
 
 
 ---
@@ -154,7 +161,7 @@ valida em `scripts/ensaio-producao.sh`.
       `https://a-dois-web.vercel.app/auth/confirm?type=recovery`.
 - [ ] **Teste de fumaça**: 7 e 8 passaram em 2026-09-16. **Faltam 1 a 6**, e todos
       precisam de conta real e caixa de e-mail — ficam com você.
-- [ ] **As 4 migrations pendentes, retidas em 2026-09-16.** O pré-voo passou
+- [x] **As 4 migrations pendentes** — subiram em 2026-09-17, com backup antes. Retidas em 2026-09-16: O pré-voo passou
       (nenhum código lê `couple_members.split_rule`, `set_consent` mantém a
       assinatura, a constraint se autovalida). O que travou foi o backup: o
       runbook exige `supabase db dump` antes de qualquer migration depois do
@@ -446,7 +453,7 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | `confirm_invite` | Quem já tem plano com movimentação não consegue entrar em outro, e não existe caminho para mesclar os dois. Hoje a saída é apagar o próprio plano à mão | Média |
 | `pg_cron` | O expurgo depende da extensão estar habilitada. Local funciona; no projeto hospedado precisa ser ligada antes da migration rodar | Média |
 | `apps/web/app/(app)/aportes/form.tsx` | Um botão Salvar escreve três fatos independentes (regra, faixa de renda, valor fixo). Se o formulário estiver desatualizado quando alguém envia, salvar a REGRA apaga a FAIXA. Não é alcançável clicando (o botão desabilita durante o envio, e o caminho de gente foi conferido no navegador), mas é forma frágil para dado pessoal — deviam ser três escritas separadas | Média |
-| `contributions_update` | Insert agora é só pela função, mas o update continua aberto ao casal: dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Fecha a mesma dívida antiga por outro caminho | Baixa |
+| ~~`contributions_update`~~ | **Fechada** por `20260913145618_lgpd_revogar_e_reter` (o `with check` confere o dono do aporte); em produção desde 2026-09-17 | — |
 | `supabase/functions/_shared/ssrf-guard.ts` | O guard resolve o DNS e o `fetch` resolve de novo: existe janela de DNS rebinding entre as duas. Fechar exigiria conectar no IP fixado, que o `fetch` não oferece. Marcado com `ponytail:` no código | Média |
 | `supabase/functions/_shared/open-graph.ts` | `precoParaCentavos` é a MESMA regra de `centavosDeTexto`, que agora mora em `packages/core/src/money.ts` e é a canônica. O Deno não importa do workspace npm sem passo de bundle, então a cópia continua — e agora com a obrigação de andar junto | Média |
 | `extract-product-link` | O caminho de gravação da função não foi exercido ponta a ponta: as páginas de loja que conseguimos alcançar não publicam `og:price:amount`, então o preço voltou nulo e o `add_price_quote` não chegou a ser chamado POR ELA. A RPC foi conferida pela mesma porta (anon key + JWT), e a extração tem 17 testes — falta só a emenda entre as duas | Média |
@@ -474,10 +481,10 @@ O que ficou pela metade, com gambiarra, ou sem teste. Registre sem vergonha — 
 | identificadores × produto | Produto e rota dizem "jornada"; o código ainda diz `useMetas`, `criarMeta`, `DadosMeta`, `Meta`. Um `s/Meta/Jornada/` cego quebra `Metadata` e `MetadataRoute`, então o rename exige lista explícita de identificadores | Média |
 | `apps/web/public/icon-*.png` | Os anéis placeholder agora destoam da paleta creme e limão, e a marca mudou de nome. Trocar é trabalho de marca, não de restyle | Média |
 | desktop com pouca jornada | A chapa dobrando de altura no `lg` resolveu o caso de seis jornadas — a composição ia até 45% da altura e agora enche a tela. Com uma ou duas jornadas continua visivelmente vazio, e aí o conserto é outro: a coluna da direita teria que descer para junto do álbum | Baixa |
-| `contributions_update` | Mesma classe do `couple_members_update` que acabou de fechar: o update segue aberto ao casal, então dá para inserir um centavo e depois reatribuir o `user_id` para alguém de fora. Custa uma cláusula no `with check` | Baixa |
+| ~~`contributions_update`~~ | **Fechada**, ver a linha acima | — |
 | `<<PREENCHER>>` na papelada | ROPA, plano de incidente e página de privacidade estão escritos e **não valem como documento** até o controlador, o encarregado e o canal de contato serem preenchidos. A página já está no ar com as lacunas visíveis em vermelho — é melhor que lacuna escondida, e pior que documento pronto | **Alta** |
 | busca de preço × e2e | O caminho feliz do botão não é exercido de ponta a ponta: o runtime de Edge Functions não sobe com `supabase start` neste ambiente e, servido à mão, não resolve o host interno do Supabase. O mapeamento de erro tem teste puro em `core`, e a função tem 17 unitários — falta a emenda | Média |
-| capa × exclusão | Apagar jornada, sair do casal ou apagar a conta **não apaga o arquivo** do bucket. O `protect_delete` do Storage barra delete por SQL de propósito (senão sobra blob sem linha), então a limpeza de verdade exige a API do Storage. Hoje a foto fica inalcançável — a policy nega a todo mundo, porque o casal deixou de existir — mas continua guardada | Média |
+| capa × exclusão | **Encolheu em 2026-09-17** (`c97b69b`): apagar jornada apaga a pasta dela, e apagar a conta ou sair por último já apagava as capas (`6d663b9`). Sobra o órfão por falha: rede caindo entre a RPC e o `remove`. Os dois caminhos são melhor esforço, e só um varredor com service role (Edge Function agendada) pega esse resto | Baixa |
 | capa × tamanho | Sem transformação de imagem (recurso do plano Pro), a mesma foto de 1280px serve a polaroide de 96px da lista e a do detalhe. Some quando o plano mudar, ou com uma segunda versão gerada no envio | Baixa |
 | `supabase/tests/run.sh` × sem Docker | O caminho do Postgres descartável já não aplica todas as migrations: `extensions.gen_random_bytes` e a publication `supabase_realtime` não existem num Postgres pelado, e o `set -e` derruba a rodada antes dos testes. Vem de antes da capa; o `capa.sql` foi conferido nesse caminho à mão e passa. O conserto é o bootstrap stubar os dois | Média |
 | `apps/web/components` × fase 2 | O v3 tirou o `radial-gradient` do `Chapa` (agora é campo de cor chapada + PNG, que porta direto). Sobram para o React Native: as listras de `progresso.tsx`/`esqueleto.tsx` (`repeating-linear-gradient`), a chuva de moedas (spans criados no DOM + keyframes CSS — no Expo é Reanimated), o odômetro (transição CSS), o esmaecido `.faixa-que-rola` (`mask-image`) e o arrasto do deck (Pointer Events — no Expo é Gesture Handler). Caminho decidido para as listras segue valendo (ver Decisões) | Média |
