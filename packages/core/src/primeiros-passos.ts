@@ -14,6 +14,8 @@ export type Passo = {
   titulo: string;
   dica: string;
   href: string;
+  /** O verbo do botão que resolve o passo. */
+  acao: string;
   estado: EstadoDoPasso;
   /** Opcional não segura o bloco aceso, e não cobra nada de ninguém. */
   opcional: boolean;
@@ -28,9 +30,33 @@ export type FatosDoComeco = {
   totalCents: number;
   /** A faixa de renda de quem está olhando. Nula é o normal: é opcional. */
   minhaFaixa: string | null;
+  /**
+   * Esta pessoa pediu para entrar no plano de outra e espera a confirmação.
+   * Enquanto isso ela está num plano solo — e o que criar nele impede a
+   * confirmação (`confirm_invite` recusa plano com movimentação).
+   */
+  pedidoEnviado: boolean;
 };
 
 export function primeirosPassos(fatos: FatosDoComeco): Passo[] {
+  // Quem pediu para entrar no plano de alguém não tem o que fazer aqui ainda:
+  // os passos de jornada e aporte levariam direto ao único jeito de quebrar o
+  // próprio pedido. Sobra um passo, e ele diz isso.
+  if (fatos.pedidoEnviado && fatos.membros < 2) {
+    return [
+      {
+        id: "parceiro",
+        titulo: "Esperar a confirmação",
+        dica:
+          "Você pediu para entrar num plano. Falta a outra pessoa confirmar que é você. Até lá, não crie jornada aqui: o que estiver neste plano impede a confirmação.",
+        href: "/convite",
+        acao: "Ver o pedido",
+        estado: "esperando",
+        opcional: false,
+      },
+    ];
+  }
+
   return [
     {
       id: "parceiro",
@@ -44,6 +70,7 @@ export function primeirosPassos(fatos: FatosDoComeco): Passo[] {
             ? "Convite enviado. Falta a outra pessoa aparecer — e você confirmar quem é."
             : "O plano é de dois. Dá para chamar por link, e-mail ou apelido.",
       href: "/parceiro",
+      acao: fatos.conviteEmAndamento ? "Ver o convite" : "Chamar agora",
       estado:
         fatos.membros >= 2 ? "feito" : fatos.conviteEmAndamento ? "esperando" : "a-fazer",
       opcional: false,
@@ -52,7 +79,8 @@ export function primeirosPassos(fatos: FatosDoComeco): Passo[] {
       id: "jornada",
       titulo: "Criar a primeira jornada",
       dica: "A viagem, a entrada do apê, ou só um fundo do sossego.",
-      href: "/jornadas",
+      href: "/jornadas/nova",
+      acao: "Criar a jornada",
       estado: fatos.jornadas > 0 ? "feito" : "a-fazer",
       opcional: false,
     },
@@ -60,7 +88,8 @@ export function primeirosPassos(fatos: FatosDoComeco): Passo[] {
       id: "aporte",
       titulo: "Anotar o primeiro aporte",
       dica: "É o que faz a barra sair do zero e os dois verem o mesmo número.",
-      href: "/aportes",
+      href: "/aportes/novo",
+      acao: "Anotar o aporte",
       estado: fatos.totalCents > 0 ? "feito" : "a-fazer",
       opcional: false,
     },
@@ -70,6 +99,7 @@ export function primeirosPassos(fatos: FatosDoComeco): Passo[] {
       dica:
         "Só se vocês quiserem dividir pela renda de cada um. Nunca pedimos o valor exato, só a faixa.",
       href: "/aportes",
+      acao: "Dizer a faixa",
       estado: fatos.minhaFaixa ? "feito" : "a-fazer",
       opcional: true,
     },

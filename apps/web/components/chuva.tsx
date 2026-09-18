@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, type ReactNode } from "react";
+import { useCallback, useId, useRef, type ReactNode } from "react";
 
 import { formatBRL } from "@repo/core";
 
@@ -85,6 +85,37 @@ export function useChuva(): { chuva: ReactNode; chover: () => void } {
   );
 
   return { chuva, chover };
+}
+
+/**
+ * A moeda de R$ 1, parada, como peça. Os gradientes levam `useId` porque a
+ * mesma tela pode ter várias: ids repetidos fariam todas pintarem com o
+ * gradiente da primeira.
+ */
+export function Moeda({ className = "" }: { className?: string }) {
+  const id = useId().replace(/:/g, "");
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" className={className}>
+      <defs>
+        <radialGradient id={`ouro-${id}`} cx="35%" cy="30%" r="75%">
+          <stop offset="0" stopColor="#F6DC8C" />
+          <stop offset=".55" stopColor="#D19B36" />
+          <stop offset="1" stopColor="#8F6320" />
+        </radialGradient>
+        <radialGradient id={`prata-${id}`} cx="38%" cy="32%" r="70%">
+          <stop offset="0" stopColor="#FBFBF8" />
+          <stop offset=".6" stopColor="#C9CBC4" />
+          <stop offset="1" stopColor="#8E918A" />
+        </radialGradient>
+      </defs>
+      <circle cx="32" cy="32" r="30" fill={`url(#ouro-${id})`} stroke="#7A5217" strokeWidth="1.2" />
+      <circle cx="32" cy="32" r="25.5" fill="none" stroke="#FFF2C4" strokeOpacity=".5" strokeDasharray="1.2 2.2" />
+      <circle cx="32" cy="32" r="19" fill={`url(#prata-${id})`} stroke="#7F827B" />
+      <text x="32" y="40.3" textAnchor="middle" fontSize="21" fontWeight="600" fill="#fff" fillOpacity=".7">1</text>
+      <text x="32" y="39.5" textAnchor="middle" fontSize="21" fontWeight="600" fill="#6F726B">1</text>
+      <path d="M14 22a21 21 0 0 1 16-12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 /**

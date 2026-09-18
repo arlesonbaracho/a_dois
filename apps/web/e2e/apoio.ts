@@ -87,9 +87,25 @@ export async function criarConta(
   return { email, senha: SENHA, userId: id };
 }
 
-/** Entra pela tela, como gente. É o login de verdade em todos os testes. */
-export async function entrar(page: Page, conta: Conta, proxima = "/"): Promise<void> {
+/**
+ * Entra pela tela, como gente. É o login de verdade em todos os testes.
+ *
+ * Por padrão chega com as boas-vindas já vistas (o cookie que a tela grava ao
+ * "Pular"): os testes que não são sobre elas não precisam atravessá-las. Quem
+ * testa as boas-vindas pede `{ boasVindas: true }`.
+ */
+export async function entrar(
+  page: Page,
+  conta: Conta,
+  proxima = "/",
+  { boasVindas = false }: { boasVindas?: boolean } = {},
+): Promise<void> {
   await page.goto(proxima === "/" ? "/login" : `/login?proxima=${encodeURIComponent(proxima)}`);
+  if (!boasVindas) {
+    await page.context().addCookies([
+      { name: "jornada-boas-vindas", value: "vista", url: new URL(page.url()).origin },
+    ]);
+  }
   await page.getByLabel("E-mail").fill(conta.email);
   await page.getByLabel("Senha").fill(conta.senha);
   await page.getByRole("button", { name: "Entrar" }).click();

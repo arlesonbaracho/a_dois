@@ -21,6 +21,29 @@ import { Chapa } from "./pecas";
 export type EstadoForm = { erro?: string; aviso?: string; email?: string };
 
 /**
+ * Três jornadas do deck abertas na mão: o produto inteiro numa imagem, antes de
+ * qualquer conta existir. Mora na porta e na primeira tela de boas-vindas.
+ *
+ * Cada chapa vai dentro de uma caixa posicionada: a chapa carrega o próprio
+ * `relative`, que venceria um `absolute` passado de fora.
+ */
+export function Leque({ className = "" }: { className?: string }) {
+  return (
+    <div aria-hidden="true" className={`relative mx-auto w-full max-w-[20rem] ${className}`}>
+      <div className="absolute left-2 top-[10%] h-[80%] w-[35%] -rotate-9">
+        <Chapa categoria="viagem" arte="h-[56%]" className="h-full rounded-cartao shadow-carta" />
+      </div>
+      <div className="absolute right-2 top-[10%] h-[80%] w-[35%] rotate-9">
+        <Chapa categoria="casamento" arte="h-[56%]" className="h-full rounded-cartao shadow-carta" />
+      </div>
+      <div className="absolute left-1/2 top-0 z-10 h-[90%] w-[40%] -translate-x-1/2">
+        <Chapa categoria="casa" arte="h-[58%]" className="h-full rounded-cartao shadow-carta" />
+      </div>
+    </div>
+  );
+}
+
+/**
  * A moldura de toda tela de porta: login, cadastro, senha, convite.
  *
  * Carrega a marca e o leque de cartas — três jornadas do deck abertas na mão,
@@ -61,19 +84,7 @@ export function Cartao({
         </span>
         {APP_NAME}
       </p>
-      {/* Cada chapa vai dentro de uma caixa posicionada: a chapa carrega o
-          próprio `relative`, que venceria um `absolute` passado de fora. */}
-      <div aria-hidden="true" className="relative mx-auto my-3 h-40 w-full max-w-[20rem]">
-        <div className="absolute left-2 top-4 h-32 w-28 -rotate-9">
-          <Chapa categoria="viagem" arte="h-[56%]" className="h-full rounded-cartao shadow-carta" />
-        </div>
-        <div className="absolute right-2 top-4 h-32 w-28 rotate-9">
-          <Chapa categoria="casamento" arte="h-[56%]" className="h-full rounded-cartao shadow-carta" />
-        </div>
-        <div className="absolute left-1/2 top-0 z-10 h-36 w-32 -translate-x-1/2">
-          <Chapa categoria="casa" arte="h-[58%]" className="h-full rounded-cartao shadow-carta" />
-        </div>
-      </div>
+      <Leque className="my-3 h-40" />
       <div className="flex flex-1 flex-col gap-6">
         <div>
           <h1 className="max-w-[20ch] text-[28px] font-medium leading-[1.12] tracking-[-0.03em]">

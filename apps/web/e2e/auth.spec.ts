@@ -37,8 +37,9 @@ test.describe("autenticação", () => {
     // escolhe a hora de convidar.
     await expect(page.getByRole("heading", { name: "Comecem por aqui" })).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /Chamar quem divide o plano/ }),
+      page.getByRole("heading", { name: "Chamar quem divide o plano com você" }),
     ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chamar agora" })).toBeVisible();
   });
 
   // O middleware protege por negação padrão: rota que ele não conhece como

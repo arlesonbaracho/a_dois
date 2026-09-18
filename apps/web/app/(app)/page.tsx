@@ -1,7 +1,10 @@
+import { cookies } from "next/headers";
+
 import {
   aportes,
   convitesAtivos,
   membrosDoCasal,
+  meuPedido,
   metas,
   pedidosPendentes,
   urlsDasCapas,
@@ -12,12 +15,14 @@ import {
   coresDoCasal,
   ordemDoAlbum,
   faltaComecar,
+  iniciaisDoCasal,
   ordemEstavel,
   primeirosPassos,
   progressoPercentual,
   sumCents,
 } from "@repo/core";
 
+import { COOKIE_BOAS_VINDAS } from "@/lib/boas-vindas";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 import { Inicio } from "./inicio";
@@ -27,12 +32,13 @@ export default async function Home() {
 
   const usuario = await usuarioAtual(supabase);
 
-  const [membros, listaJornadas, listaAportes, pedidos, ativos] = await Promise.all([
+  const [membros, listaJornadas, listaAportes, pedidos, ativos, meu] = await Promise.all([
     membrosDoCasal(supabase),
     metas(supabase),
     aportes(supabase),
     pedidosPendentes(supabase),
     convitesAtivos(supabase),
+    usuario ? meuPedido(supabase, usuario.id) : Promise.resolve(null),
   ]);
 
   const cores = coresDoCasal(
@@ -124,12 +130,20 @@ export default async function Home() {
     jornadas: listaJornadas.length,
     totalCents,
     minhaFaixa: eu?.income_band ?? null,
+    pedidoEnviado: meu !== null,
   });
+
+  // As boas-vindas são só para casal que ainda não tem nada — quem já usa o
+  // app nunca as vê — e uma vez por navegador.
+  const jaViu = (await cookies()).has(COOKIE_BOAS_VINDAS);
+  const boasVindas = !jaViu && listaJornadas.length === 0 && totalCents === 0;
 
   return (
     <Inicio
       passos={faltaComecar(passos) ? passos : null}
       pessoas={pessoas}
+      minhaInicial={iniciaisDoCasal([eu?.display_name ?? null])}
+      boasVindas={boasVindas}
       mes={agora.toLocaleDateString("pt-BR", { month: "long" })}
       doMesCents={centavosNoMes(
         listaAportes.map((aporte) => ({

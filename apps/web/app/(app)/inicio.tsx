@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useAportes } from "@repo/api";
 import { centavosNoMes, type Passo, rotuloDaCategoria } from "@repo/core";
 
+import { BoasVindas } from "@/components/boas-vindas";
 import { CHAVE_APORTE_ANOTADO, Odometro, useChuva } from "@/components/chuva";
 import {
   AvataresDoCasal,
@@ -16,7 +17,7 @@ import {
   PontoDePessoa,
   campoDe,
 } from "@/components/pecas";
-import { PrimeirosPassos } from "@/components/primeiros-passos";
+import { DeckDeComeco, ProximoPasso } from "@/components/primeiros-passos";
 import type { Fatia } from "@/components/progresso";
 
 type Jornada = {
@@ -54,6 +55,8 @@ function saudacao(pessoas: Pessoa[]): string {
 export function Inicio({
   passos,
   pessoas,
+  minhaInicial,
+  boasVindas,
   mes,
   doMesCents,
   jornadas,
@@ -62,6 +65,9 @@ export function Inicio({
   /** Nulo quando o casal já passou dos primeiros passos. */
   passos: Passo[] | null;
   pessoas: Pessoa[];
+  minhaInicial: string;
+  /** Casal novo que ainda não viu a apresentação neste navegador. */
+  boasVindas: boolean;
   mes: string;
   doMesCents: number;
   jornadas: Jornada[];
@@ -78,6 +84,7 @@ export function Inicio({
   // Pausa enquanto houver foco de teclado aqui dentro — se a carta trocasse
   // com o foco num link dela, o foco cairia no vazio.
   const [comFoco, setComFoco] = useState(false);
+  const [apresentando, setApresentando] = useState(boasVindas);
 
   const contagem = new Map<string, number>();
   for (const jornada of jornadas) {
@@ -219,6 +226,9 @@ export function Inicio({
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-4 px-5 pt-5 lg:max-w-5xl lg:p-10">
       {chuva}
+      {apresentando ? (
+        <BoasVindas inicial={minhaInicial} aoTerminar={() => setApresentando(false)} />
+      ) : null}
 
       <header className="flex flex-col gap-3">
         <div className="flex min-h-11 items-center justify-between gap-3">
@@ -240,7 +250,11 @@ export function Inicio({
         </Link>
       ) : null}
 
-      {passos ? <PrimeirosPassos passos={passos} /> : null}
+      {/* Com jornada no deck, o passo que falta vira uma linha; sem jornada,
+          os passos SÃO o deck, mais abaixo. */}
+      {passos && jornadas.length > 0 ? (
+        <ProximoPasso passos={passos} inicial={minhaInicial} />
+      ) : null}
 
       {jornadas.length > 1 ? (
         <div className="sem-barra -mx-5 flex gap-2 overflow-x-auto px-5 py-0.5 lg:mx-0 lg:flex-wrap lg:px-0">
@@ -373,7 +387,9 @@ export function Inicio({
             Ver todas
           </button>
         </div>
-      ) : passos ? null : (
+      ) : passos ? (
+        <DeckDeComeco passos={passos} inicial={minhaInicial} />
+      ) : (
         <div className="flex flex-col items-start gap-4 py-4">
           <p className="max-w-[22ch] text-[22px] font-medium leading-tight tracking-[-0.02em]">
             Vocês ainda não escolheram o que querem conquistar.

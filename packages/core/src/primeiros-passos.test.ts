@@ -8,6 +8,7 @@ const SOZINHO: FatosDoComeco = {
   jornadas: 0,
   totalCents: 0,
   minhaFaixa: null,
+  pedidoEnviado: false,
 };
 
 const passo = (fatos: FatosDoComeco, id: string) =>
@@ -65,5 +66,35 @@ describe("faltaComecar", () => {
     const pronto = { ...SOZINHO, membros: 2, jornadas: 1, totalCents: 5000 };
     expect(passo(pronto, "faixa").estado).toBe("a-fazer");
     expect(faltaComecar(primeirosPassos(pronto))).toBe(false);
+  });
+});
+
+// O convidado que pediu para entrar está num plano solo. Criar jornada ali é o
+// único jeito de ele mesmo quebrar o próprio pedido: `confirm_invite` recusa
+// plano com movimentação. A lista não pode ensinar esse caminho.
+describe("quem pediu para entrar no plano de alguém", () => {
+  const convidado = { ...SOZINHO, pedidoEnviado: true };
+
+  it("não recebe passo de jornada nem de aporte", () => {
+    expect(primeirosPassos(convidado).map((p) => p.id)).toEqual(["parceiro"]);
+  });
+
+  it("espera, e sabe por que não criar nada ainda", () => {
+    const p = passo(convidado, "parceiro");
+    expect(p.estado).toBe("esperando");
+    expect(p.dica).toMatch(/impede a confirmação/);
+    expect(faltaComecar(primeirosPassos(convidado))).toBe(true);
+  });
+
+  it("depois de confirmado, volta a ser um casal como outro qualquer", () => {
+    const junto = { ...convidado, membros: 2 };
+    expect(primeirosPassos(junto).map((p) => p.id)).toEqual(["parceiro", "jornada", "aporte", "faixa"]);
+  });
+});
+
+describe("os links levam à tela que resolve", () => {
+  it("jornada cria, aporte abre o teclado", () => {
+    expect(passo(SOZINHO, "jornada").href).toBe("/jornadas/nova");
+    expect(passo(SOZINHO, "aporte").href).toBe("/aportes/novo");
   });
 });
